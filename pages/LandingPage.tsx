@@ -171,22 +171,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
          </div>
 
          {/* 3. MAIN CONTENT CONTAINER */}
-         <div className="relative z-10 flex-1 flex flex-col items-center justify-between py-6 px-4 md:px-8 overflow-y-auto">
+         <div className="relative z-10 flex-1 flex flex-col items-center justify-between py-4 px-4 md:px-8 overflow-hidden">
 
             {/* Top Spacer / Title */}
-            <div className="text-center mt-6 mb-8">
-               <h2 className="text-7xl font-ibm-serif font-medium text-slate-900 mb-2 tracking-tight drop-shadow-sm">
+            <div className="text-center mt-2 mb-4">
+               <h2 className="text-5xl font-ibm-serif font-medium text-slate-900 mb-2 tracking-tight drop-shadow-sm">
                   ATLAS
                </h2>
-               <p className="text-lg text-slate-600 font-ibm-sans font-normal max-w-lg mx-auto leading-relaxed">
+               <p className="text-base text-slate-600 font-ibm-sans font-normal max-w-lg mx-auto leading-relaxed">
                   Global Logistics Command Center.
                   <br />
-                  <span className="text-sm opacity-80">Connecting Global Enterprises, SequelString AI, and Supplier Networks.</span>
+                  <span className="text-xs opacity-80">Connecting Global Enterprises, SequelString AI, and Supplier Networks.</span>
                </p>
             </div>
 
             {/* CARD CONTAINER - Centered - REDUCED HEIGHT AND WIDTH */}
-            <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-8 mb-4">
+            <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-3 gap-6 mb-2">
                <PersonaCard
                   role="HITACHI"
                   title="Enterprise & Finance"
