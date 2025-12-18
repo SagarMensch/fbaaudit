@@ -171,7 +171,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
          </div>
 
          {/* 3. MAIN CONTENT CONTAINER */}
-         <div className="relative z-10 flex-1 flex flex-col items-center justify-between py-6 px-12">
+         <div className="relative z-10 flex-1 flex flex-col items-center justify-between py-6 px-4 md:px-8 overflow-y-auto">
 
             {/* Top Spacer / Title */}
             <div className="text-center mt-6 mb-8">
@@ -217,7 +217,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             </div>
 
             {/* FOOTER WIDGETS - Pinned to Bottom Corners - SCALED DOWN */}
-            <div className="w-full flex justify-between items-end mt-auto px-2 pb-2">
+            <div className="w-full max-w-7xl flex flex-wrap justify-center md:justify-between items-end mt-auto px-2 pb-2 gap-4">
 
                {/* Left Widget: Sustainability */}
                <div className="bg-white/90 backdrop-blur border border-slate-200 shadow-sm rounded-sm p-3 w-64 flex flex-col hover:shadow-md transition-shadow">
