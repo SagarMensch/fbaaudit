@@ -488,7 +488,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F3F4F6] font-sans text-gray-900 relative">
+    <div className="flex min-h-[111.11vh] bg-[#F3F4F6] font-sans text-gray-900 relative">
 
       {isSwitchingUser && (
         <div className="fixed inset-0 z-[100] bg-white/95 backdrop-blur-md flex flex-col items-center justify-center animate-fadeIn cursor-wait">
@@ -514,7 +514,7 @@ const App: React.FC = () => {
 
       <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); setSelectedInvoice(null); }} userRole={userRole} activePersona={activePersona} />
 
-      <main className="ml-64 flex-1 flex flex-col h-screen overflow-hidden bg-slate-100">
+      <main className="ml-64 flex-1 flex flex-col h-[111.11vh] overflow-hidden bg-slate-100">
         <header className="h-14 bg-white border-b border-slate-300 flex items-center justify-between px-6 shadow-sm z-50 flex-shrink-0 relative">
           <div className="flex items-center">
             <h1 className="text-sm font-bold text-slate-700 tracking-tight flex items-center mr-6 uppercase">
