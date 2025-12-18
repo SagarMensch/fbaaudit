@@ -1,9 +1,11 @@
-/* Font loaded via index.html to prevent PostCSS fetch errors */
-
+/* Font loaded via index.html or local system */
 @import "tailwindcss";
 
 @theme {
-    --font-sans: 'Libre Franklin', 'Inter', system-ui, sans-serif;
+    /* MAPPING SÖHNE TO INTER */
+    /* Fallback to system fonts to prevent blocking render */
+    --font-sohne: 'Inter', 'Segoe UI', 'Roboto', system-ui, sans-serif;
+
     --color-slate-850: #1e293b;
     --color-slate-900: #0f172a;
     --color-primary: #3b82f6;
@@ -31,11 +33,29 @@ body {
     /* Force no scrollbars */
     background-color: #f1f5f9;
     margin: 0;
-    font-family: 'Libre Franklin', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-        sans-serif;
+
+    /* APPLYING "SÖHNE" STYLE GLOBALLY */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 300;
+    /* Default to Leicht/Buch equivalent */
+    letter-spacing: -0.02em;
+    /* Söhne tight spacing aesthetic */
+
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* HEADINGS: Kraftig / Halbfett aesthetic */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+    /* Semibold/Bold */
+    letter-spacing: -0.04em;
+    /* Tighter tracking for headings */
 }
 
 .font-cursive {

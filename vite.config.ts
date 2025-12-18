@@ -9,6 +9,13 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 3000,
+      proxy: {
+        '/ollama': {
+          target: 'http://localhost:11434',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/ollama/, '')
+        }
+      }
     },
     plugins: [react(), tailwindcss()],
     define: {

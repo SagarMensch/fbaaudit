@@ -1,7 +1,8 @@
 
 import { MOCK_INVOICES, MOCK_RATES, MOCK_BATCHES } from '../constants';
 
-const OLLAMA_API_URL = 'http://localhost:11434/api/generate';
+// Use Vite Proxy path to avoid CORS issues
+const OLLAMA_API_URL = '/ollama/api/generate';
 const MODEL_NAME = 'llama3'; // Default to llama3, user can change if they have mistral etc.
 
 export interface OllamaResponse {
@@ -24,10 +25,24 @@ Current System State:
 - Total Spend Value: ₹${totalValue}
 - Active Contracts: ${MOCK_RATES.length}
 - Payment Batches: ${MOCK_BATCHES.length}
+- Monthly Spend Trend: [45k, 52k, 48k, 61k, 55k, 67k]
+- Payment Flows: [125k, 98k, 145k, 110k]
 
 User Query: ${prompt}
 
-Answer as Vector. Be concise, professional, and use the data provided.
+PROTOCOL:
+1. Answer the query textually first.
+2. IF the user asks for a chart/graph/trend/plot, or if a visualization would help, YOU MUST append a JSON block at the very end.
+Format:
+[[CHART:{
+  "type": "bar" | "pie",
+  "title": "CHART TITLE",
+  "data": [{"name": "Label", "value": 100}, ...]
+}]]
+
+Example:
+"Here is the data."
+[[CHART:{"type": "bar", "title": "EXAMPLE", "data": [{"name": "A", "value": 10}]}]]
     `;
 
         // 2. Call Local Ollama Instance

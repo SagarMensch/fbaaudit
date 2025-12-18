@@ -167,7 +167,35 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
             };
         }
 
-        // 6. UNIVERSAL SEARCH (Fallback for specific entities like "FedEx", "Maersk", "Invoice #")
+        // 6. DEEP DIVE REPORT (AI ANALYSIS)
+        if (lowerInput.includes('report') || lowerInput.includes('summary') || lowerInput.includes('analyze') || lowerInput.includes('analysis')) {
+            // Find all matching data points to feed the AI
+            const relevantInvoices = MOCK_INVOICES.filter(inv =>
+                inv.carrier.toLowerCase().includes(lowerInput) ||
+                inv.invoiceNumber.toLowerCase().includes(lowerInput)
+            );
+            const relevantRates = MOCK_RATES.filter(r =>
+                r.carrier.toLowerCase().includes(lowerInput)
+            );
+
+            // If we found specific data, valid "Report" generation
+            if (relevantInvoices.length > 0 || relevantRates.length > 0) {
+                // Return null here to Fallback to the OLLAMA block below, 
+                // BUT we need to pass this context. 
+                // Since processLocalIntent is synchronous, we can't call async Ollama here easily.
+                // STRATEGY: We will return a special "TRIGGER_AI" message or handle this in handleSend.
+                // Simpler approach: Rewrite handleSend to detect this outcome.
+                return {
+                    id: Date.now().toString(),
+                    text: `__TRIGGER_AI_REPORT__:${JSON.stringify({ invoices: relevantInvoices, rates: relevantRates })}`,
+                    sender: 'ai',
+                    timestamp: new Date(),
+                    intent: 'AI_REPORT'
+                };
+            }
+        }
+
+        // 7. UNIVERSAL SEARCH (Fallback for simple "Find One" lookups)
         // Search Invoices
         const invoiceMatch = MOCK_INVOICES.find(inv =>
             inv.invoiceNumber.toLowerCase().includes(lowerInput) ||
@@ -223,6 +251,58 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
                 const localResponse = processLocalIntent(newUserMessage.text);
 
                 if (localResponse) {
+                    // CHECK FOR AI REPORT TRIGGER
+                    if (localResponse.text.startsWith('__TRIGGER_AI_REPORT__:')) {
+                        const dataContext = JSON.parse(localResponse.text.replace('__TRIGGER_AI_REPORT__:', ''));
+
+                        // GENERATE RICHER PROMPT FOR OLLAMA
+                        const richPrompt = `
+User Query: "${newUserMessage.text}"
+
+I have retrieved the following specific data from the system:
+INVOICES: ${JSON.stringify(dataContext.invoices)}
+RATE CARDS: ${JSON.stringify(dataContext.rates)}
+
+INSTRUCTIONS:
+Please write a comprehensive, professional Logistics Report based EXACTLY on the invoices and rates provided above.
+ Analyze the spend, carriers involved, and any status issues (pending vs paid).
+ Do not make up data. Use the JSON provided using specific Invoice Numbers and Amounts.
+`;
+                        // Call Ollama with the Rich Prompt
+                        if (useOllama) {
+                            const reportText = await generateOllamaResponse(richPrompt);
+                            if (reportText) {
+                                let finalText = reportText;
+                                let chartData = null;
+                                let chartType = null;
+                                let chartTitle = null;
+
+                                const chartRegex = /\[\[CHART:(.*?)\]\]/s;
+                                const match = reportText.match(chartRegex);
+                                if (match && match[1]) {
+                                    try {
+                                        const chartConfig = JSON.parse(match[1]);
+                                        chartData = chartConfig.data;
+                                        chartType = chartConfig.type;
+                                        chartTitle = chartConfig.title;
+                                        finalText = reportText.replace(chartRegex, '').trim();
+                                    } catch (e) { }
+                                }
+
+                                const aiMsg: Message = {
+                                    id: Date.now().toString(),
+                                    text: finalText,
+                                    sender: 'ai',
+                                    timestamp: new Date(),
+                                    chartData, chartType: chartType as any, chartTitle
+                                };
+                                setMessages(prev => [...prev, aiMsg]);
+                                setIsLoading(false);
+                                return;
+                            }
+                        }
+                    }
+
                     setMessages(prev => [...prev, localResponse]);
                     setIsLoading(false);
                     return;
@@ -230,13 +310,38 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
 
                 // 2. TRY OLLAMA (Real LLM)
                 if (useOllama) {
-                    const ollamaText = await generateOllamaResponse(newUserMessage.text);
-                    if (ollamaText) {
+                    const rawResponse = await generateOllamaResponse(newUserMessage.text);
+                    if (rawResponse) {
+                        let finalText = rawResponse;
+                        let chartData = null;
+                        let chartType = null;
+                        let chartTitle = null;
+
+                        // PARSE DYNAMIC CHART PROTOCOL
+                        const chartRegex = /\[\[CHART:(.*?)\]\]/s;
+                        const match = rawResponse.match(chartRegex);
+
+                        if (match && match[1]) {
+                            try {
+                                const chartConfig = JSON.parse(match[1]);
+                                chartData = chartConfig.data;
+                                chartType = chartConfig.type;
+                                chartTitle = chartConfig.title;
+                                // Remove the protocol text from the user display
+                                finalText = rawResponse.replace(chartRegex, '').trim();
+                            } catch (e) {
+                                console.error("Failed to parse AI chart data", e);
+                            }
+                        }
+
                         const ollamaResponse: Message = {
                             id: (Date.now() + 1).toString(),
-                            text: ollamaText, // Real AI text
+                            text: finalText,
                             sender: 'ai',
-                            timestamp: new Date()
+                            timestamp: new Date(),
+                            chartData,
+                            chartType: chartType as any,
+                            chartTitle
                         };
                         setMessages(prev => [...prev, ollamaResponse]);
                         setIsLoading(false);
