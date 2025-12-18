@@ -104,6 +104,37 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
             };
         }
 
+        // 6. UNIVERSAL SEARCH (Fallback for specific entities like "FedEx", "Maersk", "Invoice #")
+        // Search Invoices
+        const invoiceMatch = MOCK_INVOICES.find(inv =>
+            inv.invoiceNumber.toLowerCase().includes(lowerInput) ||
+            inv.carrier.toLowerCase().includes(lowerInput) ||
+            inv.id.toLowerCase().includes(lowerInput)
+        );
+        if (invoiceMatch) {
+            return {
+                id: Date.now().toString(),
+                text: `**Found Invoice #${invoiceMatch.invoiceNumber}**\n- Carrier: ${invoiceMatch.carrier}\n- Amount: ₹${invoiceMatch.amount.toLocaleString()}\n- Status: **${invoiceMatch.status}**\n- Date: ${invoiceMatch.date}`,
+                sender: 'ai',
+                timestamp: new Date()
+            };
+        }
+
+        // Search Rates
+        const rateMatch = MOCK_RATES.find(rate =>
+            rate.carrier.toLowerCase().includes(lowerInput) ||
+            rate.origin.toLowerCase().includes(lowerInput) ||
+            rate.destination.toLowerCase().includes(lowerInput)
+        );
+        if (rateMatch) {
+            return {
+                id: Date.now().toString(),
+                text: `**Found Contract Rate for ${rateMatch.carrier}**\n- Route: ${rateMatch.origin} -> ${rateMatch.destination}\n- Rate: ₹${rateMatch.rate.toLocaleString()}\n- Valid Until: ${rateMatch.validTo}`,
+                sender: 'ai',
+                timestamp: new Date()
+            };
+        }
+
         return null;
     };
 
