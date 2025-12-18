@@ -72,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, userR
   const isVendor = userRole === 'VENDOR';
 
   return (
-    <div className="w-64 bg-[#161616] border-r border-gray-800 flex flex-col h-screen fixed left-0 top-0 z-50 font-sans shadow-2xl">
+    <div className="w-64 bg-[#161616] border-r border-gray-800 flex flex-col h-[111.11vh] fixed left-0 top-0 z-50 font-sans shadow-2xl">
       {/* Brand Header */}
       <div className="h-16 flex items-center px-6 border-b border-gray-800 bg-[#161616]">
         {isVendor ? (

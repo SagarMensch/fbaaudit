@@ -51,7 +51,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
    };
 
    return (
-      <div className="h-screen w-full bg-slate-50 flex flex-col relative overflow-hidden font-ibm-sans text-black">
+      <div className="h-[111.11vh] w-full bg-slate-50 flex flex-col relative overflow-hidden font-ibm-sans text-black">
 
          {/* 1. BACKGROUND: AESTHETIC STEEL GLOBE (Subtle Architectural Style) */}
          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none bg-gradient-to-b from-white to-slate-100">
