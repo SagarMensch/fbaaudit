@@ -174,14 +174,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
          <div className="relative z-10 flex-1 flex flex-col items-center justify-between py-4 px-4 md:px-8 overflow-hidden">
 
             {/* Top Spacer / Title */}
-            <div className="text-center mt-2 mb-4">
-               <h2 className="text-5xl font-ibm-serif font-medium text-slate-900 mb-2 tracking-tight drop-shadow-sm">
+            <div className="text-center mt-6 mb-8">
+               <h2 className="text-7xl font-ibm-serif font-medium text-slate-900 mb-2 tracking-tight drop-shadow-sm">
                   ATLAS
                </h2>
-               <p className="text-base text-slate-600 font-ibm-sans font-normal max-w-lg mx-auto leading-relaxed">
+               <p className="text-lg text-slate-600 font-ibm-sans font-normal max-w-lg mx-auto leading-relaxed">
                   Global Logistics Command Center.
                   <br />
-                  <span className="text-xs opacity-80">Connecting Global Enterprises, SequelString AI, and Supplier Networks.</span>
+                  <span className="text-sm opacity-80">Connecting Global Enterprises, SequelString AI, and Supplier Networks.</span>
                </p>
             </div>
 
@@ -322,7 +322,7 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ role, title, subtitle, icon, 
          className={`
         ${styles[theme]}
         relative overflow-hidden cursor-pointer
-        rounded-sm p-6 h-56
+        rounded-sm p-6 h-64
         transition-all duration-300
         group
         shadow-lg hover:shadow-2xl hover:-translate-y-1
