@@ -322,7 +322,7 @@ const PersonaCard: React.FC<PersonaCardProps> = ({ role, title, subtitle, icon, 
          className={`
         ${styles[theme]}
         relative overflow-hidden cursor-pointer
-        rounded-sm p-6 h-64
+        rounded-sm p-6 h-56
         transition-all duration-300
         group
         shadow-lg hover:shadow-2xl hover:-translate-y-1
