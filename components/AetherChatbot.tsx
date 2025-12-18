@@ -15,7 +15,7 @@ interface Message {
 }
 
 import { generateAIResponse } from '../services/aiService';
-import { MOCK_INVOICES, SPEND_DATA, KPIS } from '../constants';
+import { MOCK_INVOICES, SPEND_DATA, KPIS, MOCK_RATES, MOCK_BATCHES } from '../constants';
 import { InvoiceStatus } from '../types';
 
 interface AetherChatbotProps {
@@ -57,11 +57,11 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
             };
         }
 
-        // 2. PLATFORM INFO / "WHAT IS THIS"
-        if (lowerInput.includes('what is this') || lowerInput.includes('platform') || lowerInput.includes('demo')) {
+        // 2. PLATFORM INFO / "WHAT IS THIS" / "EVERYTHING"
+        if (lowerInput.includes('what is') || lowerInput.includes('platform') || lowerInput.includes('demo') || lowerInput.includes('everything')) {
             return {
                 id: Date.now().toString(),
-                text: "This is the **SequelString AI Control Tower** (v3.0).\n\nIt is an enterprise logistics platform that integrates:\n1. **Contract Master**: Digital rate management.\n2. **Invoice Workbench**: Auto-audit & 3-way matching.\n3. **Spot Auction**: Real-time freight bidding.\n4. **The Blackbook**: Vendor performance scoring.\n\nI am Vector, the AI engine powering the data analysis.",
+                text: `This is the **SequelString AI Control Tower** (v3.0).\n\n**Live System Status:**\n- **Contracts:** ${MOCK_RATES.length} Active Rate Cards\n- **Invoices:** ${MOCK_INVOICES.length} Processed (Last 30 Days)\n- **Payments:** ${MOCK_BATCHES.length} Batches Sent to Bank\n- **Vendors:** 3 Strategic Partners Integrated\n\nI am monitoring all logistics and finance flows in real-time.`,
                 sender: 'ai',
                 timestamp: new Date()
             };
@@ -81,12 +81,24 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
             };
         }
 
-        // 4. APPROVED / PAID STATUS
-        if (lowerInput.includes('approved') || lowerInput.includes('paid')) {
+        // 4. APPROVED / PAID STATUS / PAYMENT STATUS
+        if (lowerInput.includes('approved') || lowerInput.includes('paid') || lowerInput.includes('payment status')) {
             const paidCount = MOCK_INVOICES.filter(inv => inv.status === InvoiceStatus.PAID).length;
+            const batches = MOCK_BATCHES.length;
             return {
                 id: Date.now().toString(),
-                text: `We have successfully processed and paid **${paidCount}** invoices this quarter. The payment pipeline is healthy.`,
+                text: `Payment Pipeline is **Active**.\n\n- **${paidCount}** Invoices Paid\n- **${batches}** Batches processed this week\n- Next Payment Run: Tomorrow, 10:00 AM IST.`,
+                sender: 'ai',
+                timestamp: new Date()
+            };
+        }
+
+        // 5. CONTRACTS / RATES
+        if (lowerInput.includes('contract') || lowerInput.includes('rate') || lowerInput.includes('agreement')) {
+            const activeContracts = MOCK_RATES.length;
+            return {
+                id: Date.now().toString(),
+                text: `There are **${activeContracts} Active Contracts** loaded in the Master.\n\nKey Partners: Maersk (Ocean), TCI Express (Road). All rates are live and being used for audit.`,
                 sender: 'ai',
                 timestamp: new Date()
             };
