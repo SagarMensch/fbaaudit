@@ -11,7 +11,10 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       watch: {
         ignored: ['**/backend/**', '**/.gemini/**', '**/*.json', '**/*.log']
-      }
+      },
+    },
+    build: {
+      chunkSizeWarningLimit: 1600,
     },
     plugins: [react(), tailwindcss()],
     define: {
