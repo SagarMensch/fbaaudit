@@ -31,6 +31,7 @@ export const InvoiceIngestion: React.FC<IngestionProps> = ({ onBack, onSubmit, u
   const [activeField, setActiveField] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formValues, setFormValues] = useState({
@@ -70,6 +71,9 @@ export const InvoiceIngestion: React.FC<IngestionProps> = ({ onBack, onSubmit, u
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Store the file for later submission
+    setSelectedFile(file);
 
     // 1. Show scanning state
     setIngestionStep('scanning');
@@ -182,11 +186,64 @@ export const InvoiceIngestion: React.FC<IngestionProps> = ({ onBack, onSubmit, u
     }
   };
 
-  const handleSubmitProcess = () => {
+  const handleSubmitProcess = async () => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      onSubmit(); // Call parent submit
-    }, 2000);
+
+    try {
+      // Prepare FormData for multipart upload
+      const formData = new FormData();
+
+      // Append the file
+      if (selectedFile) {
+        formData.append('file', selectedFile);
+      }
+
+      // Prepare invoice data object matching backend expectations
+      const invoiceData = {
+        id: `INV-${Date.now()}`,
+        invoiceNumber: formValues.invoiceNumber,
+        date: formValues.date,
+        vendor: formValues.vendor,
+        totalAmount: formValues.totalAmount,
+        currency: formValues.currency || 'INR',
+        origin: formValues.origin,
+        destination: formValues.destination,
+        bolNumber: formValues.bolNumber,
+        lineItems: [
+          { description: 'Base Freight', amount: parseFloat(formValues.totalAmount) - parseFloat(formValues.lineItem2Amount || '0') },
+          { description: formValues.lineItem2Desc, code: formValues.lineItem2Code, amount: parseFloat(formValues.lineItem2Amount || '0') }
+        ]
+      };
+
+      formData.append('data', JSON.stringify(invoiceData));
+
+      // POST to Flask backend
+      const response = await fetch('http://localhost:5000/api/invoices/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('Upload failed:', error);
+        alert(`Upload failed: ${error.error || 'Unknown error'}`);
+        setIsSubmitting(false);
+        return;
+      }
+
+      const result = await response.json();
+      console.log('Upload successful:', result);
+
+      // Navigate back after success
+      setTimeout(() => {
+        onSubmit();
+      }, 500);
+
+    } catch (error) {
+      console.error('Network error during upload:', error);
+      alert('Network error. Please ensure the backend server is running.');
+      setIsSubmitting(false);
+    }
   };
 
   // --- SUB-COMPONENTS ---

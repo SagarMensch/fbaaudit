@@ -1,0 +1,166 @@
+# Freight Audit & Settlement Platform | Integrated Process Workflow
+# Theme: Industrial/FinTech (Black/Blue/Neon)
+# Focus: The "Life of an Invoice" & User Journey
+
+direction: down
+
+vars: {
+  d2-config: {
+    layout-engine: elk
+    theme: 200
+  }
+}
+
+classes: {
+  stage_container: {
+    style: {
+      stroke: "#0F62FE"
+      stroke-width: 2
+      fill: "#050A14"
+      font-color: "#0F62FE"
+      font-size: 16
+      shadow: true
+      border-radius: 8
+    }
+  }
+  
+  process_step: {
+    style: {
+      stroke: "#FFFFFF"
+      stroke-width: 2
+      fill: "#1A1A1A"
+      font-color: "#FFFFFF"
+      font-size: 14
+      font-family: mono
+    }
+  }
+  
+  ai_agent: {
+    style: {
+      stroke: "#00FFC8"
+      stroke-width: 2
+      fill: "#001A14"
+      font-color: "#00FFC8"
+      font-weight: bold
+      shape: hexagon
+    }
+  }
+  
+  report_output: {
+    style: {
+      stroke: "#FF0055" 
+      stroke-width: 2
+      fill: "#1A0505"
+      font-color: "#FF0055"
+      shape: document
+    }
+  }
+
+  connection_flow: {
+    style: {
+      stroke: "#0F62FE"
+      stroke-width: 2
+    }
+  }
+}
+
+# --- 1. INGESTION & PRE-PROCESSING ---
+Stage_Ingestion: {
+  label: "1. DATA INGESTION & VALIDATION"
+  class: stage_container
+  
+  Inputs: {
+    shape: parallelogram
+    Email: "Email PDF"
+    Portal: "Vendor Portal Upload"
+    EDI: "EDI 210/810 Stream"
+  }
+  
+  ValidationEngine: {
+    label: "Pre-Audit Checks"
+    class: process_step
+    
+    Duplicates: "Duplicate Check\n(Last 30 Days)"
+    TaxCheck: "India Tax Engine\n(GST / TDS / RCM)"
+    Sanity: "Master Data Val\n(Vendor/Currency)"
+  }
+}
+
+# --- 2. INTELLIGENT AUDIT CORE ---
+Stage_Audit: {
+  label: "2. INTELLIGENT AUDIT (THE BRAIN)"
+  class: stage_container
+  
+  AetherCore: {
+    label: "Aether AI Vector"
+    class: ai_agent
+    description: "Orchestrates Matching logic"
+  }
+  
+  Engines: {
+    style: { stroke: "none"; fill: "transparent" }
+    
+    Match3Way: "3-Way Match\n(Inv vs PO vs POD)" { class: process_step }
+    RateEngine: "Contract Rate Engine\n(Global RC-2025)" { class: process_step }
+    ParcelAudit: "Parcel Audit\n(GSR / Dim Weight)" { class: process_step }
+  }
+  
+  GL_Coding: "Auto GL Allocation\n(AI Predicted Segments)" { class: process_step }
+}
+
+# --- 3. EXCEPTION & RESOLUTION ---
+Stage_Resolution: {
+  label: "3. EXCEPTION MANAGEMENT"
+  class: stage_container
+  
+  DisputeChat: "Collaborative Dispute Chat\n(Vendor <-> Auditor)" { class: process_step }
+  Workflow: "Approval Workflow\n(Level 1 -> Level 2)" { class: process_step }
+}
+
+# --- 4. ANALYTICS & OUTPUTS ---
+Stage_Reporting: {
+  label: "4. COMPREHENSIVE REPORTING"
+  class: stage_container
+  
+  Executive_Dash: "Executive Dashboard\n(Spend Velocity)" { class: report_output }
+  
+  Deep_Dives: {
+    style: { stroke: "none"; fill: "transparent" }
+    VendorCost: "Vendor Scorecard\n(Cost & Quality)" { class: report_output }
+    ContractUtil: "Contract Utilization\n(% Spend on Contract)" { class: report_output }
+    Exceptions: "Exception Analysis\n(Root Cause)" { class: report_output }
+  }
+}
+
+# --- CONNECTIONS ---
+
+# Ingestion Flow
+Stage_Ingestion.Inputs -> Stage_Ingestion.ValidationEngine: "Raw Payload" { class: connection_flow }
+Stage_Ingestion.ValidationEngine -> Stage_Audit.AetherCore: "Clean Data" { class: connection_flow }
+
+# Audit Logic
+Stage_Audit.AetherCore -> Stage_Audit.Engines.Match3Way: "Orchestrate" { style: { stroke-dash: 3 } }
+Stage_Audit.AetherCore -> Stage_Audit.Engines.RateEngine: "Fetch Rates" { style: { stroke-dash: 3 } }
+Stage_Audit.Engines.Match3Way -> Stage_Audit.GL_Coding: "Match Verified" { class: connection_flow }
+
+# Exception Path
+Stage_Audit.Engines.Match3Way -> Stage_Resolution.DisputeChat: "Variance > Tolerance" { 
+  style: { stroke: "#FF0055"; label: "Discrepancy" } 
+}
+Stage_Resolution.DisputeChat -> Stage_Resolution.Workflow: "Resolved/Force Approve"
+
+# Reporting Data Feeds
+Stage_Audit.GL_Coding -> Stage_Reporting.Executive_Dash: "Financial Post"
+Stage_Audit.Engines.RateEngine -> Stage_Reporting.Deep_Dives.ContractUtil: "Usage Stats"
+Stage_Resolution.DisputeChat -> Stage_Reporting.Deep_Dives.Exceptions: "Dispute Logs"
+Stage_Ingestion.ValidationEngine.Duplicates -> Stage_Reporting.Deep_Dives.VendorCost: "Quality Metrics"
+
+# Global Styles
+global: {
+  style: {
+    background: "#000000"
+    font-color: "#FFFFFF"
+    stroke: "#FFFFFF"
+    font-size: 16
+  }
+}

@@ -1,0 +1,8 @@
+Date,Reference,Description,Amount
+2024-12-28,NEFT-TCI-001,Payment to TCI Express - INV-2024-001,-12500.00
+2024-12-28,NEFT-MAERSK-002,Payment to Maersk Line - Freight Bill,-45000.00
+2024-12-29,RTGS-SAFE-003,Payment to Safexpress Logistics,-28750.00
+2024-12-29,IMPS-DHL-004,Payment to DHL Express India,-8900.00
+2024-12-30,NEFT-GATI-005,Payment to Gati-KWE - December Invoice,-15200.00
+2024-12-30,BANK-FEE-001,Bank Transfer Fee,-25.00
+2024-12-30,BANK-FEE-002,RTGS Charges,-50.00

@@ -32,6 +32,24 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
     const [useOllama, setUseOllama] = useState(true); // Default to trying Ollama
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    // DETECT CLOUD VS LOCAL ENVIRONMENT
+    useEffect(() => {
+        const hostname = window.location.hostname;
+        if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+            console.warn("Running in Cloud Environment. Disabling Local Ollama.");
+            setUseOllama(false);
+            setMessages(prev => [
+                {
+                    id: 'sys-1',
+                    text: "**SYSTEM NOTICE:** Cloud Environment Detected.\nLocal AI (Ollama) is unavailable here.\n\nRunning in **Simulation Mode** (Rule-Based only). To use Real AI, run the app continuously in VS Code (Localhost).",
+                    sender: 'ai',
+                    timestamp: new Date()
+                },
+                ...prev
+            ]);
+        }
+    }, []);
+
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -103,6 +121,25 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
             };
         }
 
+        // 4. PAYMENT GRAPH (Rule-Based Fallback)
+        if ((lowerInput.includes('payment') || lowerInput.includes('paid')) && (lowerInput.includes('graph') || lowerInput.includes('chart'))) {
+            const paymentData = [
+                { name: 'Wk 40', value: 125000 },
+                { name: 'Wk 41', value: 98000 },
+                { name: 'Wk 42', value: 145000 },
+                { name: 'Wk 43', value: 110000 },
+            ];
+            return {
+                id: Date.now().toString(),
+                text: "Generating Engineering Schematic: **Weekly Payment Outflow**.",
+                sender: 'ai',
+                timestamp: new Date(),
+                chartType: 'bar',
+                chartTitle: 'PAYMENT OUTFLOW (INR)',
+                chartData: paymentData
+            };
+        }
+
         // --- STANDARD INTENTS (Prioritized if no graph requested) ---
 
         // 1. PENDING INVOICES
@@ -157,7 +194,7 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
         }
 
         // 5. CONTRACTS / RATES
-        if (lowerInput.includes('contract') || lowerInput.includes('rate') || lowerInput.includes('agreement')) {
+        if (lowerInput.includes('contract') || lowerInput.includes('rate') || lowerInput.includes('agreement') || (lowerInput.includes('active') && lowerInput.includes('total'))) {
             const activeContracts = MOCK_RATES.length;
             return {
                 id: Date.now().toString(),
@@ -196,34 +233,36 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
         }
 
         // 7. UNIVERSAL SEARCH (Fallback for simple "Find One" lookups)
-        // Search Invoices
-        const invoiceMatch = MOCK_INVOICES.find(inv =>
-            inv.invoiceNumber.toLowerCase().includes(lowerInput) ||
-            inv.carrier.toLowerCase().includes(lowerInput) ||
-            inv.id.toLowerCase().includes(lowerInput)
-        );
-        if (invoiceMatch) {
-            return {
-                id: Date.now().toString(),
-                text: `**Found Invoice #${invoiceMatch.invoiceNumber}**\n- Carrier: ${invoiceMatch.carrier}\n- Amount: ₹${invoiceMatch.amount.toLocaleString()}\n- Status: **${invoiceMatch.status}**\n- Date: ${invoiceMatch.date}`,
-                sender: 'ai',
-                timestamp: new Date()
-            };
-        }
+        // Search Invoices - Only if input is specific enough (> 2 chars)
+        if (lowerInput.length > 2) {
+            const invoiceMatch = MOCK_INVOICES.find(inv =>
+                inv.invoiceNumber.toLowerCase().includes(lowerInput) ||
+                inv.carrier.toLowerCase().includes(lowerInput) ||
+                inv.id.toLowerCase().includes(lowerInput)
+            );
+            if (invoiceMatch) {
+                return {
+                    id: Date.now().toString(),
+                    text: `**Found Invoice #${invoiceMatch.invoiceNumber}**\n- Carrier: ${invoiceMatch.carrier}\n- Amount: ₹${invoiceMatch.amount.toLocaleString()}\n- Status: **${invoiceMatch.status}**\n- Date: ${invoiceMatch.date}`,
+                    sender: 'ai',
+                    timestamp: new Date()
+                };
+            }
 
-        // Search Rates
-        const rateMatch = MOCK_RATES.find(rate =>
-            rate.carrier.toLowerCase().includes(lowerInput) ||
-            rate.origin.toLowerCase().includes(lowerInput) ||
-            rate.destination.toLowerCase().includes(lowerInput)
-        );
-        if (rateMatch) {
-            return {
-                id: Date.now().toString(),
-                text: `**Found Contract Rate for ${rateMatch.carrier}**\n- Route: ${rateMatch.origin} -> ${rateMatch.destination}\n- Rate: ₹${rateMatch.rate.toLocaleString()}\n- Valid Until: ${rateMatch.validTo}`,
-                sender: 'ai',
-                timestamp: new Date()
-            };
+            // Search Rates
+            const rateMatch = MOCK_RATES.find(rate =>
+                rate.carrier.toLowerCase().includes(lowerInput) ||
+                rate.origin.toLowerCase().includes(lowerInput) ||
+                rate.destination.toLowerCase().includes(lowerInput)
+            );
+            if (rateMatch) {
+                return {
+                    id: Date.now().toString(),
+                    text: `**Found Contract Rate for ${rateMatch.carrier}**\n- Route: ${rateMatch.origin} -> ${rateMatch.destination}\n- Rate: ₹${rateMatch.rate.toLocaleString()}\n- Valid Until: ${rateMatch.validTo}`,
+                    sender: 'ai',
+                    timestamp: new Date()
+                };
+            }
         }
 
         return null;
@@ -243,127 +282,58 @@ export const AetherChatbot: React.FC<AetherChatbotProps> = ({ onAction }) => {
         setInputValue('');
         setIsLoading(true);
 
-        // DELAY SIMULATION FOR REALISM OR OLLAMA LATENCY
-        setTimeout(async () => {
-            try {
-                // 1. TRY LOCAL INTELLIGENCE (Charts & Specific Lookups) FIRST
-                // This ensures charts are always generated by our React code, which LLM can't do easily.
-                const localResponse = processLocalIntent(newUserMessage.text);
+        try {
+            // CALL BACKEND RAG API
+            const response = await fetch('http://localhost:5000/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: newUserMessage.text })
+            });
 
-                if (localResponse) {
-                    // CHECK FOR AI REPORT TRIGGER
-                    if (localResponse.text.startsWith('__TRIGGER_AI_REPORT__:')) {
-                        const dataContext = JSON.parse(localResponse.text.replace('__TRIGGER_AI_REPORT__:', ''));
+            const data = await response.json();
 
-                        // GENERATE RICHER PROMPT FOR OLLAMA
-                        const richPrompt = `
-User Query: "${newUserMessage.text}"
-
-I have retrieved the following specific data from the system:
-INVOICES: ${JSON.stringify(dataContext.invoices)}
-RATE CARDS: ${JSON.stringify(dataContext.rates)}
-
-INSTRUCTIONS:
-Please write a comprehensive, professional Logistics Report based EXACTLY on the invoices and rates provided above.
- Analyze the spend, carriers involved, and any status issues (pending vs paid).
- Do not make up data. Use the JSON provided using specific Invoice Numbers and Amounts.
-`;
-                        // Call Ollama with the Rich Prompt
-                        if (useOllama) {
-                            const reportText = await generateOllamaResponse(richPrompt);
-                            if (reportText) {
-                                let finalText = reportText;
-                                let chartData = null;
-                                let chartType = null;
-                                let chartTitle = null;
-
-                                const chartRegex = /\[\[CHART:(.*?)\]\]/s;
-                                const match = reportText.match(chartRegex);
-                                if (match && match[1]) {
-                                    try {
-                                        const chartConfig = JSON.parse(match[1]);
-                                        chartData = chartConfig.data;
-                                        chartType = chartConfig.type;
-                                        chartTitle = chartConfig.title;
-                                        finalText = reportText.replace(chartRegex, '').trim();
-                                    } catch (e) { }
-                                }
-
-                                const aiMsg: Message = {
-                                    id: Date.now().toString(),
-                                    text: finalText,
-                                    sender: 'ai',
-                                    timestamp: new Date(),
-                                    chartData, chartType: chartType as any, chartTitle
-                                };
-                                setMessages(prev => [...prev, aiMsg]);
-                                setIsLoading(false);
-                                return;
-                            }
-                        }
-                    }
-
-                    setMessages(prev => [...prev, localResponse]);
-                    setIsLoading(false);
-                    return;
-                }
-
-                // 2. TRY OLLAMA (Real LLM)
-                if (useOllama) {
-                    const rawResponse = await generateOllamaResponse(newUserMessage.text);
-                    if (rawResponse) {
-                        let finalText = rawResponse;
-                        let chartData = null;
-                        let chartType = null;
-                        let chartTitle = null;
-
-                        // PARSE DYNAMIC CHART PROTOCOL
-                        const chartRegex = /\[\[CHART:(.*?)\]\]/s;
-                        const match = rawResponse.match(chartRegex);
-
-                        if (match && match[1]) {
-                            try {
-                                const chartConfig = JSON.parse(match[1]);
-                                chartData = chartConfig.data;
-                                chartType = chartConfig.type;
-                                chartTitle = chartConfig.title;
-                                // Remove the protocol text from the user display
-                                finalText = rawResponse.replace(chartRegex, '').trim();
-                            } catch (e) {
-                                console.error("Failed to parse AI chart data", e);
-                            }
-                        }
-
-                        const ollamaResponse: Message = {
-                            id: (Date.now() + 1).toString(),
-                            text: finalText,
-                            sender: 'ai',
-                            timestamp: new Date(),
-                            chartData,
-                            chartType: chartType as any,
-                            chartTitle
-                        };
-                        setMessages(prev => [...prev, ollamaResponse]);
-                        setIsLoading(false);
-                        return;
-                    }
-                }
-
-                // 3. FALLBACK TO MOCK AI (If Ollama fails or is off)
-                const genericResponse: Message = {
-                    id: (Date.now() + 1).toString(),
-                    text: "I am analyzing that specific data point. Please refine your query to 'Pending Invoices', 'Total Spend', or 'Platform Overview' for precise real-time analytics.\n\n(Ollama connection unavailable).",
+            if (data.error) {
+                // Handle Backend Error
+                setMessages(prev => [...prev, {
+                    id: Date.now().toString(),
+                    text: `SYSTEM ERROR: ${data.message || data.error}`,
                     sender: 'ai',
                     timestamp: new Date()
-                };
-                setMessages(prev => [...prev, genericResponse]);
-
-            } catch (error) {
-                // ... error handling
-            } finally {
-                setIsLoading(false);
+                }]);
+                return;
             }
-        }, 500);
+
+            // Construct AI Message from JSON response
+            const aiMessage: Message = {
+                id: Date.now().toString(),
+                text: data.message || "Data processed.",
+                sender: 'ai',
+                timestamp: new Date(),
+                chartData: data.chartData,
+                chartType: data.chartType,
+                chartTitle: data.chartTitle,
+                intent: data.intent,
+                actionResult: data.actionResult
+            };
+
+            setMessages(prev => [...prev, aiMessage]);
+
+            // Execute Intent if requested (e.g., Approve Invoice)
+            if (data.intent === 'APPROVE_INVOICE' && data.entityId && onAction) {
+                onAction('APPROVE', data.entityId);
+            }
+
+        } catch (error) {
+            console.error("Chat Error:", error);
+            setMessages(prev => [...prev, {
+                id: Date.now().toString(),
+                text: "CRITICAL FAILURE: Unable to reach Neural Core (Backend API). Check connection.",
+                sender: 'ai',
+                timestamp: new Date()
+            }]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

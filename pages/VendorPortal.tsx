@@ -1,12 +1,12 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
    UploadCloud, DollarSign, FileText, CheckCircle, Clock, AlertCircle,
    ArrowRight, ChevronRight, Activity, Calendar, ShieldAlert, CreditCard,
    Search, Filter, ExternalLink, RefreshCw, Bell, ArrowLeft, MessageSquare, Send, X, ChevronDown, Paperclip
 } from 'lucide-react';
-import { MOCK_INVOICES } from '../constants';
+// REMOVED: import { MOCK_INVOICES } from '../constants';
 import { Invoice, InvoiceStatus } from '../types';
 
 interface VendorPortalProps {
@@ -19,51 +19,56 @@ interface VendorPortalProps {
 export const VendorPortal: React.FC<VendorPortalProps> = ({ invoices, onNavigate, onSelectInvoice, onUpdateDispute }) => {
    const [view, setView] = useState<'dashboard' | 'invoices'>('dashboard');
    const [filterStatus, setFilterStatus] = useState<string>('ALL');
-   const [searchQuery, setSearchQuery] = useState(''); // Added Search State
+   const [searchQuery, setSearchQuery] = useState('');
    const [showSupportModal, setShowSupportModal] = useState(false);
    const [toast, setToast] = useState<{ msg: string, type: 'success' | 'info' } | null>(null);
    const [notificationsRead, setNotificationsRead] = useState(false);
+   const [dbInvoices, setDbInvoices] = useState<Invoice[]>([]);
+   const [loading, setLoading] = useState(true);
 
    // Dispute Modal State
    const [isDisputeModalOpen, setIsDisputeModalOpen] = useState(false);
    const [selectedDisputeInvoice, setSelectedDisputeInvoice] = useState<Invoice | null>(null);
    const [justification, setJustification] = useState('');
 
-   // We'll use the invoices from props
-   const allVendorInvoices = [
-      ...invoices,
-      // Keep dummy data for UI feel until fully dynamic
-      {
-         id: 'INV-PEND-001',
-         invoiceNumber: '9982771-A',
-         carrier: 'Maersk Line',
-         origin: 'Shanghai, CN',
-         destination: 'Long Beach, US',
-         amount: 2925.00,
-         currency: 'USD',
-         date: '2025-11-26',
-         status: InvoiceStatus.PENDING,
-         variance: 0,
-         reason: 'Awaiting POD',
-         matchResults: { rate: 'MATCH', delivery: 'MISSING', unit: 'MATCH' }
-      } as any,
-      {
-         id: 'INV-PAID-992',
-         invoiceNumber: '709113',
-         carrier: 'Maersk Line',
-         origin: 'Rotterdam, NL',
-         destination: 'New York, US',
-         amount: 14500.00,
-         currency: 'USD',
-         date: '2025-10-15',
-         status: InvoiceStatus.PAID,
-         variance: 0,
-         reason: 'Paid',
-         matchResults: { rate: 'MATCH', delivery: 'MATCH', unit: 'MATCH' }
-      } as any
-   ];
+   // Fetch invoices from API on component mount
+   useEffect(() => {
+      const fetchInvoices = async () => {
+         try {
+            const response = await fetch('http://localhost:8000/api/invoices');
+            if (response.ok) {
+               const data = await response.json();
+               // Map API response to Invoice type
+               const mappedInvoices = data.invoices?.map((inv: any) => ({
+                  id: inv.id,
+                  invoiceNumber: inv.invoiceNumber,
+                  carrier: inv.carrier || inv.vendor,
+                  origin: inv.origin,
+                  destination: inv.destination,
+                  amount: inv.amount,
+                  currency: inv.currency || 'INR',
+                  date: inv.invoiceDate,
+                  status: inv.status as InvoiceStatus,
+                  variance: 0,
+                  reason: inv.matchStatus === 'Discrepancy' ? 'Rate Mismatch' : '',
+                  matchResults: { rate: 'MATCH', delivery: 'MATCH', unit: 'MATCH' }
+               })) || [];
+               setDbInvoices(mappedInvoices);
+            }
+         } catch (error) {
+            console.error('Failed to fetch invoices:', error);
+         } finally {
+            setLoading(false);
+         }
+      };
+      fetchInvoices();
+   }, []);
+
+   // Combine props invoices with database invoices (prefer DB)
+   const allVendorInvoices = dbInvoices.length > 0 ? dbInvoices : invoices;
 
    const recentInvoices = allVendorInvoices.slice(0, 3);
+
 
    const getStatusStep = (status: InvoiceStatus) => {
       switch (status) {

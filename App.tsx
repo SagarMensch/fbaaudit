@@ -27,11 +27,31 @@ import { GuestBid } from './pages/GuestBid';
 import { VendorOnboarding } from './pages/VendorOnboarding';
 import { DocumentAnalysis } from './pages/DocumentAnalysis';
 import { VendorScorecard } from './pages/VendorScorecard';
+import { FinanceDashboard } from './pages/FinanceDashboard';
+import { ExecutiveReport } from './pages/ExecutiveReport';
+import { EmissionsDashboard } from './pages/EmissionsDashboard';
+import { TicketInbox } from './pages/TicketInbox';
+import { CapacityForecast } from './pages/CapacityForecast';
+import { ShockRateBenchmark } from './pages/ShockRateBenchmark';
+import { ApproverQueue } from './pages/ApproverQueue';
+
+import { SupplierDirectory } from './pages/SupplierDirectory';
+import { SupplierLogin } from './pages/SupplierLogin';
+import { SupplierPortalView } from './pages/SupplierPortalView';
+import { DocumentLibrary } from './pages/DocumentLibrary';
+import { InvoiceReview } from './pages/InvoiceReview';
+import { EnhancedInvoiceReview } from './pages/EnhancedInvoiceReview';
+import { MasterDataManagement } from './pages/MasterDataManagement';
+import { MasterDataHub } from './pages/MasterDataHub';
+import { ComprehensiveReports } from './pages/ComprehensiveReports';
+// REMOVED: import { MOCK_INVOICES_NEW } from './mock_invoices_clean';
+import SampleDataService from './services/sampleDataService';
 import { Invoice, UserRole, InvoiceStatus, RoleDefinition, WorkflowStepConfig, Dispute, Notification, MatchStatus } from './types';
 import { ParsedEdi } from './utils/ediParser';
 import { MOCK_INVOICES, INITIAL_ROLES, INITIAL_WORKFLOW } from './constants';
 import { StorageService } from './services/storageService';
 import { Bell, LogOut, ChevronDown, UserCircle, Users, Shield, Briefcase, Command, Check, RefreshCw, Lock, Inbox } from 'lucide-react';
+import './services/masterDataInit'; // Initialize master data on app load
 
 // Persona Definition for Demo Switching
 const DEMO_PERSONAS = [
@@ -45,6 +65,8 @@ const App: React.FC = () => {
   // Auth State
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showVendorGate, setShowVendorGate] = useState(false);
+  const [showSupplierLogin, setShowSupplierLogin] = useState(false);
+  const [loggedInSupplierId, setLoggedInSupplierId] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<UserRole>('3SC');
 
   // Persona State (for RBAC Simulation)
@@ -64,10 +86,9 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('cockpit');
 
   // --- LIFTED STATE: INVOICES & CONFIG ---
-  // Initialize from StorageService
-  const [invoices, setInvoices] = useState<Invoice[]>(() =>
-    StorageService.load('invoices_v2', MOCK_INVOICES)
-  );
+  // Initialize with empty array, will fetch from MySQL
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoicesLoading, setInvoicesLoading] = useState(true);
 
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
@@ -80,11 +101,55 @@ const App: React.FC = () => {
     StorageService.load('workflow_v3', INITIAL_WORKFLOW) // Bumped version to force reset
   );
 
-  // Persistence Effects
-  React.useEffect(() => {
-    StorageService.save('invoices_v2', invoices);
-  }, [invoices]);
+  // Fetch invoices from PostgreSQL API (FastAPI on port 8000)
+  const fetchInvoicesFromMySQL = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/invoices');
+      const data = await response.json();
+      if (data.invoices && Array.isArray(data.invoices)) {
+        // Map PostgreSQL data to Invoice type
+        const dbInvoices: Invoice[] = data.invoices.map((inv: any) => ({
+          id: inv.id,
+          invoiceNumber: inv.invoiceNumber || inv.invoice_number,
+          carrier: inv.carrier || inv.vendor_name || inv.vendor || 'Unknown',
+          origin: inv.origin || 'Mumbai',
+          destination: inv.destination || 'Delhi',
+          amount: inv.amount || 0,
+          currency: inv.currency || 'INR',
+          date: inv.date || inv.invoice_date,
+          dueDate: inv.dueDate || inv.due_date,
+          status: (inv.status || 'PENDING') as InvoiceStatus,
+          matchStatus: inv.matchStatus || inv.match_status || 'PENDING' as MatchStatus,
+          variance: inv.variance || 0,
+          reason: inv.reason || '',
+          extractionConfidence: inv.extractionConfidence || inv.extraction_confidence || 95,
+          baseAmount: inv.baseAmount || inv.base_amount || inv.amount,
+          mode: inv.mode || 'Road',
+          weight: inv.weight_kg || inv.weight || 0,
+          lrNumber: inv.lrNumber || inv.lr_number || '',
+          pdfPath: inv.pdf_path || inv.pdfPath,
+          lineItems: inv.lineItems || [{ description: 'Freight Charges', amount: inv.amount || 0 }],
+          workflowHistory: inv.workflowHistory || [
+            { stepId: 'step-1', status: 'PENDING', approverRole: 'SCM Operations', timestamp: '' }
+          ],
+          source: 'DATABASE'
+        }));
+        setInvoices(prev => {
+          // Merge DB invoices with any local pending ones
+          const localOnly = prev.filter(p => p.source !== 'DATABASE' && p.source !== 'MYSQL');
+          return [...dbInvoices, ...localOnly];
+        });
+      }
+    } catch (error) {
+      console.error('[App] Failed to fetch invoices from database:', error);
+      // No mock fallback - start with empty if DB unavailable
+      setInvoices([]);
+    } finally {
+      setInvoicesLoading(false);
+    }
+  };
 
+  // Persistence Effects for RBAC (keep these)
   React.useEffect(() => {
     StorageService.save('roles_v2', roles);
   }, [roles]);
@@ -93,13 +158,26 @@ const App: React.FC = () => {
     StorageService.save('workflow_v3', workflowConfig);
   }, [workflowConfig]);
 
-  // Handle Guest Link
+  // SYNC FIX: Reload invoices from MySQL when switching tabs
+  React.useEffect(() => {
+    fetchInvoicesFromMySQL();
+  }, [activeTab]);
+
+  // Handle Guest Link and Initialize Sample Data
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('mode') === 'guest_bid') {
       setActiveTab('guest_bid');
     } else if (params.get('mode') === 'onboarding') {
       setActiveTab('onboarding');
+    }
+
+    // Initialize sample data on first load
+    try {
+      SampleDataService.initializeSampleData();
+      console.log('Sample data initialized successfully');
+    } catch (error) {
+      console.error('Error initializing sample data:', error);
     }
   }, []);
 
@@ -124,16 +202,27 @@ const App: React.FC = () => {
     }
   };
 
-  const handleVendorGateSuccess = () => {
-    setUserRole('VENDOR');
-    setIsLoggedIn(true);
-    setShowVendorGate(false);
-    setActiveTab('vendor_portal');
+  const handleVendorGateSuccess = (supplierId?: string) => {
+    if (supplierId) {
+      // Indian supplier login - set supplier ID for SupplierPortalView
+      setLoggedInSupplierId(supplierId);
+      setUserRole('VENDOR');
+      setIsLoggedIn(true);
+      setShowVendorGate(false);
+      setActiveTab('supplier_portal');
+    } else {
+      // Regular vendor login - show generic vendor portal
+      setUserRole('VENDOR');
+      setIsLoggedIn(true);
+      setShowVendorGate(false);
+      setActiveTab('vendor_portal');
+    }
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     setShowVendorGate(false);
+    setLoggedInSupplierId(null);
     setSelectedInvoice(null);
   };
 
@@ -247,10 +336,11 @@ const App: React.FC = () => {
         } else if (currentStep.roleId === 'FINANCE_MANAGER') {
           updatedInvoice.status = InvoiceStatus.FINANCE_APPROVED;
 
+          // Notification for System Admin (ERP Settlement)
           setNotifications(prev => [{
             id: Date.now().toString(),
-            type: 'INFO',
-            message: `Invoice #${updatedInvoice.invoiceNumber} ready for Treasury Release.`,
+            type: 'ASSIGNMENT',
+            message: `Invoice #${updatedInvoice.invoiceNumber} approved by Finance. Ready for ERP Settlement.`,
             timestamp: 'Just now',
             read: false,
             actionLink: updatedInvoice.id
@@ -258,15 +348,16 @@ const App: React.FC = () => {
         }
 
       } else {
-        // END OF WORKFLOW
+        // WORKFLOW COMPLETE - ALL STEPS APPROVED
         updatedInvoice.status = InvoiceStatus.PAID;
         updatedInvoice.currentStepId = undefined;
         updatedInvoice.nextApproverRole = undefined;
 
+        // Payment notification when System Admin approves (final step)
         setNotifications(prev => [{
           id: Date.now().toString(),
-          type: 'INFO',
-          message: `Payment released for Invoice #${updatedInvoice.invoiceNumber}.`,
+          type: 'SUCCESS',
+          message: `Payment released for Invoice #${updatedInvoice.invoiceNumber}. ₹${updatedInvoice.amount.toLocaleString()} queued for settlement.`,
           timestamp: 'Just now',
           read: false,
           actionLink: updatedInvoice.id
@@ -380,11 +471,11 @@ const App: React.FC = () => {
         const updatedInvoice = { ...invoice };
         if (action === 'APPROVE_INVOICE') {
           updatedInvoice.status = InvoiceStatus.APPROVED;
-          setNotifications(prev => [...prev, { id: Date.now(), message: `AI Agent approved invoice ${entityId}`, type: 'success', read: false, timestamp: new Date() }]);
+          setNotifications(prev => [...prev, { id: Date.now().toString(), message: `AI Agent approved invoice ${entityId}`, type: 'INFO', read: false, timestamp: new Date().toISOString() }]);
         } else if (action === 'FLAG_DISPUTE') {
           updatedInvoice.status = InvoiceStatus.EXCEPTION;
           updatedInvoice.reason = 'Flagged by AI Agent: ' + (details || 'Review Required');
-          setNotifications(prev => [...prev, { id: Date.now(), message: `AI Agent flagged invoice ${entityId}`, type: 'alert', read: false, timestamp: new Date() }]);
+          setNotifications(prev => [...prev, { id: Date.now().toString(), message: `AI Agent flagged invoice ${entityId}`, type: 'ALERT', read: false, timestamp: new Date().toISOString() }]);
         }
         handleInvoiceUpdate(updatedInvoice);
         return true;
@@ -422,17 +513,20 @@ const App: React.FC = () => {
       case 'ingestion':
         return <InvoiceIngestion onBack={() => handleNavigation(userRole === 'VENDOR' ? 'vendor_portal' : 'cockpit')} onSubmit={() => handleNavigation(userRole === 'VENDOR' ? 'vendor_portal' : 'workbench')} userRole={userRole} />;
       case 'rates':
-        return <RateCards />;
+        return <RateCards onViewContract={(contractId) => {
+          // Navigate to contracts tab and select the specific contract
+          setActiveTab('contracts');
+        }} />;
       case 'network':
         return <PartnerNetwork />;
       case 'integration':
         return <IntegrationHub onIngestEdi={handleIngestEdi} />;
       case 'workbench':
-        return <InvoiceWorkbench invoices={invoices} onSelectInvoice={handleInvoiceSelect} onUpdateInvoices={handleInvoiceUpdate} onAddInvoice={handleInvoiceAdd} />;
+        return <InvoiceWorkbench invoices={invoices} onSelectInvoice={handleInvoiceSelect} currentUser={{ name: activePersona.name, role: activePersona.role }} onUpdateInvoices={handleInvoiceUpdate} onAddInvoice={handleInvoiceAdd} />;
       case 'settlement':
         return <SettlementFinance userRole={userRole} />;
       case 'intelligence':
-        return <IntelligenceHub />;
+        return <IntelligenceHub onNavigate={handleNavigation} />;
       case 'vendor_portal':
         return <VendorPortal invoices={invoices} onNavigate={handleNavigation} onSelectInvoice={handleInvoiceSelect} onUpdateDispute={handleUpdateDispute} />;
       case 'my_payments':
@@ -449,6 +543,34 @@ const App: React.FC = () => {
         return <SpotMarket />;
       case 'scorecard':
         return <VendorScorecard />;
+      case 'documents':
+        return <DocumentLibrary />;
+      case 'invoice_review':
+        return <EnhancedInvoiceReview currentUser={{ name: activePersona.name, role: activePersona.role }} invoices={invoices} />;
+      case 'master_data':
+        return <MasterDataManagement />;
+      case 'master_data_hub':
+        return <MasterDataHub />;
+      case 'reports':
+        return <ComprehensiveReports />;
+      case 'suppliers':
+        return <SupplierDirectory />;
+      case 'tickets':
+        return <TicketInbox currentUser={activePersona.name} />;
+      case 'supplier_portal':
+        return loggedInSupplierId ? (
+          <SupplierPortalView
+            supplierId={loggedInSupplierId}
+            onLogout={handleLogout}
+          />
+        ) : (
+          <div className="p-8 text-center">
+            <p className="text-red-600 font-bold">No supplier logged in</p>
+            <button onClick={handleLogout} className="mt-4 bg-slate-900 text-white px-6 py-2 rounded-lg">
+              Back to Login
+            </button>
+          </div>
+        );
       case 'rbac':
         return (
           <RBACSettings
@@ -458,8 +580,20 @@ const App: React.FC = () => {
             setWorkflowConfig={setWorkflowConfig}
           />
         );
+      case 'capacity_forecast':
+        return <CapacityForecast />;
+      case 'shock_rate':
+        return <ShockRateBenchmark />;
       case 'profile':
         return <UserProfile userRole={userRole} />;
+      case 'finance_terminal':
+        return <FinanceDashboard onNavigate={handleNavigation} />;
+      case 'executive_report':
+        return <ExecutiveReport onNavigate={handleNavigation} />;
+      case 'emissions':
+        return <EmissionsDashboard />;
+      case 'approver_queue':
+        return <ApproverQueue currentUser={{ name: activePersona.name, role: activePersona.role }} onViewInvoice={(id) => handleInvoiceSelect(invoices.find(i => i.id === id) || null)} />;
       default:
         return (
           <div className="flex items-center justify-center h-full text-gray-400 p-8">
@@ -488,7 +622,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-[111.11vh] bg-[#F3F4F6] font-sans text-gray-900 relative">
+    <div className="flex h-[111.1111vh] min-h-[111.1111vh] bg-[#F3F4F6] font-sans text-gray-900 relative overflow-hidden" style={{ zoom: 0.9 }}>
 
       {isSwitchingUser && (
         <div className="fixed inset-0 z-[100] bg-white/95 backdrop-blur-md flex flex-col items-center justify-center animate-fadeIn cursor-wait">
@@ -512,92 +646,108 @@ const App: React.FC = () => {
         targetRoleName={pendingPersona?.name || ''}
       />
 
-      <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); setSelectedInvoice(null); }} userRole={userRole} activePersona={activePersona} />
+      {/* Hide Global Sidebar for Supplier Portal as it has its own layout */}
+      {activeTab !== 'supplier_portal' && (
+        <Sidebar activeTab={activeTab} setActiveTab={(tab) => { setActiveTab(tab); setSelectedInvoice(null); }} userRole={userRole} activePersona={activePersona} />
+      )}
 
-      <main className="ml-64 flex-1 flex flex-col h-[111.11vh] overflow-hidden bg-slate-100">
-        <header className="h-14 bg-white border-b border-slate-300 flex items-center justify-between px-6 shadow-sm z-50 flex-shrink-0 relative">
-          <div className="flex items-center">
-            <h1 className="text-sm font-bold text-slate-700 tracking-tight flex items-center mr-6 uppercase">
-              {userRole === 'HITACHI' ? <span className="font-cursive text-3xl text-black lowercase first-letter:text-[#E60012] first-letter:uppercase mr-3" style={{ transform: 'translateY(4px)' }}>Confidential</span> : userRole === 'VENDOR' ? 'MAERSK LINE' : 'SEQUELSTRING AI CONTROL TOWER'}
-              <span className="text-slate-300 mx-2">|</span>
-              <span className="text-slate-500 font-normal">
-                {userRole === 'HITACHI' ? 'Finance Cockpit' : userRole === 'VENDOR' ? 'Supplier Portal' : 'Admin Console'}
-              </span>
-            </h1>
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="relative group">
-              <Bell size={16} className="text-slate-500 hover:text-slate-700 cursor-pointer" />
-              {notifications.filter(n => !n.read).length > 0 && (
-                <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-600 rounded-full"></span>
-              )}
+      {/* Remove margin for Supplier Portal */}
+      <main className={`${activeTab !== 'supplier_portal' ? 'ml-64' : ''} flex-1 flex flex-col h-[111.1111vh] min-h-[111.1111vh] overflow-hidden bg-slate-100`}>
+        {/* Hide Top Header for Supplier Portal too? The screenshot shows a header. 
+            The SupplierPortalView has its own header. 
+            Let's check SupplierPortalView again. It has a header at line 113. 
+            So we should probably hide the App header too OR keep it?
+            The screenshot shows "PARTNER PORTAL" sidebar and "MAERSK LINE | SUPPLIER PORTAL" header.
+            The "new" sidebar is inside the white area.
+            Wait, if I hide the App sidebar, I should likely hide the App header too if SupplierPortalView is full screen.
+            SupplierPortalView has `min-h-screen bg-[#F3F4F6] flex` and its own Sidebar and Header.
+            So yes, I should hide the App header too.
+         */}
+        {activeTab !== 'supplier_portal' && (
+          <header className="h-14 bg-white border-b border-slate-300 flex items-center justify-between px-6 shadow-sm z-50 flex-shrink-0 relative">
+            <div className="flex items-center">
+              <h1 className="text-sm font-bold text-slate-700 tracking-tight flex items-center mr-6 uppercase">
+                {userRole === 'HITACHI' ? <span className="font-cursive text-3xl text-black lowercase first-letter:text-[#E60012] first-letter:uppercase mr-3" style={{ transform: 'translateY(4px)' }}>Confidential</span> : userRole === 'VENDOR' ? 'MAERSK LINE' : 'SEQUELSTRING AI CONTROL TOWER'}
+                <span className="text-slate-300 mx-2">|</span>
+                <span className="text-slate-500 font-normal">
+                  {userRole === 'HITACHI' ? 'Finance Cockpit' : userRole === 'VENDOR' ? 'Supplier Portal' : 'Admin Console'}
+                </span>
+              </h1>
             </div>
-            <div className="h-4 w-px bg-slate-300"></div>
-            <div className="relative">
-              <div
-                className="flex items-center space-x-3 cursor-pointer hover:bg-slate-50 p-1 rounded-sm transition-colors"
-                onClick={() => setShowPersonaMenu(!showPersonaMenu)}
-              >
-                <div className="text-right hidden md:block">
-                  <p className="text-xs font-bold text-slate-700 leading-none">
-                    {userRole === 'VENDOR' ? 'Vendor User' : activePersona.name}
-                  </p>
-                </div>
-                <ChevronDown size={14} className="text-slate-400" />
+
+            <div className="flex items-center space-x-4">
+              <div className="relative group">
+                <Bell size={16} className="text-slate-500 hover:text-slate-700 cursor-pointer" />
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 bg-red-600 rounded-full"></span>
+                )}
               </div>
-
-              {/* RESTORED DROPDOWN */}
-              {showPersonaMenu && (
-                <div className="absolute right-0 top-10 w-64 bg-white border border-slate-200 shadow-lg rounded-sm z-50 flex flex-col animate-in fade-in zoom-in-95 duration-100">
-                  <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
-                    <p className="text-xs font-bold text-slate-500 uppercase">Signed in as</p>
-                    <p className="text-sm font-bold text-slate-800 truncate">{userRole === 'VENDOR' ? 'Vendor User' : activePersona.name}</p>
+              <div className="h-4 w-px bg-slate-300"></div>
+              <div className="relative">
+                <div
+                  className="flex items-center space-x-3 cursor-pointer hover:bg-slate-50 p-1 rounded-sm transition-colors"
+                  onClick={() => setShowPersonaMenu(!showPersonaMenu)}
+                >
+                  <div className="text-right hidden md:block">
+                    <p className="text-xs font-bold text-slate-700 leading-none">
+                      {userRole === 'VENDOR' ? 'Vendor User' : activePersona.name}
+                    </p>
                   </div>
-                  {userRole !== 'VENDOR' && (
-                    <div className="py-2 border-b border-slate-100">
-                      <p className="px-4 text-[10px] font-bold text-slate-400 uppercase mb-2">Switch Account (Demo)</p>
-                      {DEMO_PERSONAS.map(persona => {
-                        const isActive = activePersona.id === persona.id;
-                        return (
-                          <button
-                            key={persona.id}
-                            onClick={() => handlePersonaSwitchRequest(persona)}
-                            className="w-full text-left px-4 py-2 text-xs flex items-center hover:bg-slate-50 transition-colors"
-                          >
-                            <div className={`w-2 h-2 rounded-full mr-3 ${isActive ? 'bg-green-500' : 'bg-slate-300'} `}></div>
-                            <div className="flex-1">
-                              <span className={`block font-medium ${isActive ? 'text-slate-900' : 'text-slate-600'} `}>
-                                {persona.name}
-                              </span>
-                              <span className="text-[10px] text-slate-400">{persona.role}</span>
-                            </div>
-                            {isActive && <Check size={14} className="text-green-500" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-                  <div className="py-1">
-                    <button
-                      onClick={() => { setShowPersonaMenu(false); setActiveTab('profile'); }}
-                      className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center"
-                    >
-                      <UserCircle size={14} className="mr-2 text-slate-400" /> Profile Settings
-                    </button>
-                    <div className="border-t border-slate-100 my-1"></div>
-                    <button
-                      onClick={() => { setShowPersonaMenu(false); handleLogout(); }}
-                      className="w-full text-left px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center"
-                    >
-                      <LogOut size={14} className="mr-2" /> Sign Out
-                    </button>
-                  </div>
+                  <ChevronDown size={14} className="text-slate-400" />
                 </div>
-              )}
+
+                {/* RESTORED DROPDOWN */}
+                {showPersonaMenu && (
+                  <div className="absolute right-0 top-10 w-64 bg-white border border-slate-200 shadow-lg rounded-sm z-50 flex flex-col animate-in fade-in zoom-in-95 duration-100">
+                    <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+                      <p className="text-xs font-bold text-slate-500 uppercase">Signed in as</p>
+                      <p className="text-sm font-bold text-slate-800 truncate">{userRole === 'VENDOR' ? 'Vendor User' : activePersona.name}</p>
+                    </div>
+                    {userRole !== 'VENDOR' && (
+                      <div className="py-2 border-b border-slate-100">
+                        <p className="px-4 text-[10px] font-bold text-slate-400 uppercase mb-2">Switch Account (Demo)</p>
+                        {DEMO_PERSONAS.map(persona => {
+                          const isActive = activePersona.id === persona.id;
+                          return (
+                            <button
+                              key={persona.id}
+                              onClick={() => handlePersonaSwitchRequest(persona)}
+                              className="w-full text-left px-4 py-2 text-xs flex items-center hover:bg-slate-50 transition-colors"
+                            >
+                              <div className={`w-2 h-2 rounded-full mr-3 ${isActive ? 'bg-green-500' : 'bg-slate-300'} `}></div>
+                              <div className="flex-1">
+                                <span className={`block font-medium ${isActive ? 'text-slate-900' : 'text-slate-600'} `}>
+                                  {persona.name}
+                                </span>
+                                <span className="text-[10px] text-slate-400">{persona.role}</span>
+                              </div>
+                              {isActive && <Check size={14} className="text-green-500" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <div className="py-1">
+                      <button
+                        onClick={() => { setShowPersonaMenu(false); setActiveTab('profile'); }}
+                        className="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 flex items-center"
+                      >
+                        <UserCircle size={14} className="mr-2 text-slate-400" /> Profile Settings
+                      </button>
+                      <div className="border-t border-slate-100 my-1"></div>
+                      <button
+                        onClick={() => { setShowPersonaMenu(false); handleLogout(); }}
+                        className="w-full text-left px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center"
+                      >
+                        <LogOut size={14} className="mr-2" /> Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
+        )}
 
         {/* FIXED SCROLLING: overflow-y-auto added here */}
         <div className="flex-1 flex flex-col overflow-y-auto custom-scrollbar relative bg-slate-100">

@@ -52,7 +52,7 @@ export const performThreeWayMatch = (invoice: Invoice): ThreeWayMatchResult => {
     const poDoc: MatchDocument = {
         ...links.po,
         status: Math.abs(links.po.amount - invoice.amount) < 1.0 ? 'MATCHED' : 'MISMATCH',
-        details: Math.abs(links.po.amount - invoice.amount) < 1.0 ? 'Amount matches PO' : `PO Amount $${links.po.amount} differs`
+        details: Math.abs(links.po.amount - invoice.amount) < 1.0 ? 'Amount matches PO' : `PO Amount ₹${links.po.amount} differs`
     };
 
     // POD Logic: Usually checks quantity. For Freight, checks delivery completion.

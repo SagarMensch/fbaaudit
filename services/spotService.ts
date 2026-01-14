@@ -2,9 +2,11 @@ import { SpotIndent, SpotVendor, SpotVendorRequest, SpotBid } from '../types';
 
 // --- SEED DATA: SPOT VENDORS ---
 const SEED_VENDORS: SpotVendor[] = [
-    { id: 'V-SPOT-001', name: 'Sharma Transporters', gstin: '27AABCS1234H1Z5', phone: '+919876543210', rating: 3.5 },
-    { id: 'V-SPOT-002', name: 'VRL Logistics', gstin: '29AABCV5555L1Z2', phone: '+919988776655', rating: 4.8 },
-    { id: 'V-SPOT-003', name: 'Ghatge Patil', gstin: '27AAACG6666J1Z9', phone: '+919123456789', rating: 4.2 }
+    { id: 'V-SPOT-001', name: 'Sharma Transporters', gstin: '27AABCS1234H1Z5', phone: '+91 98765 43210', rating: 3.8 },
+    { id: 'V-SPOT-002', name: 'VRL Logistics', gstin: '29AABCV5555L1Z2', phone: '+91 99887 76655', rating: 4.8 },
+    { id: 'V-SPOT-003', name: 'Ghatge Patil', gstin: '27AAACG6666J1Z9', phone: '+91 91234 56789', rating: 4.2 },
+    { id: 'V-SPOT-004', name: 'Blue Dart', gstin: '29AABCV5555L1Z9', phone: '+91 99887 76659', rating: 4.9 }, // The "Panic Button" option
+    { id: 'V-SPOT-005', name: 'TCI Express', gstin: '29AABCV5555L1Z8', phone: '+91 99887 76658', rating: 4.5 }
 ];
 
 class SpotService {
@@ -67,6 +69,78 @@ class SpotService {
             }
         }
         return null;
+    }
+
+    // --- SUPPLIER PORTAL METHODS ---
+
+    /**
+     * Find vendor by company name (for Supplier Portal linking)
+     */
+    getVendorByName(companyName: string): SpotVendor | undefined {
+        this.load();
+        // Fuzzy match: normalize names for comparison
+        const normalize = (s: string) => s.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+        const normalizedSearch = normalize(companyName);
+        return this.vendors.find(v => normalize(v.name) === normalizedSearch);
+    }
+
+    /**
+     * Get all active indents where this vendor is invited (for Supplier Portal)
+     */
+    getIndentsForVendor(vendorId: string): SpotIndent[] {
+        this.load();
+        return this.indents
+            .filter(indent => {
+                // Check if vendor is in vendorRequests
+                const isInvited = indent.vendorRequests.some(r => r.vendorId === vendorId);
+                // Only show BIDDING status
+                const isActive = indent.status === 'BIDDING';
+                return isInvited && isActive;
+            })
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+
+    /**
+     * Get vendor request from an indent for a specific vendor
+     */
+    getVendorRequest(indentId: string, vendorId: string): SpotVendorRequest | undefined {
+        this.load();
+        const indent = this.indents.find(i => i.id === indentId);
+        if (!indent) return undefined;
+        return indent.vendorRequests.find(r => r.vendorId === vendorId);
+    }
+
+    /**
+     * Submit bid from Supplier Portal (using vendorId instead of token)
+     */
+    submitBidFromSupplier(indentId: string, vendorId: string, amount: number, remarks: string): { success: boolean, message: string } {
+        this.load();
+        const indent = this.indents.find(i => i.id === indentId);
+        if (!indent) return { success: false, message: 'Indent not found' };
+
+        const request = indent.vendorRequests.find(r => r.vendorId === vendorId);
+        if (!request) return { success: false, message: 'You are not invited to this bid' };
+
+        const vendor = this.vendors.find(v => v.id === vendorId);
+
+        // Create Bid
+        const newBid: SpotBid = {
+            id: `BID-${Date.now()}`,
+            requestId: request.id,
+            vendorName: vendor?.name || 'Unknown Vendor',
+            amount: amount,
+            remarks: remarks,
+            bidTime: new Date().toISOString()
+        };
+
+        // Update Request
+        request.status = 'BID_RECEIVED';
+        request.bid = newBid;
+
+        // Save
+        this.saveIndents();
+        console.log(`[Supplier Portal] Bid submitted: ${vendor?.name} bid ₹${amount} on ${indentId}`);
+        return { success: true, message: 'Bid submitted successfully' };
     }
 
     // --- ACTIONS ---
@@ -133,7 +207,45 @@ class SpotService {
 
         // Save
         this.saveIndents();
+        this.saveIndents();
         return true;
+    }
+
+    // 2.5 internal Simulation Bid
+    simulateBid(indentId: string, vendorId: string, amount: number, remarks: string) {
+        this.load();
+        const indent = this.indents.find(i => i.id === indentId);
+        if (!indent) return;
+
+        // Find or create a request for this vendor
+        let req = indent.vendorRequests.find(r => r.vendorId === vendorId);
+        if (!req) {
+            // If vendor wasn't originally invited, invite them now (simulating open market)
+            req = {
+                id: `REQ-${Math.random().toString(36).substring(7)}`,
+                indentId: indentId,
+                vendorId: vendorId,
+                token: 'sim-token',
+                status: 'SENT',
+                whatsappSent: true
+            };
+            indent.vendorRequests.push(req);
+        }
+
+        const vendor = this.vendors.find(v => v.id === vendorId);
+
+        const newBid: SpotBid = {
+            id: `BID-${Date.now()}`,
+            requestId: req.id,
+            vendorName: vendor?.name || 'Unknown Vendor',
+            amount: amount,
+            remarks: remarks,
+            bidTime: new Date().toISOString()
+        };
+
+        req.status = 'BID_RECEIVED';
+        req.bid = newBid;
+        this.saveIndents();
     }
 
     // 3. Approve Booking

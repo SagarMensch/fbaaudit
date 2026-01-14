@@ -1,0 +1,74 @@
+﻿App.tsx(31,32): error TS2307: Cannot find module './pages/PaymentBatches' or its corresponding type declarations.
+components/AetherChatbot.tsx(180,74): error TS2339: Property 'spend' does not exist on type '{ name: string; value: number; }'.
+components/EnhancedLocationMaster.tsx(213,24): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+components/EnhancedLocationMaster.tsx(213,86): error TS2339: Property 'overall' does not exist on type 'unknown'.
+components/EnhancedLocationMaster.tsx(214,87): error TS2339: Property 'issues' does not exist on type 'unknown'.
+components/EnhancedLocationMaster.tsx(226,110): error TS2339: Property 'overall' does not exist on type 'unknown'.
+components/EnhancedLocationMaster.tsx(230,110): error TS2339: Property 'overall' does not exist on type 'unknown'.
+components/EnhancedLocationMaster.tsx(230,129): error TS2339: Property 'overall' does not exist on type 'unknown'.
+components/ErrorBoundary.tsx(28,14): error TS2339: Property 'setState' does not exist on type 'ErrorBoundary'.
+components/ErrorBoundary.tsx(87,21): error TS2339: Property 'props' does not exist on type 'ErrorBoundary'.
+components/MasterDataModals.tsx(137,36): error TS2345: Argument of type '{ city: any; dieselPrice: number; petrolPrice: number; date: any; }' is not assignable to parameter of type 'Omit<FuelPriceRecord, "id">'.
+  Type '{ city: any; dieselPrice: number; petrolPrice: number; date: any; }' is missing the following properties from type 'Omit<FuelPriceRecord, "id">': source, verified
+components/MasterDataModals.tsx(390,35): error TS2345: Argument of type '{ code: any; description: any; category: any; chargeType: any; amount: number; currency: string; logic: any; }' is not assignable to parameter of type 'Omit<Accessorial, "id" | "createdDate">'.
+  Type '{ code: any; description: any; category: any; chargeType: any; amount: number; currency: string; logic: any; }' is missing the following properties from type 'Omit<Accessorial, "id" | "createdDate">': status, createdBy, applicableFor
+constants_new_invoices_formatted.ts(4,29): error TS2304: Cannot find name 'Invoice'.
+pages/DocumentLibrary.tsx(21,27): error TS2339: Property 'name' does not exist on type 'unknown'.
+pages/DocumentLibrary.tsx(21,48): error TS2339: Property 'name' does not exist on type 'unknown'.
+pages/DocumentLibrary.tsx(180,52): error TS2339: Property 'id' does not exist on type 'unknown'.
+pages/DocumentLibrary.tsx(180,65): error TS2339: Property 'id' does not exist on type 'unknown'.
+pages/DocumentLibrary.tsx(180,72): error TS2339: Property 'name' does not exist on type 'unknown'.
+pages/EnhancedInvoiceReview.tsx(365,65): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+pages/EnhancedInvoiceReview.tsx(365,69): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+pages/EnhancedInvoiceReview.tsx(367,65): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+pages/InvoiceReview.tsx(27,48): error TS2576: Property 'getSupplierById' does not exist on type 'IndianSupplierService'. Did you mean to access the static member 'IndianSupplierService.getSupplierById' instead?
+pages/MasterDataHub.tsx(441,25): error TS2345: Argument of type '"vehicle.updated"' is not assignable to parameter of type 'EventType'.
+pages/MasterDataHub.tsx(975,21): error TS2345: Argument of type '"vehicle.updated"' is not assignable to parameter of type 'EventType'.
+pages/MasterDataHub.tsx(984,27): error TS2345: Argument of type '"vehicle.updated"' is not assignable to parameter of type 'EventType'.
+pages/MasterDataHub.tsx(994,27): error TS2345: Argument of type '"vehicle.updated"' is not assignable to parameter of type 'EventType'.
+pages/MasterDataHub.tsx(1032,122): error TS2345: Argument of type '"vehicle.updated"' is not assignable to parameter of type 'EventType'.
+pages/RateCards.tsx(228,110): error TS2322: Type '"Delay"' is not assignable to type '"Fuel" | "Security" | "Handling" | "Seasonal"'.
+pages/RateCards.tsx(229,118): error TS2322: Type '"Location"' is not assignable to type '"Fuel" | "Security" | "Handling" | "Seasonal"'.
+pages/RateCards.tsx(231,102): error TS2322: Type '"Route"' is not assignable to type '"Fuel" | "Security" | "Handling" | "Seasonal"'.
+pages/SpotMarket.tsx(49,29): error TS2339: Property 'placeBid' does not exist on type 'SpotService'.
+pages/SpotMarket.tsx(76,57): error TS2345: Argument of type 'SpotIndent' is not assignable to parameter of type 'string'.
+pages/SupplierPortalView.tsx(45,44): error TS2576: Property 'getSupplierById' does not exist on type 'IndianSupplierService'. Did you mean to access the static member 'IndianSupplierService.getSupplierById' instead?
+services/carbonService.ts(49,29): error TS2367: This comparison appears to be unintentional because the types '"AIR" | "ROAD"' and '"RAIL"' have no overlap.
+services/contractService.ts(17,169): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(18,173): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(19,172): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(20,170): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(132,69): error TS2322: Type '"Air"' is not assignable to type 'VehicleType'.
+services/contractService.ts(133,74): error TS2322: Type '"Air"' is not assignable to type 'VehicleType'.
+services/contractService.ts(134,72): error TS2322: Type '"Air"' is not assignable to type 'VehicleType'.
+services/contractService.ts(157,180): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(158,184): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(159,183): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(182,184): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(183,182): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(206,182): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(207,185): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(230,166): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(231,166): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(254,171): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(255,175): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(278,172): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(299,9): error TS2322: Type '"EXPIRING"' is not assignable to type '"ACTIVE" | "EXPIRED" | "DRAFT" | "PENDING_APPROVAL"'.
+services/contractService.ts(301,68): error TS2322: Type '"Van"' is not assignable to type 'VehicleType'.
+services/contractService.ts(324,164): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(347,68): error TS2322: Type '"Van"' is not assignable to type 'VehicleType'.
+services/contractService.ts(370,76): error TS2322: Type '"Bike"' is not assignable to type 'VehicleType'.
+services/contractService.ts(393,171): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/contractService.ts(416,173): error TS2353: Object literal may only specify known properties, and 'baseFreight' does not exist in type 'FreightRate'.
+services/documentService.ts(168,13): error TS2322: Type 'string' is not assignable to type 'string[]'.
+services/enhancedFuelService.ts(135,13): error TS2345: Argument of type 'Omit<EnhancedFuelPrice, keyof TemporalEntity>' is not assignable to parameter of type 'Omit<EnhancedFuelPrice, "createdAt" | "effectiveFrom" | "effectiveTo" | "isActive" | "versionId" | "modifiedAt">'.
+  Type 'Omit<EnhancedFuelPrice, keyof TemporalEntity>' is missing the following properties from type 'Omit<EnhancedFuelPrice, "createdAt" | "effectiveFrom" | "effectiveTo" | "isActive" | "versionId" | "modifiedAt">': id, createdBy, modifiedBy
+services/enhancedFuelService.ts(427,17): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<EnhancedFuelPrice, keyof TemporalEntity>'.
+services/enhancedFuelService.ts(440,17): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<EnhancedFuelPrice, keyof TemporalEntity>'.
+services/enhancedLaneService.ts(131,41): error TS2345: Argument of type '{ status: "ACTIVE" | "INACTIVE" | "SEASONAL" | "PENDING_APPROVAL"; name: string; utilizationPercent: number; laneCode: string; onTimePercent: number; originClusterId: string; ... 17 more ...; seasonalPeriods?: Array<{ start: string; end: string; }>; }' is not assignable to parameter of type 'Omit<EnhancedLane, "createdAt" | "effectiveFrom" | "effectiveTo" | "isActive" | "versionId" | "modifiedAt">'.
+  Type '{ status: "ACTIVE" | "PENDING_APPROVAL" | "INACTIVE" | "SEASONAL"; name: string; utilizationPercent: number; laneCode: string; onTimePercent: number; originClusterId: string; destinationClusterId: string; ... 16 more ...; seasonalPeriods?: { ...; }[]; }' is missing the following properties from type 'Omit<EnhancedLane, "createdAt" | "effectiveFrom" | "effectiveTo" | "isActive" | "versionId" | "modifiedAt">': id, createdBy, modifiedBy
+services/enhancedLocationService.ts(144,41): error TS2345: Argument of type '{ status: "ACTIVE" | "INACTIVE" | "PENDING_APPROVAL"; name: string; code: string; city?: string; state?: string; pincode?: string; tags: string[]; customAttributes: Record<string, any>; ... 11 more ...; distanceIntelligence?: Map<string, DistanceIntelligence>; }' is not assignable to parameter of type 'Omit<EnhancedLocation, "createdAt" | "effectiveFrom" | "effectiveTo" | "isActive" | "versionId" | "modifiedAt">'.
+  Type '{ status: "ACTIVE" | "PENDING_APPROVAL" | "INACTIVE"; name: string; code: string; city?: string; state?: string; pincode?: string; tags: string[]; customAttributes: Record<string, any>; ... 11 more ...; distanceIntelligence?: Map<...>; }' is missing the following properties from type 'Omit<EnhancedLocation, "createdAt" | "effectiveFrom" | "effectiveTo" | "isActive" | "versionId" | "modifiedAt">': id, createdBy, modifiedBy
+services/enhancedLocationService.ts(503,9): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<EnhancedLocation, keyof TemporalEntity>'.
+services/enhancedVehicleService.ts(123,13): error TS2345: Argument of type '{ volumetricCapacity: number; carbonFootprint: number; status: "ACTIVE" | "INACTIVE" | "MAINTENANCE" | "RETIRED"; code: string; description: string; applicableFor: string[]; bodyType: BodyType; ... 14 more ...; dailyRentalCost?: number; }' is not assignable to parameter of type 'Omit<EnhancedVehicle, "createdAt" | "effectiveFrom" | "effectiveTo" | "isActive" | "versionId" | "modifiedAt">'.
+  Type '{ volumetricCapacity: number; carbonFootprint: number; status: "ACTIVE" | "INACTIVE" | "MAINTENANCE" | "RETIRED"; code: string; description: string; applicableFor: string[]; bodyType: BodyType; ... 14 more ...; dailyRentalCost?: number; }' is missing the following properties from type 'Omit<EnhancedVehicle, "createdAt" | "effectiveFrom" | "effectiveTo" | "isActive" | "versionId" | "modifiedAt">': id, createdBy, modifiedBy

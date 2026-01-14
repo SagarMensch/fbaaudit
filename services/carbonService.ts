@@ -43,7 +43,7 @@ export const calculateCarbon = (invoice: Invoice): CarbonFootprint => {
     const totalEmissionsKg = weightTonnes * distance * factor / 1000; // factor is g/t-km -> kg
     const totalEmissionsTonnes = totalEmissionsKg / 1000;
 
-    const offsetCost = totalEmissionsTonnes * 15; // ~$15 per tonne for carbon credits
+    const offsetCost = totalEmissionsTonnes * 15; // ~₹15 per tonne for carbon credits
 
     let rating: 'A' | 'B' | 'C' | 'D' | 'E' = 'C';
     if (mode === 'OCEAN' || mode === 'RAIL') rating = 'A';

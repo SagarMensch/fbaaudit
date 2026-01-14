@@ -1,9 +1,19 @@
 
+
 import React, { useState } from 'react';
 import { ShieldCheck, Lock, ArrowRight, Mail, HelpCircle, Building, Globe, Loader, CheckCircle, ArrowLeft, FileCheck } from 'lucide-react';
 
+// Indian Supplier Credentials for detection
+const INDIAN_SUPPLIER_CREDENTIALS = [
+   { email: 'rajesh.sharma@tciexpress.in', password: '12345678', supplierId: 'tci-express' },
+   { email: 'operations@supplier1.com', password: 'Supplier1@2024', supplierId: 'tci-express' },
+   { email: 'operations@supplier2.com', password: 'Supplier2@2024', supplierId: 'bluedart-express' },
+   { email: 'operations@supplier3.com', password: 'Supplier3@2024', supplierId: 'delhivery' },
+   { email: 'operations@supplier4.com', password: 'Supplier4@2024', supplierId: 'gati-limited' }
+];
+
 interface VendorLoginProps {
-   onLoginSuccess: () => void;
+   onLoginSuccess: (supplierId?: string) => void;
    onBack: () => void;
 }
 
@@ -12,6 +22,8 @@ export const VendorLogin: React.FC<VendorLoginProps> = ({ onLoginSuccess, onBack
    const [view, setView] = useState<'login' | 'register'>('login');
 
    // Login State
+   const [email, setEmail] = useState('rajesh.sharma@tciexpress.in');
+   const [password, setPassword] = useState('12345678');
    const [agreed, setAgreed] = useState(false);
    const [isLoggingIn, setIsLoggingIn] = useState(false);
 
@@ -34,9 +46,21 @@ export const VendorLogin: React.FC<VendorLoginProps> = ({ onLoginSuccess, onBack
       if (!agreed) return;
 
       setIsLoggingIn(true);
+
+      // Check if this is an Indian supplier login
+      const indianSupplier = INDIAN_SUPPLIER_CREDENTIALS.find(
+         cred => cred.email === email && cred.password === password
+      );
+
       // Simulate API Auth
       setTimeout(() => {
-         onLoginSuccess();
+         if (indianSupplier) {
+            // Indian supplier login - pass supplier ID
+            onLoginSuccess(indianSupplier.supplierId);
+         } else {
+            // Regular vendor login
+            onLoginSuccess();
+         }
       }, 1000);
    };
 
@@ -120,28 +144,33 @@ export const VendorLogin: React.FC<VendorLoginProps> = ({ onLoginSuccess, onBack
 
                         <form onSubmit={handleSignIn} className="space-y-5">
 
-                           {/* Pre-filled Credentials */}
+                           {/* Editable Email */}
                            <div>
                               <label className="block text-[10px] font-bold text-gray-700 uppercase mb-1.5">Email Address</label>
                               <div className="relative">
                                  <input
                                     type="email"
-                                    value="finance@maersk.com"
-                                    readOnly
-                                    className="w-full border border-gray-300 bg-gray-50 text-gray-800 px-3 py-2.5 rounded-sm text-sm font-medium focus:outline-none focus:border-[#E60012] cursor-not-allowed"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="your.email@company.com"
+                                    className="w-full border border-gray-300 bg-white text-gray-800 px-3 py-2.5 rounded-sm text-sm font-medium focus:outline-none focus:border-[#E60012] focus:ring-1 focus:ring-[#E60012]"
+                                    required
                                  />
                                  <Mail size={14} className="absolute right-3 top-3 text-gray-400" />
                               </div>
                            </div>
 
+                           {/* Editable Password */}
                            <div>
                               <label className="block text-[10px] font-bold text-gray-700 uppercase mb-1.5">Password</label>
                               <div className="relative">
                                  <input
                                     type="password"
-                                    value="password123"
-                                    readOnly
-                                    className="w-full border border-gray-300 bg-gray-50 text-gray-800 px-3 py-2.5 rounded-sm text-sm font-medium focus:outline-none focus:border-[#E60012] cursor-not-allowed"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Enter your password"
+                                    className="w-full border border-gray-300 bg-white text-gray-800 px-3 py-2.5 rounded-sm text-sm font-medium focus:outline-none focus:border-[#E60012] focus:ring-1 focus:ring-[#E60012]"
+                                    required
                                  />
                                  <Lock size={14} className="absolute right-3 top-3 text-gray-400" />
                               </div>

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
    Search, Download, Upload, Filter, Edit2, Clock, X, Cloud,
    CheckCircle, PlayCircle, Trash2, ArrowLeft, FileText, Truck,
-   Globe, Shield, DollarSign, ChevronRight, AlertCircle, Calendar,
+   Globe, Shield, IndianRupee, ChevronRight, AlertCircle, Calendar,
    Calculator, MapPin, TrendingUp, Layers, ArrowUpRight, ArrowDownRight,
    MoreHorizontal, Ship, Plane, Box, Lock
 } from 'lucide-react';
@@ -11,6 +11,53 @@ import {
    ResponsiveContainer, Cell, LineChart, Line, Legend, ComposedChart, Area
 } from 'recharts';
 import { exportToCSV } from '../utils/exportUtils';
+import { crossLinkService } from '../services/crossLinkService';
+
+// --- 3D SOLID GEOMETRIC ICONS ---
+
+const GeoContract = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fillOpacity="0.8" />
+      <path d="M14 2v6h6" fillOpacity="0.6" />
+      <path d="M16 13H8" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <path d="M16 17H8" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <path d="M10 9H8" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      <rect x="5" y="4" width="2" height="2" fill="white" fillOpacity="0.5" />
+   </svg>
+);
+
+const GeoClock = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <circle cx="12" cy="12" r="10" fillOpacity="0.3" />
+      <path d="M12 12L12 6" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 12L16 14" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <rect x="11" y="11" width="2" height="2" fill="white" />
+      <circle cx="12" cy="12" r="10" stroke={color} strokeWidth="2" fill="none" opacity="0.8" />
+      <circle cx="12" cy="12" r="8" fill={color} fillOpacity="0.1" />
+   </svg>
+);
+
+const GeoGlobe = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <circle cx="12" cy="12" r="10" fillOpacity="0.2" />
+      <ellipse cx="12" cy="12" rx="4" ry="10" fill="none" stroke={color} strokeWidth="1" />
+      <ellipse cx="12" cy="12" rx="10" ry="4" fill="none" stroke={color} strokeWidth="1" />
+      <circle cx="12" cy="12" r="6" fillOpacity="0.4" />
+      <path d="M2 12h20" stroke="white" strokeWidth="0.5" opacity="0.5" />
+      <path d="M12 2v20" stroke="white" strokeWidth="0.5" opacity="0.5" />
+      <circle cx="16" cy="8" r="1.5" fill="white" />
+      <circle cx="8" cy="16" r="1.5" fill="white" />
+   </svg>
+);
+
+const GeoCoin = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <ellipse cx="12" cy="6" rx="10" ry="4" fillOpacity="0.8" />
+      <path d="M2 6v12c0 2.21 4.48 4 10 4s10-1.79 10-4V6" fillOpacity="0.4" />
+      <path d="M12 22V6" stroke="white" strokeWidth="0.5" strokeDasharray="2 2" />
+      <path d="M12 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="white" fillOpacity="0.2" />
+   </svg>
+);
 
 // --- TYPES ---
 interface Contract {
@@ -56,10 +103,10 @@ interface Accessorial {
 const MOCK_CONTRACTS: Contract[] = [
    {
       id: 'c1',
-      carrier: 'Maersk Line',
-      refId: 'GSA-MAEU-25-01',
-      mode: 'Ocean',
-      laneDescription: 'Asia to North America (TPEB)',
+      carrier: 'TCI Express Limited',
+      refId: 'TCI-EXP-2024-001',
+      mode: 'Road',
+      laneDescription: 'Delhi to Mumbai (Express)',
       contractType: 'Fixed',
       validFrom: '2025-01-01',
       validTo: '2026-12-31',
@@ -72,10 +119,10 @@ const MOCK_CONTRACTS: Contract[] = [
    },
    {
       id: 'c2',
-      carrier: 'MSC',
-      refId: 'MSC-GL-2025-B',
-      mode: 'Ocean',
-      laneDescription: 'Europe to Asia (EAEB)',
+      carrier: 'Blue Dart Express',
+      refId: 'BD-AIR-2025-B',
+      mode: 'Air',
+      laneDescription: 'Pan-India Air Express',
       contractType: 'Index-Linked',
       validFrom: '2025-01-01',
       validTo: '2025-12-31',
@@ -88,10 +135,10 @@ const MOCK_CONTRACTS: Contract[] = [
    },
    {
       id: 'c3',
-      carrier: 'C.H. Robinson',
-      refId: 'CHR-NA-LTL-25',
+      carrier: 'Delhivery',
+      refId: 'DLV-LTL-25',
       mode: 'Road',
-      laneDescription: 'USA Domestic LTL',
+      laneDescription: 'North India LTL Network',
       contractType: 'Tiered',
       validFrom: '2025-01-01',
       validTo: '2026-06-30',
@@ -104,10 +151,10 @@ const MOCK_CONTRACTS: Contract[] = [
    },
    {
       id: 'c4',
-      carrier: 'Flexport',
-      refId: 'FLX-AIR-SPOT-Q4',
-      mode: 'Air',
-      laneDescription: 'CN-US Urgent (Spot)',
+      carrier: 'VRL Logistics',
+      refId: 'VRL-FTL-SPOT-Q4',
+      mode: 'Road',
+      laneDescription: 'Mumbai-Bangalore FTL (Spot)',
       contractType: 'Spot Framework',
       validFrom: '2025-10-01',
       validTo: '2025-12-31',
@@ -120,10 +167,10 @@ const MOCK_CONTRACTS: Contract[] = [
    },
    {
       id: 'c5',
-      carrier: 'Hapag-Lloyd',
-      refId: 'HL-LATAM-25',
-      mode: 'Ocean',
-      laneDescription: 'US East Coast to LATAM',
+      carrier: 'Rivigo',
+      refId: 'RVG-SOUTH-25',
+      mode: 'Road',
+      laneDescription: 'Chennai to Bangalore Corridor',
       contractType: 'Fixed',
       validFrom: '2025-01-01',
       validTo: '2025-12-31',
@@ -136,10 +183,10 @@ const MOCK_CONTRACTS: Contract[] = [
    },
    {
       id: 'c6',
-      carrier: 'DHL Global',
-      refId: 'DHL-EU-ROAD-02',
+      carrier: 'Gati Limited',
+      refId: 'GATI-WEST-02',
       mode: 'Road',
-      laneDescription: 'Intra-Europe FTL',
+      laneDescription: 'Western India FTL Network',
       contractType: 'Index-Linked',
       validFrom: '2025-06-01',
       validTo: '2027-05-31',
@@ -152,10 +199,10 @@ const MOCK_CONTRACTS: Contract[] = [
    },
    {
       id: 'c7',
-      carrier: 'ONE Network',
-      refId: 'ONE-JP-US-26',
-      mode: 'Ocean',
-      laneDescription: 'Japan to US West Coast',
+      carrier: 'Professional Couriers',
+      refId: 'PC-EAST-26',
+      mode: 'Road',
+      laneDescription: 'Kolkata to Delhi Express',
       contractType: 'Fixed',
       validFrom: '2026-01-01',
       validTo: '2026-12-31',
@@ -169,19 +216,19 @@ const MOCK_CONTRACTS: Contract[] = [
 ];
 
 const MOCK_RATE_LINES: RateLine[] = [
-   { origin: 'Shanghai (CNSHA)', destination: 'Rotterdam (NLRTM)', equipment: "40' High Cube", currency: 'USD', baseRate: 3250.00, marketRate: 3450.00, transitTime: '28 Days', validity: '2025' },
-   { origin: 'Shanghai (CNSHA)', destination: 'Los Angeles (USLAX)', equipment: "40' High Cube", currency: 'USD', baseRate: 1850.00, marketRate: 2100.00, transitTime: '14 Days', validity: '2025' },
-   { origin: 'Singapore (SGSIN)', destination: 'Hamburg (DEHAM)', equipment: "20' Standard", currency: 'USD', baseRate: 1450.00, marketRate: 1350.00, transitTime: '24 Days', validity: '2025' },
-   { origin: 'Ningbo (CNNGB)', destination: 'New York (USNYC)', equipment: "40' Standard", currency: 'USD', baseRate: 4100.00, marketRate: 4500.00, transitTime: '32 Days', validity: '2025' },
-   { origin: 'Qingdao (CNQIN)', destination: 'Savannah (USSAV)', equipment: "40' High Cube", currency: 'USD', baseRate: 3800.00, marketRate: 4100.00, transitTime: '30 Days', validity: '2025' },
+   { origin: 'Delhi', destination: 'Mumbai', equipment: '32 FT MXL', currency: 'INR', baseRate: 45000.00, marketRate: 48000.00, transitTime: '36 Hrs', validity: '2025' },
+   { origin: 'Mumbai', destination: 'Bangalore', equipment: '32 FT MXL', currency: 'INR', baseRate: 38000.00, marketRate: 41000.00, transitTime: '24 Hrs', validity: '2025' },
+   { origin: 'Chennai', destination: 'Kolkata', equipment: '19 FT SXL', currency: 'INR', baseRate: 52000.00, marketRate: 55000.00, transitTime: '48 Hrs', validity: '2025' },
+   { origin: 'Pune', destination: 'Ahmedabad', equipment: '32 FT MXL', currency: 'INR', baseRate: 28000.00, marketRate: 30000.00, transitTime: '18 Hrs', validity: '2025' },
+   { origin: 'Delhi', destination: 'Bangalore', equipment: '32 FT MXL', currency: 'INR', baseRate: 58000.00, marketRate: 62000.00, transitTime: '48 Hrs', validity: '2025' },
 ];
 
 const MOCK_ACCESSORIALS: Accessorial[] = [
-   { code: 'BAF', description: 'Bunker Adjustment Factor', chargeType: 'Per Container', amount: 450.00, currency: 'USD', category: 'Fuel', logic: 'Pass-through' },
-   { code: 'LSS', description: 'Low Sulphur Surcharge', chargeType: 'Per Container', amount: 150.00, currency: 'USD', category: 'Fuel', logic: 'Fixed' },
-   { code: 'ISPS', description: 'Terminal Security Fee', chargeType: 'Per Container', amount: 15.00, currency: 'USD', category: 'Security', logic: 'Fixed' },
-   { code: 'THC-D', description: 'Terminal Handling (Dest)', chargeType: 'Per Container', amount: 380.00, currency: 'EUR', category: 'Handling', logic: 'Pass-through' },
-   { code: 'PSS', description: 'Peak Season Surcharge', chargeType: 'Per Container', amount: 500.00, currency: 'USD', category: 'Seasonal', logic: 'Fixed' },
+   { code: 'FSC', description: 'Fuel Surcharge', chargeType: 'Per Trip', amount: 2500.00, currency: 'INR', category: 'Fuel', logic: 'Pass-through' },
+   { code: 'DET', description: 'Detention Charges', chargeType: 'Per Day', amount: 1500.00, currency: 'INR', category: 'Delay', logic: 'Fixed' },
+   { code: 'ODA', description: 'Out of Delivery Area', chargeType: 'Per Shipment', amount: 2000.00, currency: 'INR', category: 'Location', logic: 'Fixed' },
+   { code: 'L/U', description: 'Loading/Unloading Charges', chargeType: 'Per Ton', amount: 200.00, currency: 'INR', category: 'Handling', logic: 'Pass-through' },
+   { code: 'TOLL', description: 'Toll Charges', chargeType: 'Actual', amount: 0.00, currency: 'INR', category: 'Route', logic: 'Pass-through' },
 ];
 
 const BENCHMARK_DATA = [
@@ -193,9 +240,52 @@ const BENCHMARK_DATA = [
    { month: 'Jun', contract: 3350, market: 3100, spot: 3400 },
 ];
 
-export const RateCards: React.FC = () => {
-   const [contracts, setContracts] = useState<Contract[]>(MOCK_CONTRACTS);
+interface RateCardsProps {
+   onViewContract?: (contractId: string) => void;
+}
+
+export const RateCards: React.FC<RateCardsProps> = ({ onViewContract }) => {
+   const [contracts, setContracts] = useState<Contract[]>([]);
    const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
+   const [loading, setLoading] = useState(true);
+
+   // Fetch contracts from PostgreSQL on mount
+   useEffect(() => {
+      const fetchContracts = async () => {
+         try {
+            // Fetch from new database-backed API endpoint
+            const res = await fetch('http://localhost:8000/api/rate-cards');
+            if (res.ok) {
+               const data = await res.json();
+               // Map API response to local Contract type
+               const mapped = data.rateCards?.map((c: any) => ({
+                  id: c.id,
+                  carrier: c.carrier,
+                  refId: c.contractRef || c.id,
+                  mode: c.containerType?.includes('Air') ? 'Air' : c.containerType?.includes('Sea') ? 'Sea' : 'Road',
+                  laneDescription: `${c.origin} to ${c.destination}`,
+                  contractType: 'Fixed' as const,
+                  validFrom: c.validFrom,
+                  validTo: c.validTo,
+                  status: (c.status || 'ACTIVE').toUpperCase() as any,
+                  allocationTarget: 50,
+                  allocationActual: Math.floor(Math.random() * 30) + 40,
+                  spendYTD: Math.floor(Math.random() * 5000000) + 500000,
+                  paymentTerms: 'Net 30',
+                  expiryDays: c.validTo ? Math.ceil((new Date(c.validTo).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 365
+               })) || [];
+               setContracts(mapped);
+            }
+         } catch (e) {
+            console.error('Failed to fetch rate cards from API:', e);
+            // No mock fallback - just show empty state
+            setContracts([]);
+         } finally {
+            setLoading(false);
+         }
+      };
+      fetchContracts();
+   }, []);
 
    // Rate Calculator State
    const [calcOpen, setCalcOpen] = useState(false);
@@ -242,529 +332,250 @@ export const RateCards: React.FC = () => {
                   id: `new-${Date.now()}`,
                   carrier: 'CMA CGM',
                   refId: 'CMA-NEW-2026',
-                  mode: 'Ocean',
-                  laneDescription: 'Global Import',
-                  contractType: 'Fixed',
+                  mode: 'Sea',
+                  laneDescription: 'Nhava Sheva to Jebel Ali',
+                  contractType: 'Index-Linked',
                   validFrom: '2026-01-01',
                   validTo: '2026-12-31',
-                  status: 'ACTIVE',
-                  allocationTarget: 15,
+                  status: 'PENDING',
+                  allocationTarget: 100,
                   allocationActual: 0,
                   spendYTD: 0,
-                  paymentTerms: 'Net 30',
+                  paymentTerms: 'Net 60',
                   expiryDays: 365
                };
                setContracts([newC, ...contracts]);
-            }, 1000);
+               alert("Contract Uploaded and Extracted Successfully!");
+            }, 500);
          }
-      }, 1500);
+      }, 800);
    };
 
-   const updateContract = (updated: Contract) => {
-      setContracts(prev => prev.map(c => c.id === updated.id ? updated : c));
-      setSelectedContract(updated);
+   const handleExport = () => {
+      const data = contracts.map(c => ({
+         Carrier: c.carrier,
+         Reference: c.refId,
+         Traffic_Mode: c.mode,
+         Lane: c.laneDescription,
+         Validity: `${c.validFrom} to ${c.validTo}`,
+         Status: c.status
+      }));
+      exportToCSV(data, 'Active_Contracts_Rates');
    };
 
-   const getModeIcon = (mode: string) => {
-      switch (mode) {
-         case 'Ocean': return <Ship size={14} className="text-blue-600" />;
-         case 'Air': return <Plane size={14} className="text-sky-600" />;
-         case 'Road': return <Truck size={14} className="text-orange-600" />;
-         default: return <Box size={14} className="text-gray-500" />;
+   // --- RENDER HELPERS ---
+
+   const getStatusColor = (status: string) => {
+      switch (status) {
+         case 'ACTIVE': return 'bg-green-100 text-green-800 border-green-200';
+         case 'EXPIRING': return 'bg-red-100 text-red-800 border-red-200';
+         case 'PENDING': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+         case 'ARCHIVED': return 'bg-gray-100 text-gray-800 border-gray-200';
+         default: return 'bg-gray-100 text-gray-800';
       }
    };
 
-   const getContractTypeBadge = (type: string) => {
-      switch (type) {
-         case 'Fixed': return <span className="text-[10px] font-bold text-gray-700 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">FIXED</span>;
-         case 'Index-Linked': return <span className="text-[10px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded border border-purple-200">INDEX</span>;
-         case 'Spot Framework': return <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded border border-blue-200">SPOT FW</span>;
-         case 'Tiered': return <span className="text-[10px] font-bold text-orange-700 bg-orange-100 px-2 py-0.5 rounded border border-orange-200">TIERED</span>;
-         default: return null;
-      }
-   };
-
-   // --- FILTER LOGIC ---
-   const filteredContracts = contracts.filter(c => {
-      if (!searchQuery) return true;
-      const query = searchQuery.toLowerCase();
-      return c.carrier.toLowerCase().includes(query) ||
-         c.refId.toLowerCase().includes(query) ||
-         c.laneDescription.toLowerCase().includes(query);
-   });
-
-   // --- RENDER DETAIL VIEW ---
-   if (selectedContract) {
-      return <ContractDetail contract={selectedContract} onBack={() => setSelectedContract(null)} onUpdate={updateContract} />;
-   }
-
-   // --- RENDER LIST VIEW ---
-   return (
-      <div className="h-full flex flex-col font-sans bg-[#F3F4F6] overflow-hidden relative">
-
-         {/* 1. Header & KPIs */}
-         <div className="bg-white border-b border-gray-200 px-8 py-6 flex-shrink-0 shadow-sm z-10">
-            <div className="flex justify-between items-start mb-6">
-               <div>
-                  <h2 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center">
-                     Rate Management
-                     <span className="ml-3 px-2 py-0.5 rounded text-[10px] font-bold bg-[#004D40] text-white uppercase tracking-wider">
-                        Operations
-                     </span>
-                  </h2>
-                  <p className="text-sm text-gray-500 mt-1">Centralized repository for negotiated rates, tariffs, and accessorials.</p>
-               </div>
-               <div className="flex space-x-3">
-                  <button
-                     onClick={() => setCalcOpen(!calcOpen)}
-                     className={`flex items-center px-4 py-2 border rounded-sm text-xs font-bold uppercase transition-colors ${calcOpen ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                  >
-                     <Calculator size={14} className="mr-2" /> Rate Search
-                  </button>
-                  <button
-                     onClick={() => setShowImport(true)}
-                     className="flex items-center px-4 py-2 bg-[#004D40] text-white rounded-sm text-xs font-bold uppercase hover:bg-[#00352C] shadow-sm"
-                  >
-                     <Cloud size={14} className="mr-2" /> Import Rates
-                  </button>
-               </div>
-            </div>
-
-            {/* KPIs */}
-            <div className="grid grid-cols-4 gap-6">
-               <div className="p-4 bg-gray-50 border border-gray-200 rounded-sm flex items-center justify-between">
-                  <div>
-                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Active Contracts</p>
-                     <p className="text-2xl font-bold text-gray-900 mt-1">{contracts.filter(c => c.status === 'ACTIVE').length}</p>
-                  </div>
-                  <div className="w-10 h-10 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center">
-                     <FileText size={20} />
-                  </div>
-               </div>
-
-               <div className="p-4 bg-orange-50 border border-orange-100 rounded-sm flex items-center justify-between">
-                  <div>
-                     <p className="text-[10px] font-bold text-orange-800 uppercase tracking-wider">Expiring (30 Days)</p>
-                     <p className="text-2xl font-bold text-orange-900 mt-1">{contracts.filter(c => c.status === 'EXPIRING').length}</p>
-                  </div>
-                  <div className="w-10 h-10 bg-orange-200 text-orange-700 rounded-full flex items-center justify-center">
-                     <Clock size={20} />
-                  </div>
-               </div>
-
-               <div className="p-4 bg-gray-50 border border-gray-200 rounded-sm flex items-center justify-between">
-                  <div>
-                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Total Lanes</p>
-                     <p className="text-2xl font-bold text-gray-900 mt-1">1,245</p>
-                  </div>
-                  <div className="w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center">
-                     <Globe size={20} />
-                  </div>
-               </div>
-
-               <div className="p-4 bg-gray-50 border border-gray-200 rounded-sm flex items-center justify-between">
-                  <div>
-                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Contract Spend (YTD)</p>
-                     <p className="text-2xl font-bold text-gray-900 mt-1">$12.4M</p>
-                  </div>
-                  <div className="w-10 h-10 bg-green-100 text-green-700 rounded-full flex items-center justify-center">
-                     <DollarSign size={20} />
-                  </div>
-               </div>
-            </div>
-
-            {/* Rate Calculator Widget (Collapsible) */}
-            {calcOpen && (
-               <div className="mt-6 p-6 bg-white border border-blue-100 shadow-lg rounded-sm animate-fade-in-up relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                  <div className="flex justify-between items-start mb-4">
-                     <div>
-                        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center">
-                           <Search size={16} className="mr-2 text-blue-600" /> Spot Quote Engine
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-1">Search across all 12 active contracts for the best valid rate.</p>
-                     </div>
-                     <button onClick={() => setCalcOpen(false)} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
-                  </div>
-
-                  <div className="flex items-end space-x-4">
-                     <div className="flex-1">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Origin (City/Port)</label>
-                        <div className="relative">
-                           <MapPin size={14} className="absolute left-3 top-2.5 text-gray-400" />
-                           <input
-                              type="text"
-                              placeholder="e.g. Shanghai"
-                              value={calcOrigin}
-                              onChange={(e) => setCalcOrigin(e.target.value)}
-                              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-sm text-sm focus:border-blue-500 focus:outline-none"
-                           />
-                        </div>
-                     </div>
-                     <div className="flex-1">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Destination (City/Port)</label>
-                        <div className="relative">
-                           <MapPin size={14} className="absolute left-3 top-2.5 text-gray-400" />
-                           <input
-                              type="text"
-                              placeholder="e.g. Rotterdam"
-                              value={calcDest}
-                              onChange={(e) => setCalcDest(e.target.value)}
-                              className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-sm text-sm focus:border-blue-500 focus:outline-none"
-                           />
-                        </div>
-                     </div>
-                     <div className="w-48">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Mode</label>
-                        <select className="w-full border border-gray-300 rounded-sm px-3 py-2 text-sm bg-white">
-                           <option>Ocean (FCL)</option>
-                           <option>Air Freight</option>
-                           <option>Road (LTL)</option>
-                        </select>
-                     </div>
-                     <button
-                        onClick={handleCalculate}
-                        disabled={isCalculating || !calcOrigin || !calcDest}
-                        className="px-6 py-2 bg-blue-600 text-white font-bold text-sm rounded-sm hover:bg-blue-700 shadow-sm disabled:opacity-50 min-w-[120px]"
-                     >
-                        {isCalculating ? 'Searching...' : 'Find Rate'}
-                     </button>
-                  </div>
-
-                  {/* Result Area */}
-                  {calcResult && (
-                     <div className="mt-6 pt-6 border-t border-gray-100 flex items-center justify-between animate-fadeIn">
-                        <div className="flex items-center space-x-4">
-                           <div className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center border border-green-100">
-                              <CheckCircle size={24} />
-                           </div>
-                           <div>
-                              <p className="text-xs text-gray-500 font-bold uppercase">Best Contract Rate Found</p>
-                              <h4 className="text-xl font-bold text-gray-900">{calcResult.origin} <span className="text-gray-400 mx-1">&rarr;</span> {calcResult.destination}</h4>
-                              <p className="text-sm text-gray-600 mt-1">Carrier: <span className="font-bold text-teal-700">Maersk Line</span> • Transit: {calcResult.transitTime}</p>
-                           </div>
-                        </div>
-                        <div className="text-right">
-                           <p className="text-3xl font-bold text-blue-600">
-                              {calcResult.baseRate.toLocaleString('en-US', { style: 'currency', currency: calcResult.currency })}
-                           </p>
-                           <p className="text-xs text-gray-400 uppercase font-bold mt-1">Base Rate (40' HC)</p>
-                        </div>
-                     </div>
-                  )}
-                  {!calcResult && !isCalculating && calcOrigin && calcDest && (
-                     <div className="mt-4 pt-4 border-t border-gray-100 text-center text-sm text-gray-500 italic">
-                        Click "Find Rate" to search active contracts.
-                     </div>
-                  )}
-               </div>
-            )}
-         </div>
-
-         {/* 2. Main List */}
-         <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-            <div className="flex justify-between items-center mb-4">
-               <div className="relative w-80">
-                  <input
-                     type="text"
-                     placeholder="Filter by Carrier, Lane, or Ref..."
-                     value={searchQuery}
-                     onChange={(e) => setSearchQuery(e.target.value)}
-                     className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-sm text-xs font-medium focus:outline-none focus:border-teal-600"
-                  />
-                  <Search size={14} className="absolute left-3 top-2.5 text-gray-400" />
-               </div>
-               <button className="text-xs font-bold text-gray-500 hover:text-teal-600 flex items-center">
-                  <Filter size={14} className="mr-1" /> Advanced Filters
-               </button>
-            </div>
-
-            <div className="bg-white border border-gray-200 shadow-sm rounded-sm overflow-hidden">
-               <table className="w-full text-sm text-left">
-                  <thead className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase font-bold">
-                     <tr>
-                        <th className="px-6 py-4">Carrier</th>
-                        <th className="px-6 py-4">Contract Ref</th>
-                        <th className="px-6 py-4">Mode</th>
-                        <th className="px-6 py-4">Lane</th>
-                        <th className="px-6 py-4">Contract Type</th>
-                        <th className="px-6 py-4">Validity</th>
-                        <th className="px-6 py-4">Allocation (Comm / Act)</th>
-                        <th className="px-6 py-4 text-center">Status</th>
-                        <th className="px-6 py-4 text-center">Expiry (Days)</th>
-                        <th className="px-6 py-4 text-right">Actions</th>
-                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                     {filteredContracts.length > 0 ? filteredContracts.map((contract) => (
-                        <tr key={contract.id} className="hover:bg-teal-50/20 transition-colors group cursor-pointer" onClick={() => setSelectedContract(contract)}>
-
-                           {/* Carrier */}
-                           <td className="px-6 py-4 font-bold text-gray-900">{contract.carrier}</td>
-
-                           {/* Ref */}
-                           <td className="px-6 py-4 font-mono text-xs text-blue-600">{contract.refId}</td>
-
-                           {/* Mode */}
-                           <td className="px-6 py-4">
-                              <div className="flex items-center space-x-2">
-                                 {getModeIcon(contract.mode)}
-                                 <span className="text-sm text-gray-700">{contract.mode}</span>
-                              </div>
-                           </td>
-
-                           {/* Lane */}
-                           <td className="px-6 py-4 text-xs text-gray-600 max-w-[150px] truncate" title={contract.laneDescription}>
-                              {contract.laneDescription}
-                           </td>
-
-                           {/* Contract Type */}
-                           <td className="px-6 py-4">
-                              {getContractTypeBadge(contract.contractType)}
-                           </td>
-
-                           {/* Validity */}
-                           <td className="px-6 py-4 text-xs text-gray-600">
-                              <div className="flex flex-col">
-                                 <span>{contract.validFrom}</span>
-                                 <span className="text-gray-400">to {contract.validTo}</span>
-                              </div>
-                           </td>
-
-                           {/* Allocation */}
-                           <td className="px-6 py-4">
-                              <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden mb-1">
-                                 <div
-                                    className={`h-full rounded-full ${contract.allocationActual > contract.allocationTarget ? 'bg-red-500' : 'bg-teal-500'}`}
-                                    style={{ width: `${Math.min(contract.allocationActual, 100)}%` }}
-                                 ></div>
-                              </div>
-                              <span className="text-[10px] text-gray-500 font-mono font-bold">
-                                 {contract.allocationTarget}% / {contract.allocationActual}%
-                              </span>
-                           </td>
-
-                           {/* Status */}
-                           <td className="px-6 py-4 text-center">
-                              {contract.status === 'ACTIVE' && <span className="px-2 py-1 rounded-sm bg-teal-100 text-teal-700 text-[10px] font-bold border border-teal-200">ACTIVE</span>}
-                              {contract.status === 'EXPIRING' && <span className="px-2 py-1 rounded-sm bg-orange-100 text-orange-700 text-[10px] font-bold border border-orange-200 flex items-center justify-center"><Clock size={10} className="mr-1" /> EXPIRING</span>}
-                              {contract.status === 'PENDING' && <span className="px-2 py-1 rounded-sm bg-gray-100 text-gray-600 text-[10px] font-bold border border-gray-200">PENDING</span>}
-                              {contract.status === 'ARCHIVED' && <span className="px-2 py-1 rounded-sm bg-gray-100 text-gray-400 text-[10px] font-bold border border-gray-200">ARCHIVED</span>}
-                           </td>
-
-                           {/* Expiry Days */}
-                           <td className="px-6 py-4 text-center">
-                              {contract.status !== 'ARCHIVED' ? (
-                                 <span className={`font-mono font-bold text-xs ${contract.expiryDays < 45 ? 'text-red-600' : contract.expiryDays < 90 ? 'text-orange-500' : 'text-green-600'}`}>
-                                    {contract.expiryDays}
-                                 </span>
-                              ) : (
-                                 <span className="text-xs text-gray-400">-</span>
-                              )}
-                           </td>
-
-                           {/* Actions */}
-                           <td className="px-6 py-4 text-right">
-                              <ChevronRight size={18} className="text-gray-300 group-hover:text-teal-600 inline-block" />
-                           </td>
-                        </tr>
-                     )) : (
-                        <tr>
-                           <td colSpan={10} className="px-6 py-12 text-center text-gray-400">
-                              <Filter size={48} className="mx-auto mb-3 opacity-20" />
-                              <p className="text-sm font-bold">No contracts match your search.</p>
-                              <button onClick={() => setSearchQuery('')} className="text-xs text-teal-600 hover:underline mt-2">Clear Search</button>
-                           </td>
-                        </tr>
-                     )}
-                  </tbody>
-               </table>
-            </div>
-         </div>
-
-         {/* --- IMPORT MODAL --- */}
-         {showImport && (
-            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4">
-               <div className="bg-white w-full max-w-lg rounded-sm shadow-2xl overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-200 bg-[#004D40] text-white flex justify-between items-center">
-                     <h3 className="text-lg font-bold">Import Rate Sheet</h3>
-                     <button onClick={() => setShowImport(false)}><X size={20} /></button>
-                  </div>
-                  <div className="p-8">
-                     {importStep === 0 && (
-                        <div onClick={handleImport} className="border-2 border-dashed border-gray-300 rounded-lg p-10 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors">
-                           <Cloud size={40} className="text-teal-600 mb-4" />
-                           <p className="font-bold text-gray-700">Drop PDF or Excel here</p>
-                           <p className="text-xs text-gray-400 mt-2">Max 50MB</p>
-                        </div>
-                     )}
-                     {importStep > 0 && (
-                        <div className="space-y-6">
-                           <div className="space-y-2">
-                              <div className="flex justify-between text-xs font-bold uppercase text-gray-500">
-                                 <span>Uploading...</span>
-                                 <span>100%</span>
-                              </div>
-                              <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                                 <div className="h-full bg-teal-600 w-full"></div>
-                              </div>
-                           </div>
-
-                           <div className="space-y-2">
-                              <div className="flex justify-between text-xs font-bold uppercase text-gray-500">
-                                 <span>AI OCR Extraction...</span>
-                                 <span>{importStep === 1 ? '45%' : '100%'}</span>
-                              </div>
-                              <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                                 <div className={`h-full bg-blue-600 transition-all duration-1000 ${importStep >= 2 ? 'w-full' : 'w-1/2'}`}></div>
-                              </div>
-                           </div>
-
-                           <div className="space-y-2">
-                              <div className="flex justify-between text-xs font-bold uppercase text-gray-500">
-                                 <span>Validation Checks...</span>
-                                 <span>{importStep === 3 ? '100%' : 'Pending'}</span>
-                              </div>
-                              <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                                 <div className={`h-full bg-purple-600 transition-all duration-1000 ${importStep === 3 ? 'w-full' : 'w-0'}`}></div>
-                              </div>
-                           </div>
-
-                           {importStep === 3 && (
-                              <div className="flex items-center justify-center text-green-600 font-bold mt-4 animate-bounce">
-                                 <CheckCircle size={20} className="mr-2" /> Import Complete!
-                              </div>
-                           )}
-                        </div>
-                     )}
-                  </div>
-               </div>
-            </div>
-         )}
-
-      </div>
+   const filteredContracts = contracts.filter(c =>
+      c.carrier.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.laneDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.refId.toLowerCase().includes(searchQuery.toLowerCase())
    );
-};
-
-// --- SUB-COMPONENT: CONTRACT DETAIL VIEW ---
-
-const ContractDetail: React.FC<{ contract: Contract; onBack: () => void; onUpdate: (c: Contract) => void }> = ({ contract, onBack, onUpdate }) => {
-   const [activeTab, setActiveTab] = useState<'rates' | 'accessorials' | 'performance'>('rates');
-   const [toast, setToast] = useState<string | null>(null);
-
-   const triggerToast = (msg: string) => {
-      setToast(msg);
-      setTimeout(() => setToast(null), 3000);
-   };
-
-   const handleAmend = () => {
-      triggerToast("Contract unlocked for amendment. Version 1.2 created.");
-   };
-
-   const handleTerminate = () => {
-      if (window.confirm('Are you sure you want to terminate this contract? This action cannot be undone.')) {
-         onUpdate({ ...contract, status: 'ARCHIVED' });
-         onBack();
-      }
-   };
 
    return (
-      <div className="h-full flex flex-col font-sans bg-gray-50 overflow-hidden relative">
-
-         {/* Detail Header */}
-         <div className="bg-white border-b border-gray-200 px-8 py-6 flex-shrink-0 shadow-sm">
-            <div className="flex items-center space-x-4 mb-6">
-               <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
-                  <ArrowLeft size={20} />
-               </button>
-               <div>
-                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center">
-                     {contract.carrier}
-                     <span className="ml-3 text-lg font-mono text-gray-400 font-normal">#{contract.refId}</span>
-                  </h1>
-                  <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
-                     <span className="flex items-center"><Truck size={14} className="mr-1" /> {contract.mode}</span>
-                     <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                     <span className="flex items-center"><Calendar size={14} className="mr-1" /> Valid: {contract.validFrom} - {contract.validTo}</span>
-                     {contract.status === 'EXPIRING' && <span className="text-orange-600 font-bold flex items-center ml-2"><AlertCircle size={14} className="mr-1" /> Expiring Soon</span>}
-                     {contract.status === 'ARCHIVED' && <span className="text-gray-500 font-bold flex items-center ml-2 bg-gray-200 px-2 rounded text-xs">ARCHIVED</span>}
-                  </div>
+      <div className="h-full flex flex-col bg-gray-50 overflow-hidden">
+         {/* HEADER */}
+         <div className="bg-white border-b border-gray-200 py-4 px-6 flex justify-between items-center shadow-sm z-10">
+            <div>
+               <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Contract Rate Repository</h1>
+                  <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold border border-blue-200">
+                     SYSTEM RECORD
+                  </span>
                </div>
+               <p className="text-sm text-gray-500 mt-1">Centralized digital library for all negotiated logistics rate cards and agreements</p>
             </div>
-
-            <div className="flex items-end justify-between">
-               <div className="flex space-x-8">
-                  {['rates', 'accessorials', 'performance'].map(tab => (
-                     <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab as any)}
-                        className={`pb-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === tab ? 'border-teal-600 text-teal-800' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
-                     >
-                        {tab === 'rates' ? 'Rate Sheet' : tab === 'accessorials' ? 'Surcharges' : 'Benchmarking'}
-                     </button>
-                  ))}
-               </div>
-               {contract.status !== 'ARCHIVED' && (
-                  <div className="flex space-x-3 pb-2">
-                     <button
-                        onClick={handleAmend}
-                        className="flex items-center px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-sm text-xs font-bold uppercase hover:bg-gray-50 shadow-sm"
-                     >
-                        <Edit2 size={14} className="mr-2" /> Amend
-                     </button>
-                     <button
-                        onClick={handleTerminate}
-                        className="flex items-center px-4 py-2 border border-red-200 bg-white text-red-600 rounded-sm text-xs font-bold uppercase hover:bg-red-50 shadow-sm"
-                     >
-                        <Trash2 size={14} className="mr-2" /> Terminate
-                     </button>
-                  </div>
-               )}
+            <div className="flex items-center gap-3">
+               <button
+                  onClick={() => setShowImport(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors shadow-lg hover:shadow-xl text-sm font-medium"
+               >
+                  <Upload size={18} />
+                  Import Rate Sheet
+               </button>
+               <button
+                  onClick={() => setCalcOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md text-sm font-medium"
+               >
+                  <Calculator size={18} />
+                  Rate Calculator
+               </button>
             </div>
          </div>
 
-         {/* Content Body */}
-         <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+         {/* MAIN CONTENT */}
+         <div className="flex-1 overflow-auto p-6">
 
-            {/* TAB: RATES */}
-            {activeTab === 'rates' && (
-               <div className="animate-fade-in-up">
-                  <div className="flex justify-between items-center mb-4">
-                     <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Base Rate Table (Ocean)</h3>
-                     <div className="flex space-x-2">
-                        <button
-                           onClick={() => exportToCSV(MOCK_RATE_LINES, 'Contract_Rates')}
-                           className="text-teal-600 text-xs font-bold hover:underline flex items-center">
-                           <Download size={14} className="mr-1" /> Export CSV
+            {/* KPI OVERVIEW */}
+            <div className="grid grid-cols-4 gap-6 mb-8">
+               <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                  <div className="absolute right-0 top-0 w-24 h-24 bg-blue-500 opacity-5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                  <div className="flex justify-between items-start relative z-10 mb-4">
+                     <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Contracts</p>
+                        <h3 className="text-3xl font-bold text-gray-900 mt-1">{contracts.length}</h3>
+                     </div>
+                     <div className="w-12 h-12 text-blue-600 opacity-90">
+                        <GeoContract className="w-full h-full" />
+                     </div>
+                  </div>
+                  <div className="flex items-center text-xs font-medium text-green-600 bg-green-50 w-fit px-2 py-1 rounded">
+                     <ArrowUpRight size={14} className="mr-1" />
+                     +2 this month
+                  </div>
+               </div>
+
+               <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                  <div className="absolute right-0 top-0 w-24 h-24 bg-orange-500 opacity-5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                  <div className="flex justify-between items-start relative z-10 mb-4">
+                     <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Expiring Soon</p>
+                        <h3 className="text-3xl font-bold text-gray-900 mt-1">
+                           {contracts.filter(c => c.status === 'EXPIRING').length}
+                        </h3>
+                     </div>
+                     <div className="w-12 h-12 text-orange-600 opacity-90">
+                        <GeoClock className="w-full h-full" />
+                     </div>
+                  </div>
+                  <div className="flex items-center text-xs font-medium text-orange-600 bg-orange-50 w-fit px-2 py-1 rounded">
+                     <AlertCircle size={14} className="mr-1" />
+                     Action Required
+                  </div>
+               </div>
+
+               <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                  <div className="absolute right-0 top-0 w-24 h-24 bg-purple-500 opacity-5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                  <div className="flex justify-between items-start relative z-10 mb-4">
+                     <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Global Coverage</p>
+                        <h3 className="text-3xl font-bold text-gray-900 mt-1">12</h3>
+                     </div>
+                     <div className="w-12 h-12 text-purple-600 opacity-90">
+                        <GeoGlobe className="w-full h-full" />
+                     </div>
+                  </div>
+                  <div className="flex items-center text-xs font-medium text-gray-500 bg-gray-50 w-fit px-2 py-1 rounded">
+                     Countries Covered
+                  </div>
+               </div>
+
+               <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
+                  <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-500 opacity-5 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110"></div>
+                  <div className="flex justify-between items-start relative z-10 mb-4">
+                     <div>
+                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Annual Spend</p>
+                        <h3 className="text-3xl font-bold text-gray-900 mt-1">₹8.9Cr</h3>
+                     </div>
+                     <div className="w-12 h-12 text-emerald-600 opacity-90">
+                        <GeoCoin className="w-full h-full" />
+                     </div>
+                  </div>
+                  <div className="flex items-center text-xs font-medium text-gray-500 bg-gray-50 w-fit px-2 py-1 rounded">
+                     Under Contract
+                  </div>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-12 gap-6 h-[600px]">
+               {/* CONTRACT LIST */}
+               <div className="col-span-8 flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50">
+                     <div className="relative w-80">
+                        <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                        <input
+                           type="text"
+                           placeholder="Search contracts..."
+                           className="w-full pl-9 pr-4 py-2 bg-white border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow"
+                           value={searchQuery}
+                           onChange={e => setSearchQuery(e.target.value)}
+                        />
+                     </div>
+                     <div className="flex gap-2">
+                        <button className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600">
+                           <Filter size={18} />
+                        </button>
+                        <button onClick={handleExport} className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-600">
+                           <Download size={18} />
                         </button>
                      </div>
                   </div>
-                  <div className="bg-white border border-gray-200 shadow-sm rounded-sm overflow-hidden">
-                     <table className="w-full text-sm text-left">
-                        <thead className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase font-bold">
+
+                  <div className="overflow-auto flex-1">
+                     <table className="w-full text-left">
+                        <thead className="bg-gray-50 sticky top-0 z-10">
                            <tr>
-                              <th className="px-6 py-4">Origin</th>
-                              <th className="px-6 py-4">Destination</th>
-                              <th className="px-6 py-4">Equipment</th>
-                              <th className="px-6 py-4 text-right">Base Rate</th>
-                              <th className="px-6 py-4 text-right text-gray-400">Market Avg</th>
-                              <th className="px-6 py-4">Transit</th>
-                              <th className="px-6 py-4 text-right">Actions</th>
+                              <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Carrier & ID</th>
+                              <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Lane / Scope</th>
+                              <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Type</th>
+                              <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Validity</th>
+                              <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+                              <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                           {MOCK_RATE_LINES.map((line, i) => (
-                              <tr key={i} className="hover:bg-gray-50">
-                                 <td className="px-6 py-4 font-medium text-gray-900">{line.origin}</td>
-                                 <td className="px-6 py-4 font-medium text-gray-900">{line.destination}</td>
-                                 <td className="px-6 py-4 text-gray-600">{line.equipment}</td>
-                                 <td className="px-6 py-4 text-right font-bold text-gray-900">{line.baseRate.toLocaleString('en-US', { style: 'currency', currency: line.currency })}</td>
-                                 <td className="px-6 py-4 text-right text-xs font-mono text-gray-400">
-                                    {line.marketRate.toLocaleString('en-US', { style: 'currency', currency: line.currency })}
+                           {filteredContracts.map(contract => (
+                              <tr key={contract.id} className="hover:bg-blue-50 transition-colors group">
+                                 <td className="px-6 py-4">
+                                    <div className="flex items-center gap-3">
+                                       <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs shadow-sm">
+                                          {contract.carrier.substring(0, 2).toUpperCase()}
+                                       </div>
+                                       <div>
+                                          <p className="text-sm font-bold text-gray-900">{contract.carrier}</p>
+                                          <p className="text-xs text-gray-500 font-mono">{contract.refId}</p>
+                                       </div>
+                                    </div>
                                  </td>
-                                 <td className="px-6 py-4 text-xs text-gray-500">{line.transitTime}</td>
-                                 <td className="px-6 py-4 text-right">
-                                    <button className="text-gray-400 hover:text-teal-600"><MoreHorizontal size={16} /></button>
+                                 <td className="px-6 py-4">
+                                    <p className="text-sm font-medium text-gray-700">{contract.laneDescription}</p>
+                                    <div className="flex items-center gap-1 mt-1">
+                                       {contract.mode === 'Road' && <Truck size={12} className="text-gray-400" />}
+                                       {contract.mode === 'Air' && <Plane size={12} className="text-gray-400" />}
+                                       {contract.mode === 'Sea' && <Ship size={12} className="text-gray-400" />}
+                                       <span className="text-xs text-gray-500">{contract.mode}</span>
+                                    </div>
+                                 </td>
+                                 <td className="px-6 py-4">
+                                    <span className={`px-2 py-1 rounded text-xs font-medium border ${contract.contractType === 'Fixed' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                                       contract.contractType === 'Index-Linked' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+                                          'bg-gray-50 text-gray-700 border-gray-200'
+                                       }`}>
+                                       {contract.contractType}
+                                    </span>
+                                 </td>
+                                 <td className="px-6 py-4">
+                                    <div className="text-xs text-gray-600">
+                                       <p>From: {contract.validFrom}</p>
+                                       <p>To: {contract.validTo}</p>
+                                    </div>
+                                    {contract.expiryDays < 90 && (
+                                       <span className="text-[10px] font-bold text-red-600 mt-1 block">
+                                          Expiring in {contract.expiryDays} days
+                                       </span>
+                                    )}
+                                 </td>
+                                 <td className="px-6 py-4">
+                                    <span className={`px-2 py-1 rounded-full text-xs font-bold border ${getStatusColor(contract.status)}`}>
+                                       {contract.status}
+                                    </span>
+                                 </td>
+                                 <td className="px-6 py-4">
+                                    <button
+                                       onClick={() => setSelectedContract(contract)}
+                                       className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded hover:bg-white"
+                                    >
+                                       <ChevronRight size={20} />
+                                    </button>
                                  </td>
                               </tr>
                            ))}
@@ -772,139 +583,254 @@ const ContractDetail: React.FC<{ contract: Contract; onBack: () => void; onUpdat
                      </table>
                   </div>
                </div>
-            )}
 
-            {/* TAB: ACCESSORIALS */}
-            {activeTab === 'accessorials' && (
-               <div className="animate-fade-in-up">
-                  <div className="grid grid-cols-3 gap-6">
-                     <div className="col-span-2">
-                        <div className="bg-white border border-gray-200 shadow-sm rounded-sm overflow-hidden">
-                           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Approved Surcharges</h3>
+               {/* DETAILS & BENCHMARKING (Side Panel) */}
+               <div className="col-span-4 flex flex-col gap-6">
+                  {/* Selected Contract Quick View */}
+                  {selectedContract ? (
+                     <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm h-full flex flex-col animate-in slide-in-from-right duration-300">
+                        <div className="mb-6 pb-6 border-b border-gray-100">
+                           <div className="flex justify-between items-start mb-2">
+                              <h3 className="text-lg font-bold text-gray-900">{selectedContract.carrier}</h3>
+                              <span className={`px-2 py-1 rounded text-xs font-bold ${getStatusColor(selectedContract.status)}`}>
+                                 {selectedContract.status}
+                              </span>
                            </div>
-                           <table className="w-full text-sm text-left">
-                              <thead className="bg-white border-b border-gray-200 text-xs text-gray-500 uppercase font-bold">
-                                 <tr>
-                                    <th className="px-6 py-3">Code</th>
-                                    <th className="px-6 py-3">Description</th>
-                                    <th className="px-6 py-3">Category</th>
-                                    <th className="px-6 py-3">Logic</th>
-                                    <th className="px-6 py-3 text-right">Amount</th>
-                                 </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-100">
-                                 {MOCK_ACCESSORIALS.map((acc, i) => (
-                                    <tr key={i} className="hover:bg-gray-50">
-                                       <td className="px-6 py-4 font-mono font-bold text-gray-700">{acc.code}</td>
-                                       <td className="px-6 py-4 text-gray-800">{acc.description}</td>
-                                       <td className="px-6 py-4">
-                                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border 
-                                             ${acc.category === 'Fuel' ? 'bg-orange-50 text-orange-700 border-orange-200' : 'bg-gray-50 text-gray-600 border-gray-200'}
-                                          `}>
-                                             {acc.category}
-                                          </span>
-                                       </td>
-                                       <td className="px-6 py-4 text-xs text-gray-500 italic">{acc.logic}</td>
-                                       <td className="px-6 py-4 text-right font-bold text-gray-900">
-                                          {acc.amount.toLocaleString('en-US', { style: 'currency', currency: acc.currency })}
-                                       </td>
-                                    </tr>
-                                 ))}
-                              </tbody>
-                           </table>
-                        </div>
-                     </div>
-                     <div className="col-span-1 space-y-6">
-                        <div className="bg-blue-50 border border-blue-100 rounded-sm p-6">
-                           <h4 className="font-bold text-blue-900 mb-2 flex items-center"><TrendingUp size={16} className="mr-2" /> GRI Simulator</h4>
-                           <p className="text-xs text-blue-700 mb-4">Simulate a General Rate Increase (GRI) across all lines.</p>
-                           <div className="flex items-center space-x-2">
-                              <input type="number" placeholder="%" className="w-20 border border-blue-200 rounded-sm px-2 py-1 text-sm" />
-                              <button className="flex-1 bg-blue-600 text-white text-xs font-bold py-1.5 rounded-sm hover:bg-blue-700 shadow-sm">Simulate Impact</button>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            )}
+                           <p className="text-sm text-gray-500 break-all font-mono">{selectedContract.refId}</p>
 
-            {/* TAB: PERFORMANCE */}
-            {activeTab === 'performance' && (
-               <div className="animate-fade-in-up space-y-6">
-                  <div className="grid grid-cols-3 gap-6">
-                     <div className="col-span-2 bg-white border border-gray-200 shadow-sm rounded-sm p-6">
-                        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-6">Contract Rate vs Market Spot (Shanghai to Rotterdam)</h3>
-                        <div className="h-72 w-full">
-                           <ResponsiveContainer width="100%" height="100%">
-                              <ComposedChart data={BENCHMARK_DATA}>
-                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-                                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} domain={[3000, 4500]} />
-                                 <Tooltip />
-                                 <Legend verticalAlign="top" height={36} />
-                                 <Area type="monotone" dataKey="spot" name="Spot Market" fill="#FEE2E2" stroke="#EF4444" strokeWidth={2} />
-                                 <Line type="monotone" dataKey="contract" name="Contract Rate" stroke="#004D40" strokeWidth={3} dot={{ r: 4 }} />
-                                 <Line type="monotone" dataKey="market" name="Market Avg" stroke="#9CA3AF" strokeWidth={2} strokeDasharray="5 5" />
-                              </ComposedChart>
-                           </ResponsiveContainer>
-                        </div>
-                     </div>
-                     <div className="bg-white border border-gray-200 shadow-sm rounded-sm p-6 flex flex-col justify-between">
-                        <div>
-                           <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-4">Performance Scorecard</h3>
-                           <div className="space-y-4">
-                              <div>
-                                 <div className="flex justify-between text-xs mb-1">
-                                    <span className="text-gray-500">Allocation Adherence</span>
-                                    <span className="font-bold text-green-600">98%</span>
-                                 </div>
-                                 <div className="w-full bg-gray-100 h-1.5 rounded-full">
-                                    <div className="bg-green-500 h-full rounded-full w-[98%]"></div>
-                                 </div>
+                           <div className="grid grid-cols-2 gap-4 mt-6">
+                              <div className="p-3 bg-gray-50 rounded-lg">
+                                 <p className="text-xs text-gray-500 uppercase mb-1">Spend YTD</p>
+                                 <p className="text-lg font-bold text-gray-900">₹{(selectedContract.spendYTD / 100000).toFixed(2)}L</p>
                               </div>
-                              <div>
-                                 <div className="flex justify-between text-xs mb-1">
-                                    <span className="text-gray-500">Tender Acceptance</span>
-                                    <span className="font-bold text-teal-600">92%</span>
-                                 </div>
-                                 <div className="w-full bg-gray-100 h-1.5 rounded-full">
-                                    <div className="bg-teal-500 h-full rounded-full w-[92%]"></div>
-                                 </div>
-                              </div>
-                              <div>
-                                 <div className="flex justify-between text-xs mb-1">
-                                    <span className="text-gray-500">Invoice Accuracy</span>
-                                    <span className="font-bold text-orange-600">84%</span>
-                                 </div>
-                                 <div className="w-full bg-gray-100 h-1.5 rounded-full">
-                                    <div className="bg-orange-500 h-full rounded-full w-[84%]"></div>
+                              <div className="p-3 bg-gray-50 rounded-lg">
+                                 <p className="text-xs text-gray-500 uppercase mb-1">Commitment</p>
+                                 <div className="flex items-center gap-2">
+                                    <div className="w-12 h-12 relative flex items-center justify-center">
+                                       <svg viewBox="0 0 36 36" className="w-full h-full transform -rotate-90">
+                                          <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#E5E7EB" strokeWidth="3" />
+                                          <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke={selectedContract.allocationActual >= selectedContract.allocationTarget ? "#10B981" : "#F59E0B"} strokeWidth="3" strokeDasharray={`${selectedContract.allocationActual}, 100`} />
+                                       </svg>
+                                       <span className="absolute text-[10px] font-bold">{selectedContract.allocationActual}%</span>
+                                    </div>
+                                    <span className="text-xs text-gray-500">of {selectedContract.allocationTarget}% Target</span>
                                  </div>
                               </div>
                            </div>
                         </div>
-                        <div className="bg-green-50 p-4 border border-green-100 rounded-sm">
-                           <div className="flex items-start gap-2">
-                              <TrendingUp size={16} className="text-green-700 mt-0.5" />
-                              <div>
-                                 <p className="text-xs font-bold text-green-800">Strong Performance</p>
-                                 <p className="text-[10px] text-green-700 mt-1">
-                                    Contract is performing 12% better than spot market average YTD. Maintain allocation.
-                                 </p>
+
+                        {/* Benchmarking Chart - Academic Style */}
+                        <div className="flex-1">
+                           <h4 className="text-xs font-bold text-black uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-black/10 pb-3">
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                 <path d="M4 18L10 12L14 16L20 8" stroke="#0F62FE" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                                 <path d="M16 8H20V12" stroke="#0F62FE" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                              </svg>
+                              Rate Benchmarking Analysis
+                           </h4>
+                           <div className="h-48 w-full">
+                              <ResponsiveContainer width="100%" height="100%">
+                                 <LineChart data={BENCHMARK_DATA} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E5E5" vertical={false} />
+                                    <XAxis
+                                       dataKey="month"
+                                       tick={{ fontSize: 10, fill: '#161616', fontWeight: 600 }}
+                                       axisLine={{ stroke: '#161616', strokeWidth: 1 }}
+                                       tickLine={false}
+                                    />
+                                    <YAxis
+                                       hide
+                                       domain={['dataMin - 200', 'dataMax + 200']}
+                                    />
+                                    <Tooltip
+                                       contentStyle={{
+                                          borderRadius: '8px',
+                                          border: '1px solid #161616',
+                                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                          background: '#FFFFFF',
+                                          padding: '12px'
+                                       }}
+                                       labelStyle={{ fontSize: '11px', fontWeight: 'bold', color: '#161616' }}
+                                       itemStyle={{ fontSize: '11px', color: '#161616' }}
+                                       formatter={(value: number) => [`₹${value.toLocaleString()}`, '']}
+                                    />
+                                    <Legend
+                                       wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }}
+                                       iconType="square"
+                                       iconSize={8}
+                                    />
+                                    {/* Market Average - Dashed Gray */}
+                                    <Line
+                                       type="monotone"
+                                       dataKey="market"
+                                       stroke="#9CA3AF"
+                                       strokeWidth={1.5}
+                                       strokeDasharray="6 4"
+                                       dot={false}
+                                       name="Market Index"
+                                    />
+                                    {/* Spot Rate - Red Line */}
+                                    <Line
+                                       type="monotone"
+                                       dataKey="spot"
+                                       stroke="#DC2626"
+                                       strokeWidth={2}
+                                       dot={false}
+                                       name="Spot Rate"
+                                    />
+                                    {/* Your Contract Rate - IBM Blue with dots */}
+                                    <Line
+                                       type="monotone"
+                                       dataKey="contract"
+                                       stroke="#0F62FE"
+                                       strokeWidth={2.5}
+                                       dot={{ r: 4, fill: '#0F62FE', stroke: '#FFFFFF', strokeWidth: 2 }}
+                                       activeDot={{ r: 6, fill: '#0F62FE', stroke: '#FFFFFF', strokeWidth: 2 }}
+                                       name="Contract Rate"
+                                    />
+                                 </LineChart>
+                              </ResponsiveContainer>
+                           </div>
+
+                           {/* Academic Insight Box */}
+                           <div className="mt-4 p-3 bg-[#FEF3C7] border-l-4 border-[#F59E0B] text-xs">
+                              <div className="flex items-start gap-2">
+                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="#92400E">
+                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" />
+                                    <path d="M2 17L12 22L22 17" stroke="#92400E" strokeWidth="2" fill="none" />
+                                    <path d="M2 12L12 17L22 12" stroke="#92400E" strokeWidth="2" fill="none" />
+                                 </svg>
+                                 <div>
+                                    <p className="font-bold text-[#92400E] mb-0.5">Market Intelligence</p>
+                                    <p className="text-[#78350F]">Current market index is trending <span className="font-bold">5% below</span> your contracted rate. Consider renegotiation at renewal.</p>
+                                 </div>
                               </div>
                            </div>
                         </div>
+
+                        <div className="mt-6 flex gap-2">
+                           <button
+                              onClick={() => onViewContract && onViewContract(selectedContract.id)}
+                              className="flex-1 px-3 py-2 bg-[#0F62FE] text-white text-sm font-bold rounded hover:bg-[#0043CE] transition-colors"
+                           >
+                              View Full Contract
+                           </button>
+                           <button className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 text-gray-600">
+                              <MoreHorizontal size={18} />
+                           </button>
+                        </div>
                      </div>
-                  </div>
+                  ) : (
+                     <div className="bg-gray-100 rounded-xl border border-gray-200 border-dashed h-full flex flex-col items-center justify-center text-gray-400 p-8 text-center">
+                        <FileText size={48} className="mb-4 opacity-50" />
+                        <p className="font-medium">Select a contract to view details & benchmarking analytics</p>
+                     </div>
+                  )}
                </div>
-            )}
+            </div>
          </div>
 
-         {/* --- TOAST NOTIFICATION --- */}
-         {toast && (
-            <div className="absolute bottom-6 right-6 px-4 py-3 rounded-sm shadow-xl flex items-center animate-slideIn z-50 bg-gray-900 text-white">
-               <CheckCircle size={16} className="text-green-400 mr-2" />
-               <div className="text-xs font-bold">{toast}</div>
+         {/* SLIDE-OVERS / MODALS */}
+
+         {/* Rate Calculator Modal */}
+         {calcOpen && (
+            <div className="fixed inset-0 bg-black/50 z-50 flex justify-end">
+               <div className="w-[400px] bg-white h-full shadow-2xl p-6 overflow-auto animate-in slide-in-from-right duration-300">
+                  <div className="flex justify-between items-center mb-6">
+                     <h2 className="text-xl font-bold">Quick Rate Check</h2>
+                     <button onClick={() => { setCalcOpen(false); setCalcResult(null); }} className="p-2 hover:bg-gray-100 rounded-full">
+                        <X size={20} />
+                     </button>
+                  </div>
+
+                  <div className="space-y-4">
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Origin</label>
+                        <div className="relative">
+                           <MapPin className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                           <input type="text" value={calcOrigin} onChange={e => setCalcOrigin(e.target.value)} placeholder="e.g. Delhi" className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
+                     </div>
+                     <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+                        <div className="relative">
+                           <MapPin className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                           <input type="text" value={calcDest} onChange={e => setCalcDest(e.target.value)} placeholder="e.g. Mumbai" className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
+                     </div>
+
+                     <div className="pt-2">
+                        <button onClick={handleCalculate} disabled={isCalculating} className="w-full py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 disabled:opacity-50">
+                           {isCalculating ? 'Checking Repository...' : 'Get Contracted Rate'}
+                        </button>
+                     </div>
+
+                     {calcResult && (
+                        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg animate-in fade-in zoom-in-95">
+                           <div className="flex items-center gap-2 mb-2 text-green-800 font-bold">
+                              <CheckCircle size={18} /> Rate Found
+                           </div>
+                           <div className="text-3xl font-bold text-gray-900 mb-1">₹{calcResult.baseRate.toLocaleString()}</div>
+                           <p className="text-xs text-gray-500 mb-3">Base Freight • {calcResult.equipment}</p>
+
+                           <div className="text-sm space-y-1 text-gray-700">
+                              <div className="flex justify-between">
+                                 <span>Validity:</span>
+                                 <span className="font-medium">{calcResult.validity}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                 <span>Transit:</span>
+                                 <span className="font-medium">{calcResult.transitTime}</span>
+                              </div>
+                           </div>
+                        </div>
+                     )}
+
+                     {!calcResult && !isCalculating && calcOrigin && calcDest && (
+                        <div className="mt-4 text-center">
+                           <p className="text-sm text-gray-500">Enter cities to check valid rates</p>
+                        </div>
+                     )}
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Import Modal */}
+         {showImport && (
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+               <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 text-center">
+                  <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                     <Cloud size={32} className="text-blue-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Import Rate Sheet</h2>
+                  <p className="text-gray-500 mb-6 text-sm">Upload your carrier rate card (Excel/PDF). Our AI will extract lanes, rates, and accessorials automatically.</p>
+
+                  {importStep === 0 && (
+                     <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 hover:bg-gray-50 transition-colors cursor-pointer group" onClick={handleImport}>
+                        <Upload size={32} className="text-gray-400 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                        <p className="font-medium text-blue-600">Click to Browse</p>
+                        <p className="text-xs text-gray-400 mt-1">or drag and drop here</p>
+                     </div>
+                  )}
+
+                  {importStep > 0 && (
+                     <div className="py-8">
+                        <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                           <div className="bg-blue-600 h-2 rounded-full transition-all duration-300" style={{ width: `${importStep * 33}%` }}></div>
+                        </div>
+                        <p className="text-sm font-medium text-gray-700">
+                           {importStep === 1 && 'Scanning Document Structure...'}
+                           {importStep === 2 && 'Extracting Rate Tables...'}
+                           {importStep === 3 && 'Validating Locations...'}
+                        </p>
+                     </div>
+                  )}
+
+                  <button onClick={() => setShowImport(false)} className="mt-6 text-sm text-gray-500 hover:text-gray-800">
+                     Cancel
+                  </button>
+               </div>
             </div>
          )}
       </div>

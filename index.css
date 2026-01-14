@@ -1,10 +1,69 @@
-/* Font loaded via index.html or local system */
+@import url('https://fonts.cdnfonts.com/css/junicode');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* ARNHEM FONT - For body text on landing page */
+/* Place Arnhem font files in /public/fonts/ folder */
+@font-face {
+    font-family: 'Arnhem';
+    src: local('Arnhem'), local('Arnhem-Regular'),
+        url('/fonts/Arnhem-Regular.woff2') format('woff2'),
+        url('/fonts/Arnhem-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Arnhem';
+    src: local('Arnhem Bold'), local('Arnhem-Bold'),
+        url('/fonts/Arnhem-Bold.woff2') format('woff2'),
+        url('/fonts/Arnhem-Bold.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* SÖHNE FONT FAMILY - Premium Typography */
+/* If you have local Söhne font files, place them in /public/fonts/ */
+@font-face {
+    font-family: 'Söhne';
+    src: local('Söhne Buch'), local('Sohne-Buch'), local('Söhne');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Söhne';
+    src: local('Söhne Leicht'), local('Sohne-Leicht');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Söhne';
+    src: local('Söhne Kraftig'), local('Sohne-Kraftig');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Söhne';
+    src: local('Söhne Halbfett'), local('Sohne-Halbfett');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 @theme {
-    /* MAPPING SÖHNE TO INTER */
-    /* Fallback to system fonts to prevent blocking render */
-    --font-sohne: 'Inter', 'Segoe UI', 'Roboto', system-ui, sans-serif;
+    /* SÖHNE FONT STACK */
+    --font-sohne: 'Söhne', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 
     --color-slate-850: #1e293b;
     --color-slate-900: #0f172a;
@@ -21,28 +80,41 @@
 }
 
 html {
-    background-color: #f1f5f9;
-    /* Slate-100 to match main content */
+    background-color: #f8fafc;
+    /* slate-50 */
+    /* Match SupplierPortalView background */
     height: 100%;
 }
 
 body {
-    zoom: 0.9;
-    height: 100%;
-    overflow: hidden;
-    /* Force no scrollbars */
-    background-color: #f1f5f9;
+    /* Zoom removed from body to prevent Landing Page alignment issues. Applied to Main App wrapper instead. */
+    background-color: #f8fafc;
+    /* slate-50 - matches landing page */
     margin: 0;
 
-    /* APPLYING "SÖHNE" STYLE GLOBALLY */
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    font-weight: 300;
-    /* Default to Leicht/Buch equivalent */
-    letter-spacing: -0.02em;
-    /* Söhne tight spacing aesthetic */
+    /* FIGTREE - Primary Font for entire product */
+    font-family: 'Figtree', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.5;
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide all scrollbars globally */
+*::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background: transparent;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: transparent;
 }
 
 /* HEADINGS: Kraftig / Halbfett aesthetic */
@@ -138,4 +210,25 @@ h6 {
 
 .animate-fade-in {
     animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* 3D ORB ROTATION - Subtle Tilt & Rotate */
+@keyframes orb-rotate {
+
+    0%,
+    100% {
+        transform: rotateX(5deg) rotateY(0deg) rotateZ(0deg);
+    }
+
+    25% {
+        transform: rotateX(8deg) rotateY(5deg) rotateZ(2deg);
+    }
+
+    50% {
+        transform: rotateX(3deg) rotateY(10deg) rotateZ(0deg);
+    }
+
+    75% {
+        transform: rotateX(6deg) rotateY(5deg) rotateZ(-2deg);
+    }
 }

@@ -1,4 +1,5 @@
 import { VendorScorecard, VendorIncident } from '../types';
+import { EventBus } from './eventBus';
 
 // MOCK INCIDENTS (The "Evidence")
 const INCIDENTS_DB: VendorIncident[] = [
@@ -10,6 +11,27 @@ const INCIDENTS_DB: VendorIncident[] = [
 ];
 
 class ScorecardService {
+
+    constructor() {
+        // Subscribe to incident events for real-time score updates
+        EventBus.on('incident.created', (payload) => {
+            console.log('📊 Scorecard: Incident created, updating score for', payload.vendorName);
+            // In a real implementation, this would recalculate and cache the score
+            // For now, we log the event
+        });
+
+        EventBus.on('incident.resolved', (payload) => {
+            console.log('📊 Scorecard: Incident resolved, updating score for', payload.vendorName);
+        });
+
+        EventBus.on('invoice.approved', (payload) => {
+            console.log('📊 Scorecard: Invoice approved, updating accuracy for', payload.vendorName);
+        });
+
+        EventBus.on('duplicate.detected', (payload) => {
+            console.log('📊 Scorecard: Duplicate detected, flagging vendor', payload.vendorName);
+        });
+    }
 
     // THE ALGORITHM
     calculateScore(vendorId: string, month: string): VendorScorecard {

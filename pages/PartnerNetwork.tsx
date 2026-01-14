@@ -1,843 +1,595 @@
 import React, { useState } from 'react';
-import { 
-  Search, Plus, Filter, MoreHorizontal, ShieldCheck, AlertTriangle, 
-  Globe, Truck, Ship, Plane, X, UploadCloud, FileText, Check, 
-  RotateCcw, ChevronRight, Star, Activity, BarChart2, MapPin, 
-  Phone, Mail, Calendar, ExternalLink, Zap, Clock, ChevronLeft,
-  Award, TrendingUp, AlertCircle, Info, Send, CheckCircle
-} from 'lucide-react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
-  ResponsiveContainer, AreaChart, Area, Cell
-} from 'recharts';
+import { Search, Filter, MapPin, Phone, Mail, Globe, TrendingUp, Package, Truck, Star, X, FileText, CheckCircle } from 'lucide-react';
+import { IndianLogisticsService, IndianLogisticsPartner } from '../services/indianLogisticsService';
 
-// --- TYPES & INTERFACES ---
+const indianLogisticsService = new IndianLogisticsService();
 
-type CarrierTier = 'Strategic' | 'Core' | 'Transactional';
-type RiskLevel = 'Low' | 'Medium' | 'High';
+// --- 3D SOLID GEOMETRIC ICONS ---
 
-interface Carrier {
-  id: string;
-  name: string;
-  scac: string;
-  mode: string;
-  tier: CarrierTier;
-  region: string;
-  status: 'Active' | 'Onboarding' | 'Suspended';
-  integration: {
-    type: 'EDI' | 'API' | 'Portal';
-    status: 'Healthy' | 'Degraded' | 'Offline';
-    lastSync: string;
-  };
-  performance: {
-    otd: number; // On-time Delivery %
-    billingAccuracy: number; // %
-    score: number; // 0-100
-    trend: 'up' | 'down' | 'flat';
-  };
-  risk: {
-    level: RiskLevel;
-    factors: string[];
-  };
-  spendYTD: number;
-  contact: {
-    name: string;
-    role: string;
-    email: string;
-    phone: string;
-  };
-}
+const GeoUsers = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <circle cx="12" cy="6" r="4" fillOpacity="0.8" />
+      <path d="M12 12c-4.42 0-8 2-8 6v2h16v-2c0-4-3.58-6-8-6z" fillOpacity="0.4" />
+      <path d="M20 18c0-3-2-5-5-6" stroke="white" strokeWidth="1" strokeOpacity="0.5" fill="none" />
+      <path d="M4 18c0-3 2-5 5-6" stroke="white" strokeWidth="1" strokeOpacity="0.5" fill="none" />
+      <circle cx="12" cy="6" r="2" fill="white" fillOpacity="0.3" />
+   </svg>
+);
 
-// --- MOCK DATA ---
+const GeoStar = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fillOpacity="1" />
+      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L12 12V2z" fillOpacity="0.4" />
+      <path d="M12 17.77l6.18 3.25L17 14.14 12 12v5.77z" fillOpacity="0.6" />
+   </svg>
+);
 
-const MOCK_CARRIERS: Carrier[] = [
-  {
-    id: 'c-001',
-    name: 'Maersk Line',
-    scac: 'MAEU',
-    mode: 'Ocean',
-    tier: 'Strategic',
-    region: 'Global',
-    status: 'Active',
-    integration: { type: 'EDI', status: 'Healthy', lastSync: '10 mins ago' },
-    performance: { otd: 94, billingAccuracy: 98, score: 96, trend: 'up' },
-    risk: { level: 'Low', factors: [] },
-    spendYTD: 4500000,
-    contact: { name: 'Sarah Jennings', role: 'Global Key Account Mgr', email: 's.jennings@maersk.com', phone: '+45 70 12 34 56' }
-  },
-  {
-    id: 'c-002',
-    name: 'K-Line America',
-    scac: 'KKLU',
-    mode: 'Ocean',
-    tier: 'Core',
-    region: 'APAC-US',
-    status: 'Active',
-    integration: { type: 'EDI', status: 'Healthy', lastSync: '45 mins ago' },
-    performance: { otd: 88, billingAccuracy: 92, score: 89, trend: 'flat' },
-    risk: { level: 'Low', factors: [] },
-    spendYTD: 1200000,
-    contact: { name: 'Mike Ross', role: 'Regional Sales', email: 'mike.ross@kline.com', phone: '+1 212 555 0199' }
-  },
-  {
-    id: 'c-003',
-    name: 'Old Dominion Freight',
-    scac: 'ODFL',
-    mode: 'Road (LTL)',
-    tier: 'Core',
-    region: 'North America',
-    status: 'Active',
-    integration: { type: 'API', status: 'Healthy', lastSync: '2 mins ago' },
-    performance: { otd: 97, billingAccuracy: 95, score: 96, trend: 'up' },
-    risk: { level: 'Medium', factors: ['Insurance Expiring (15 days)'] },
-    spendYTD: 850000,
-    contact: { name: 'Jessica Pearson', role: 'Logistics Coordinator', email: 'j.pearson@odfl.com', phone: '+1 336 555 0123' }
-  },
-  {
-    id: 'c-004',
-    name: 'Flexport International',
-    scac: 'FLEX',
-    mode: 'Air/Ocean',
-    tier: 'Transactional',
-    region: 'Global',
-    status: 'Onboarding',
-    integration: { type: 'API', status: 'Offline', lastSync: 'Never' },
-    performance: { otd: 0, billingAccuracy: 0, score: 0, trend: 'flat' },
-    risk: { level: 'High', factors: ['Pending Compliance Docs', 'No Credit Check'] },
-    spendYTD: 0,
-    contact: { name: 'Onboarding Team', role: 'Support', email: 'onboarding@flexport.com', phone: '--' }
-  }
-];
+const GeoTarget = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <circle cx="12" cy="12" r="10" fillOpacity="0.2" />
+      <circle cx="12" cy="12" r="7" fillOpacity="0.4" stroke={color} strokeWidth="1" />
+      <circle cx="12" cy="12" r="4" fillOpacity="0.8" />
+      <line x1="12" y1="2" x2="12" y2="22" stroke={color} strokeWidth="1" strokeOpacity="0.5" />
+      <line x1="2" y1="12" x2="22" y2="12" stroke={color} strokeWidth="1" strokeOpacity="0.5" />
+   </svg>
+);
 
-const PERFORMANCE_HISTORY = [
-  { month: 'Jun', otd: 92, billing: 95 },
-  { month: 'Jul', otd: 94, billing: 94 },
-  { month: 'Aug', otd: 91, billing: 96 },
-  { month: 'Sep', otd: 95, billing: 97 },
-  { month: 'Oct', otd: 93, billing: 95 },
-  { month: 'Nov', otd: 96, billing: 98 },
-];
+const GeoAlert = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fillOpacity="0.2" stroke={color} strokeWidth="2" />
+      <path d="M12 9v4" stroke={color} strokeWidth="2" />
+      <path d="M12 17h.01" stroke={color} strokeWidth="3" />
+      <path d="M12 2v20" stroke="white" strokeWidth="1" strokeOpacity="0.2" />
+   </svg>
+);
 
-const LANE_VOLUME = [
-  { lane: 'CN-US West', volume: 450, spend: 1200000 },
-  { lane: 'CN-EU North', volume: 320, spend: 980000 },
-  { lane: 'US-EU West', volume: 150, spend: 450000 },
-  { lane: 'Intra-Asia', volume: 80, spend: 120000 },
-];
+// --- 3D BOX ICON FOR MODAL ---
+const GeometricBox = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      {/* Left Face */}
+      <path d="M12 22 L2 17 L2 7 L12 12 Z" fill="#E2E8F0" />
+      {/* Right Face */}
+      <path d="M12 22 L22 17 L22 7 L12 12 Z" fill="#CBD5E1" />
+      {/* Top Face */}
+      <path d="M2 7 L12 2 L22 7 L12 12 Z" fill="#F8FAFC" />
+
+      <path d="M12 22 L12 12" stroke="#94A3B8" strokeWidth="0.5" />
+      <path d="M2 7 L12 12" stroke="#94A3B8" strokeWidth="0.5" />
+      <path d="M22 7 L12 12" stroke="#94A3B8" strokeWidth="0.5" />
+   </svg>
+);
+
+const GeoTruck = ({ className, size = 24 }: { className?: string, size?: number }) => (
+   <svg viewBox="0 0 32 32" className={className} width={size} height={size}>
+      {/* Truck Body (Cube) */}
+      <path d="M2 12 L16 4 L30 12 L16 20 Z" fill="#4299E1" /> {/* Top */}
+      <path d="M2 12 L16 20 L16 28 L2 20 Z" fill="#2B6CB0" /> {/* Left */}
+      <path d="M30 12 L16 20 L16 28 L30 20 Z" fill="#2C5282" /> {/* Right */}
+
+      {/* Cab (Smaller Cube) */}
+      <path d="M18 10 L24 6.5 L30 10 L24 13.5 Z" fill="#63B3ED" />
+      <path d="M18 10 L24 13.5 L24 22 L18 18.5 Z" fill="#3182CE" />
+      <path d="M30 10 L24 13.5 L24 22 L30 18.5 Z" fill="#2A4365" />
+   </svg>
+);
+
+const GeoPhone = ({ className, size = 24 }: { className?: string, size?: number }) => (
+   <svg viewBox="0 0 32 32" className={className} width={size} height={size}>
+      <path d="M8 8 L16 4 L24 8 L16 12 Z" fill="#4FD1C5" /> {/* Top */}
+      <path d="M8 8 L16 12 L16 26 L8 22 Z" fill="#319795" /> {/* Left */}
+      <path d="M24 8 L16 12 L16 26 L24 22 Z" fill="#285E61" /> {/* Right */}
+
+      {/* Screen */}
+      <path d="M16 14 L21 11.5 L21 20 L16 22.5 Z" fill="#B2F5EA" opacity="0.5" />
+      <path d="M16 14 L11 11.5 L11 20 L16 22.5 Z" fill="#81E6D9" opacity="0.3" />
+   </svg>
+);
+
+const GeoGlobe = ({ className, size = 24 }: { className?: string, size?: number }) => (
+   <svg viewBox="0 0 32 32" className={className} width={size} height={size}>
+      <circle cx="16" cy="16" r="10" fill="#48BB78" />
+      <path d="M16 6 C22 6, 26 10, 26 16" fill="none" stroke="#2F855A" strokeWidth="2" />
+      <path d="M16 26 C10 26, 6 22, 6 16" fill="none" stroke="#2F855A" strokeWidth="2" />
+      <path d="M6 16 L26 16" stroke="#276749" strokeWidth="1" opacity="0.5" />
+      <path d="M16 6 L16 26" stroke="#276749" strokeWidth="1" opacity="0.5" />
+      <circle cx="16" cy="16" r="10" fill="url(#grad1)" opacity="0.3" />
+      <defs>
+         <radialGradient id="grad1" cx="30%" cy="30%" r="50%">
+            <stop offset="0%" style={{ stopColor: "white", stopOpacity: 0.5 }} />
+            <stop offset="100%" style={{ stopColor: "black", stopOpacity: 0 }} />
+         </radialGradient>
+      </defs>
+   </svg>
+);
 
 export const PartnerNetwork: React.FC = () => {
-  const [carriers, setCarriers] = useState<Carrier[]>(MOCK_CARRIERS);
-  const [selectedCarrier, setSelectedCarrier] = useState<Carrier | null>(null);
-  
-  // Onboarding State
-  const [showOnboardModal, setShowOnboardModal] = useState(false);
-  const [inviteStep, setInviteStep] = useState(1);
-  const [inviteForm, setInviteForm] = useState({ name: '', email: '', scac: '' });
-  
-  // Filter State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterMode, setFilterMode] = useState('All');
-  const [activeKpiFilter, setActiveKpiFilter] = useState<'ALL' | 'PERFORMANCE' | 'STRATEGIC' | 'RISK'>('ALL');
-  
-  const [toast, setToast] = useState<string | null>(null);
+   const [partners] = useState<IndianLogisticsPartner[]>(indianLogisticsService.getPartners() || []);
+   const [searchQuery, setSearchQuery] = useState('');
+   const [filterMode, setFilterMode] = useState<string>('all');
+   const [filterTier, setFilterTier] = useState<string>('all');
+   const [showFilters, setShowFilters] = useState(false);
+   const [selectedPartner, setSelectedPartner] = useState<IndianLogisticsPartner | null>(null);
 
-  // --- LOGIC ---
-  
-  const handleKpiClick = (kpi: 'PERFORMANCE' | 'STRATEGIC' | 'RISK') => {
-    if (activeKpiFilter === kpi) {
-       setActiveKpiFilter('ALL');
-    } else {
-       setActiveKpiFilter(kpi);
-    }
-  };
+   // Calculate stats
+   const stats = {
+      total: partners.length,
+      strategic: partners.filter(p => p.tier === 'STRATEGIC').length,
+      avgOTD: Math.round(partners.reduce((sum, p) => sum + p.performance.otd, 0) / partners.length * 10) / 10,
+      complianceRisks: partners.filter(p => p.riskProfile.level === 'medium' || p.riskProfile.level === 'high').length
+   };
 
-  const filteredCarriers = carriers.filter(c => {
-    const matchesSearch = c.name.toLowerCase().includes(searchQuery.toLowerCase()) || c.scac.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesMode = filterMode === 'All' || c.mode.includes(filterMode);
-    
-    // KPI Filters
-    let matchesKpi = true;
-    if (activeKpiFilter === 'STRATEGIC') matchesKpi = c.tier === 'Strategic';
-    if (activeKpiFilter === 'RISK') matchesKpi = c.risk.level === 'High' || c.risk.level === 'Medium';
-    
-    return matchesSearch && matchesMode && matchesKpi;
-  }).sort((a, b) => {
-    // Sort logic based on KPI
-    if (activeKpiFilter === 'PERFORMANCE') {
-       return b.performance.score - a.performance.score; // Top performers first
-    }
-    return 0;
-  });
+   // Filter partners
+   const filteredPartners = partners.filter(partner => {
+      const matchesSearch = !searchQuery ||
+         partner.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         partner.gstNumber?.toLowerCase().includes(searchQuery.toLowerCase());
 
-  const getTierBadge = (tier: CarrierTier) => {
-    switch (tier) {
-      case 'Strategic': return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200 uppercase tracking-wide flex items-center w-fit"><Award size={10} className="mr-1"/> Strategic</span>;
-      case 'Core': return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 border border-blue-200 uppercase tracking-wide w-fit">Core</span>;
-      default: return <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 border border-gray-200 uppercase tracking-wide w-fit">Transactional</span>;
-    }
-  };
+      const matchesMode = filterMode === 'all' || partner.modes?.includes(filterMode);
+      const matchesTier = filterTier === 'all' || partner.tier === filterTier;
 
-  const getRiskBadge = (level: RiskLevel) => {
-    switch (level) {
-      case 'Low': return <span className="text-green-600 font-bold text-xs flex items-center"><ShieldCheck size={14} className="mr-1"/> Low Risk</span>;
-      case 'Medium': return <span className="text-orange-500 font-bold text-xs flex items-center"><AlertCircle size={14} className="mr-1"/> Medium Risk</span>;
-      case 'High': return <span className="text-red-600 font-bold text-xs flex items-center"><AlertTriangle size={14} className="mr-1"/> High Risk</span>;
-    }
-  };
+      return matchesSearch && matchesMode && matchesTier;
+   });
 
-  const getModeIcon = (mode: string) => {
-    if (mode.includes('Ocean')) return <Ship size={16} className="text-blue-600" />;
-    if (mode.includes('Road')) return <Truck size={16} className="text-orange-600" />;
-    if (mode.includes('Air')) return <Plane size={16} className="text-sky-600" />;
-    return <Globe size={16} className="text-gray-600" />;
-  };
+   const getTierLabel = (tier: string) => {
+      switch (tier) {
+         case 'STRATEGIC': return 'Strategic';
+         case 'CORE': return 'Core';
+         case 'TRANSACTIONAL': return 'Transactional';
+         default: return tier;
+      }
+   };
 
-  const handleSendInvite = () => {
-    setInviteStep(2); // Sending
-    setTimeout(() => {
-       setInviteStep(3); // Done
-       setTimeout(() => {
-          setShowOnboardModal(false);
-          setInviteStep(1);
-          setInviteForm({ name: '', email: '', scac: '' });
-          setToast(`Invitation sent to ${inviteForm.email}`);
-          setTimeout(() => setToast(null), 3000);
-       }, 1500);
-    }, 1500);
-  };
+   const getRiskLabel = (level: string) => {
+      switch (level) {
+         case 'low': return 'Low Risk';
+         case 'medium': return 'Medium Risk';
+         case 'high': return 'High Risk';
+         default: return level;
+      }
+   };
 
-  // --- RENDER DETAIL VIEW ---
-  if (selectedCarrier) {
-    return <CarrierDetail carrier={selectedCarrier} onBack={() => setSelectedCarrier(null)} />;
-  }
+   const getStatusBadge = (status: string) => {
+      switch (status) {
+         case 'Active':
+            return <span className="px-2 py-0.5 text-xs font-bold bg-green-50 text-green-700 border border-green-200 rounded">ACTIVE</span>;
+         case 'Onboarding':
+            return <span className="px-2 py-0.5 text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 rounded">ONBOARDING</span>;
+         case 'Suspended':
+            return <span className="px-2 py-0.5 text-xs font-bold bg-red-50 text-red-700 border border-red-200 rounded">SUSPENDED</span>;
+         default:
+            return <span className="px-2 py-0.5 text-xs font-bold bg-gray-50 text-gray-700 border border-gray-200 rounded">{status?.toUpperCase() || 'N/A'}</span>;
+      }
+   };
 
-  // --- RENDER LIST VIEW ---
-  return (
-    <div className="h-full flex flex-col font-sans p-8 overflow-hidden bg-[#F3F4F6] relative">
-      
-      {/* Header & KPIs */}
-      <div className="flex justify-between items-start mb-8 flex-shrink-0 border-b border-gray-200 pb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800 tracking-tight uppercase">Carrier Master</h2>
-          <p className="text-sm text-gray-500 mt-1">Manage performance, compliance, and strategic relationships.</p>
-        </div>
-        
-        <div className="flex space-x-6">
-           
-           {/* KPI 1: PERFORMANCE */}
-           <div 
-             onClick={() => handleKpiClick('PERFORMANCE')}
-             className={`p-3 rounded-sm border shadow-sm flex items-center space-x-3 cursor-pointer transition-all hover:shadow-md
-               ${activeKpiFilter === 'PERFORMANCE' ? 'bg-blue-50 border-blue-400 ring-1 ring-blue-400' : 'bg-white border-gray-200 hover:border-blue-300'}
-             `}
-             title="Click to sort list by highest Performance Score (OTD & Billing)"
-           >
-              <div className="p-2 bg-blue-50 text-blue-600 rounded-full"><Activity size={18} /></div>
-              <div>
-                 <div className="flex items-center space-x-1">
-                    <p className="text-[10px] text-gray-400 uppercase font-bold">Network OTD</p>
-                    <Info size={10} className="text-gray-300" />
-                 </div>
-                 <p className="text-lg font-bold text-gray-900">94.2%</p>
-                 {activeKpiFilter === 'PERFORMANCE' && <span className="text-[9px] text-blue-600 font-bold uppercase">Sorting Active</span>}
-              </div>
-           </div>
+   return (
+      <div className="h-full flex flex-col font-sans p-8 overflow-hidden bg-[#F8F9FA]">
 
-           {/* KPI 2: STRATEGIC */}
-           <div 
-             onClick={() => handleKpiClick('STRATEGIC')}
-             className={`p-3 rounded-sm border shadow-sm flex items-center space-x-3 cursor-pointer transition-all hover:shadow-md
-               ${activeKpiFilter === 'STRATEGIC' ? 'bg-purple-50 border-purple-400 ring-1 ring-purple-400' : 'bg-white border-gray-200 hover:border-purple-300'}
-             `}
-             title="Click to filter for Strategic Partners (Key Contracts)"
-           >
-              <div className="p-2 bg-purple-50 text-purple-600 rounded-full"><Award size={18} /></div>
-              <div>
-                 <div className="flex items-center space-x-1">
-                    <p className="text-[10px] text-gray-400 uppercase font-bold">Strategic Partners</p>
-                    <Info size={10} className="text-gray-300" />
-                 </div>
-                 <p className="text-lg font-bold text-gray-900">8</p>
-                 {activeKpiFilter === 'STRATEGIC' && <span className="text-[9px] text-purple-600 font-bold uppercase">Filter Active</span>}
-              </div>
-           </div>
+         {/* Header */}
+         <div className="flex justify-between items-start mb-6 flex-shrink-0">
+            <div>
+               <h2 className="text-2xl font-bold text-gray-900 tracking-tight">Logistics Partner Network</h2>
+               <p className="text-sm text-gray-600 mt-1">Manage Indian logistics partners and carrier relationships</p>
+            </div>
+         </div>
 
-           {/* KPI 3: RISKS */}
-           <div 
-             onClick={() => handleKpiClick('RISK')}
-             className={`p-3 rounded-sm border shadow-sm flex items-center space-x-3 cursor-pointer transition-all hover:shadow-md
-               ${activeKpiFilter === 'RISK' ? 'bg-red-50 border-red-400 ring-1 ring-red-400' : 'bg-white border-gray-200 hover:border-red-300'}
-             `}
-             title="Click to show carriers with High/Medium compliance or financial risks"
-           >
-              <div className="p-2 bg-red-50 text-red-600 rounded-full"><AlertTriangle size={18} /></div>
-              <div>
-                 <div className="flex items-center space-x-1">
-                    <p className="text-[10px] text-gray-400 uppercase font-bold">Compliance Risks</p>
-                    <Info size={10} className="text-gray-300" />
-                 </div>
-                 <p className="text-lg font-bold text-red-600">2</p>
-                 {activeKpiFilter === 'RISK' && <span className="text-[9px] text-red-600 font-bold uppercase">Filter Active</span>}
-              </div>
-           </div>
-        </div>
-      </div>
+         {/* Stats Dashboard */}
+         <div className="grid grid-cols-4 gap-4 mb-6 flex-shrink-0">
+            <div className="bg-[#2C3E50] p-4 flex items-center justify-between rounded shadow-md group border border-gray-700">
+               <div>
+                  <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Total Partners</p>
+                  <p className="text-3xl font-bold text-white mt-2">{stats.total}</p>
+               </div>
+               <div className="w-16 h-16 text-green-400 opacity-80 group-hover:scale-110 transition-transform">
+                  <GeoUsers className="w-full h-full" />
+               </div>
+            </div>
 
-      {/* Action Bar */}
-      <div className="flex justify-between items-center mb-6 flex-shrink-0">
-         <div className="relative w-96">
-            <input 
-               type="text" 
-               placeholder="Search Carrier Name, SCAC..." 
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
-               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-sm focus:outline-none focus:border-teal-600 shadow-sm text-sm"
-            />
-            <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
-            {searchQuery && (
-               <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
-                  <X size={16} />
-               </button>
+            <div className="bg-[#2C3E50] p-4 flex items-center justify-between rounded shadow-md group border border-gray-700">
+               <div>
+                  <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Strategic Partners</p>
+                  <p className="text-3xl font-bold text-white mt-2">{stats.strategic}</p>
+               </div>
+               <div className="w-16 h-16 text-green-400 opacity-80 group-hover:scale-110 transition-transform">
+                  <GeoStar className="w-full h-full" />
+               </div>
+            </div>
+
+            <div className="bg-[#2C3E50] p-4 flex items-center justify-between rounded shadow-md group border border-gray-700">
+               <div>
+                  <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Network OTD</p>
+                  <p className="text-3xl font-bold text-white mt-2">{stats.avgOTD}%</p>
+               </div>
+               <div className="w-16 h-16 text-green-400 opacity-80 group-hover:scale-110 transition-transform">
+                  <GeoTarget className="w-full h-full" />
+               </div>
+            </div>
+
+            <div className="bg-[#2C3E50] p-4 flex items-center justify-between rounded shadow-md group border border-gray-700">
+               <div>
+                  <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Compliance Risks</p>
+                  <p className="text-3xl font-bold text-white mt-2">{stats.complianceRisks}</p>
+               </div>
+               <div className="w-16 h-16 text-red-400 opacity-80 group-hover:scale-110 transition-transform">
+                  <GeoAlert className="w-full h-full" color="currentColor" />
+               </div>
+            </div>
+         </div>
+
+         {/* Search and Filters */}
+         <div className="flex items-center gap-3 mb-6 flex-shrink-0">
+            <div className="relative flex-1">
+               <input
+                  type="text"
+                  placeholder="Search partners by name or GST number..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 focus:outline-none focus:border-gray-900 text-sm rounded shadow-sm"
+               />
+               <Search size={18} className="absolute left-3 top-2.5 text-gray-400" />
+               {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                     <X size={16} />
+                  </button>
+               )}
+            </div>
+
+            <button
+               onClick={() => setShowFilters(!showFilters)}
+               className={`px-4 py-2 border text-sm font-medium rounded shadow-sm ${showFilters ? 'bg-gray-900 border-gray-900 text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+            >
+               <Filter size={14} className="inline mr-2" />
+               Filters
+            </button>
+         </div>
+
+         {/* Filter Panel */}
+         {showFilters && (
+            <div className="bg-white border border-gray-200 p-4 mb-6 flex-shrink-0 rounded shadow-sm animate-in fade-in slide-in-from-top-2">
+               <div className="grid grid-cols-3 gap-4">
+                  <div>
+                     <label className="text-xs font-medium text-gray-700 uppercase block mb-2">Mode</label>
+                     <select
+                        value={filterMode}
+                        onChange={(e) => setFilterMode(e.target.value)}
+                        className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-gray-900 rounded"
+                     >
+                        <option value="all">All Modes</option>
+                        <option value="Surface">Surface</option>
+                        <option value="Express">Express</option>
+                        <option value="Air">Air</option>
+                     </select>
+                  </div>
+
+                  <div>
+                     <label className="text-xs font-medium text-gray-700 uppercase block mb-2">Tier</label>
+                     <select
+                        value={filterTier}
+                        onChange={(e) => setFilterTier(e.target.value)}
+                        className="w-full border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:border-gray-900 rounded"
+                     >
+                        <option value="all">All Tiers</option>
+                        <option value="STRATEGIC">Strategic</option>
+                        <option value="CORE">Core</option>
+                        <option value="TRANSACTIONAL">Transactional</option>
+                     </select>
+                  </div>
+
+                  <div className="flex items-end">
+                     <button
+                        onClick={() => {
+                           setFilterMode('all');
+                           setFilterTier('all');
+                        }}
+                        className="w-full px-4 py-2 bg-gray-100 text-gray-700 hover:bg-gray-200 font-medium text-sm rounded"
+                     >
+                        Clear Filters
+                     </button>
+                  </div>
+               </div>
+            </div>
+         )}
+
+         {/* Partners Table */}
+         <div className="flex-1 overflow-auto bg-white border border-gray-200 rounded-lg shadow-sm">
+            <table className="w-full">
+               <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Partner Name</th>
+                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Tier</th>
+                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Mode / Region</th>
+                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Integration</th>
+                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Performance</th>
+                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Risk Profile</th>
+                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
+                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
+                  </tr>
+               </thead>
+               <tbody className="divide-y divide-gray-200">
+                  {filteredPartners.map(partner => (
+                     <tr key={partner.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                           <div className="text-sm font-medium text-gray-900">{partner.name}</div>
+                           <div className="text-xs text-gray-500 font-mono mt-0.5">GST: {partner.gstNumber}</div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{getTierLabel(partner.tier)}</td>
+                        <td className="px-6 py-4">
+                           <div className="text-sm text-gray-700">{partner.modes?.join(', ') || 'N/A'}</div>
+                           <div className="text-xs text-gray-500 mt-0.5">{partner.region}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                           <div className="text-sm text-gray-700">{partner.integration?.type || 'N/A'}</div>
+                           <div className="text-xs text-gray-500 mt-0.5">Sync: {partner.integration?.lastSync || 'N/A'}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                           <div className="text-sm font-medium text-gray-900">{partner.performance.otd}% OTD</div>
+                           <div className="text-xs text-gray-500 mt-0.5">Score: {partner.performance.score}/100</div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">{getRiskLabel(partner.riskProfile.level)}</td>
+                        <td className="px-6 py-4">{getStatusBadge(partner.status)}</td>
+                        <td className="px-6 py-4 text-right">
+                           <button
+                              onClick={() => setSelectedPartner(partner)}
+                              className="text-sm text-gray-900 hover:text-gray-700 font-medium"
+                           >
+                              View Details
+                           </button>
+                        </td>
+                     </tr>
+                  ))}
+               </tbody>
+            </table>
+
+            {/* Empty State */}
+            {filteredPartners.length === 0 && (
+               <div className="text-center py-12">
+                  <p className="text-gray-500 text-sm">No partners found matching your search.</p>
+               </div>
             )}
          </div>
 
-         <div className="flex space-x-3">
-            <div className="flex bg-white border border-gray-300 rounded-sm overflow-hidden shadow-sm">
-               {['All', 'Ocean', 'Road', 'Air'].map(m => (
-                  <button 
-                     key={m}
-                     onClick={() => setFilterMode(m)}
-                     className={`px-4 py-2 text-xs font-bold uppercase transition-colors ${filterMode === m ? 'bg-teal-50 text-teal-800' : 'text-gray-500 hover:bg-gray-50 border-l border-gray-100 first:border-l-0'}`}
-                  >
-                     {m}
-                  </button>
-               ))}
-            </div>
-            
-            <button 
-               onClick={() => setShowOnboardModal(true)}
-               className="flex items-center px-4 py-2 bg-[#004D40] text-white hover:bg-[#00352C] font-bold text-xs uppercase rounded-sm shadow-sm transition-all active:translate-y-0.5"
-            >
-               <Plus size={14} className="mr-2" />
-               Onboard Partner
-            </button>
-         </div>
-      </div>
-      
-      {/* Active Filter Indicator */}
-      {activeKpiFilter !== 'ALL' && (
-         <div className="mb-4 flex items-center bg-gray-100 px-3 py-2 rounded-sm border border-gray-200">
-            <Filter size={14} className="text-gray-500 mr-2" />
-            <span className="text-xs text-gray-600 mr-2">Active View:</span>
-            <span className="text-xs font-bold text-gray-900 uppercase">{activeKpiFilter}</span>
-            <button 
-               onClick={() => setActiveKpiFilter('ALL')}
-               className="ml-auto text-xs text-blue-600 font-bold hover:underline"
-            >
-               Clear View
-            </button>
-         </div>
-      )}
+         {/* PARTNER DETAIL MODAL (PREMIUM 3D REPORT CARD) */}
+         {selectedPartner && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+               <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col animate-in slide-in-from-bottom-4 duration-300 border border-slate-100">
 
-      {/* Main Grid */}
-      <div className="bg-white border border-gray-200 shadow-sm rounded-sm flex-1 overflow-auto custom-scrollbar">
-         <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase font-bold sticky top-0 z-10 shadow-sm">
-               <tr>
-                  <th className="px-6 py-4">Partner Name</th>
-                  <th className="px-6 py-4">Tier</th>
-                  <th className="px-6 py-4">Mode / Region</th>
-                  <th className="px-6 py-4">Connectivity</th>
-                  <th className="px-6 py-4">Performance Score</th>
-                  <th className="px-6 py-4">Risk Profile</th>
-                  <th className="px-6 py-4 text-right">Action</th>
-               </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-               {filteredCarriers.length > 0 ? filteredCarriers.map(carrier => (
-                  <tr 
-                     key={carrier.id} 
-                     onClick={() => setSelectedCarrier(carrier)}
-                     className="hover:bg-teal-50/20 transition-colors group cursor-pointer"
-                  >
-                     <td className="px-6 py-4">
-                        <div className="flex items-center">
-                           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold mr-3 border ${carrier.tier === 'Strategic' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
-                              {carrier.scac.substring(0, 2)}
+                  {/* HERO HEADER */}
+                  <div className="relative h-48 bg-gradient-to-r from-slate-900 to-slate-800 overflow-hidden rounded-t-2xl flex-shrink-0">
+                     {/* 3D Background Elements */}
+                     <div className="absolute top-0 right-0 p-10 opacity-10 transform translate-x-1/2 -translate-y-1/2">
+                        <GeometricBox size={300} className="text-white" />
+                     </div>
+                     <div className="absolute bottom-0 left-0 p-6 opacity-5 transform -translate-x-1/4 translate-y-1/4">
+                        <GeoUsers size={200} className="text-white" />
+                     </div>
+
+                     <div className="absolute inset-0 flex items-end p-8">
+                        <div className="flex items-end gap-6 w-full">
+                           {/* Floating Avatar Card */}
+                           <div className="h-24 w-24 bg-white rounded-xl shadow-xl flex items-center justify-center text-4xl font-bold text-slate-900 relative -mb-12 border-4 border-white">
+                              {selectedPartner.name.substring(0, 2).toUpperCase()}
                            </div>
-                           <div>
-                              <p className="font-bold text-gray-900">{carrier.name}</p>
-                              <p className="text-xs text-gray-500 font-mono">{carrier.scac}</p>
-                           </div>
-                        </div>
-                     </td>
-                     <td className="px-6 py-4">
-                        {getTierBadge(carrier.tier)}
-                     </td>
-                     <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2 text-gray-700 mb-1">
-                           {getModeIcon(carrier.mode)}
-                           <span className="text-xs font-medium">{carrier.mode}</span>
-                        </div>
-                        <p className="text-xs text-gray-400">{carrier.region}</p>
-                     </td>
-                     <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                           <span className={`w-2 h-2 rounded-full ${carrier.integration.status === 'Healthy' ? 'bg-green-500' : 'bg-red-500'}`}></span>
-                           <span className="text-xs font-bold text-gray-700">{carrier.integration.type}</span>
-                        </div>
-                        <p className="text-[10px] text-gray-400 mt-1">Sync: {carrier.integration.lastSync}</p>
-                     </td>
-                     <td className="px-6 py-4">
-                        {carrier.status === 'Active' ? (
-                           <div className="w-32">
-                              <div className="flex justify-between items-end mb-1">
-                                 <span className="text-lg font-bold text-gray-900">{carrier.performance.score}</span>
-                                 <span className={`text-[10px] font-bold ${carrier.performance.trend === 'up' ? 'text-green-600' : carrier.performance.trend === 'down' ? 'text-red-500' : 'text-gray-400'}`}>
-                                    {carrier.performance.trend === 'up' ? '▲' : carrier.performance.trend === 'down' ? '▼' : '−'} Trend
+
+                           <div className="flex-1 pb-1">
+                              <h2 className="text-3xl font-bold text-white tracking-tight">{selectedPartner.name}</h2>
+                              <div className="flex items-center gap-4 mt-2">
+                                 <span className="text-white/80 font-mono text-sm tracking-wide bg-white/10 px-3 py-1 rounded-full backdrop-blur-md">
+                                    GST: {selectedPartner.gstNumber}
+                                 </span>
+                                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${selectedPartner.connectivity.status === 'active' ? 'bg-green-500/20 text-green-300 border border-green-500/30' : 'bg-slate-500/20 text-slate-300'
+                                    }`}>
+                                    {selectedPartner.connectivity.status}
                                  </span>
                               </div>
-                              <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                                 <div 
-                                    className={`h-full rounded-full ${carrier.performance.score >= 90 ? 'bg-green-500' : carrier.performance.score >= 80 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                                    style={{ width: `${carrier.performance.score}%` }}
-                                 ></div>
-                              </div>
                            </div>
-                        ) : (
-                           <span className="text-xs text-gray-400 italic">No Data (Onboarding)</span>
-                        )}
-                     </td>
-                     <td className="px-6 py-4">
-                        {getRiskBadge(carrier.risk.level)}
-                        {carrier.risk.factors.length > 0 && (
-                           <p className="text-[10px] text-red-600 mt-1 truncate max-w-[140px]">{carrier.risk.factors[0]}</p>
-                        )}
-                     </td>
-                     <td className="px-6 py-4 text-right">
-                        <ChevronRight size={18} className="text-gray-300 group-hover:text-teal-600 inline-block" />
-                     </td>
-                  </tr>
-               )) : (
-                  <tr>
-                     <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
-                        <Filter size={48} className="mx-auto mb-3 opacity-20" />
-                        <p className="text-sm font-bold">No carriers match the selected filters.</p>
-                        <button onClick={() => { setActiveKpiFilter('ALL'); setSearchQuery(''); }} className="text-xs text-blue-600 hover:underline mt-2">Reset Filters</button>
-                     </td>
-                  </tr>
-               )}
-            </tbody>
-         </table>
-      </div>
 
-      {/* Onboard Modal */}
-      {showOnboardModal && (
-         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm animate-fadeIn">
-            <div className="bg-white rounded-sm shadow-xl max-w-md w-full overflow-hidden">
-               <div className="px-6 py-4 border-b border-gray-200 bg-[#004D40] text-white flex justify-between items-center">
-                  <h3 className="text-lg font-bold">Invite New Partner</h3>
-                  <button onClick={() => setShowOnboardModal(false)}><X size={20}/></button>
-               </div>
-               
-               <div className="p-6">
-                  {inviteStep === 1 && (
-                     <div className="space-y-4">
-                        <div>
-                           <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Company Name</label>
-                           <input 
-                              type="text" 
-                              className="w-full border border-gray-300 rounded-sm px-3 py-2 text-sm" 
-                              value={inviteForm.name}
-                              onChange={(e) => setInviteForm({...inviteForm, name: e.target.value})}
-                           />
-                        </div>
-                        <div>
-                           <label className="text-xs font-bold text-gray-500 uppercase block mb-1">SCAC Code</label>
-                           <input 
-                              type="text" 
-                              className="w-full border border-gray-300 rounded-sm px-3 py-2 text-sm uppercase" 
-                              placeholder="e.g. MAEU"
-                              maxLength={4}
-                              value={inviteForm.scac}
-                              onChange={(e) => setInviteForm({...inviteForm, scac: e.target.value})}
-                           />
-                        </div>
-                        <div>
-                           <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Admin Email</label>
-                           <input 
-                              type="email" 
-                              className="w-full border border-gray-300 rounded-sm px-3 py-2 text-sm" 
-                              placeholder="admin@company.com"
-                              value={inviteForm.email}
-                              onChange={(e) => setInviteForm({...inviteForm, email: e.target.value})}
-                           />
-                        </div>
-                        <div className="pt-4">
-                           <button 
-                              onClick={handleSendInvite}
-                              disabled={!inviteForm.name || !inviteForm.email}
-                              className="w-full bg-teal-600 text-white py-2 rounded-sm font-bold text-sm hover:bg-teal-700 disabled:opacity-50"
+                           <button
+                              onClick={() => setSelectedPartner(null)}
+                              className="mb-auto p-2 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white"
                            >
-                              Send Secure Invitation
+                              <X size={24} />
                            </button>
                         </div>
                      </div>
-                  )}
-
-                  {inviteStep === 2 && (
-                     <div className="text-center py-8">
-                        <div className="w-12 h-12 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                        <p className="text-sm font-bold text-gray-700">Generating secure link...</p>
-                     </div>
-                  )}
-
-                  {inviteStep === 3 && (
-                     <div className="text-center py-8">
-                        <CheckCircle size={48} className="text-green-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-gray-900">Invitation Sent!</h3>
-                        <p className="text-sm text-gray-500 mt-2">
-                           An email has been sent to {inviteForm.email} with onboarding instructions.
-                        </p>
-                     </div>
-                  )}
-               </div>
-            </div>
-         </div>
-      )}
-
-      {/* --- TOAST NOTIFICATION --- */}
-      {toast && (
-         <div className="absolute bottom-6 right-6 px-4 py-3 rounded-sm shadow-xl flex items-center animate-slideIn z-50 bg-gray-900 text-white">
-            <Check size={16} className="text-green-400 mr-2" />
-            <div className="text-xs font-bold">{toast}</div>
-         </div>
-      )}
-
-    </div>
-  );
-};
-
-// --- SUB-COMPONENT: CARRIER 360 DETAIL ---
-
-const CarrierDetail: React.FC<{ carrier: Carrier; onBack: () => void }> = ({ carrier, onBack }) => {
-   const [activeTab, setActiveTab] = useState<'overview' | 'performance' | 'compliance' | 'integration'>('overview');
-   const [showEmailModal, setShowEmailModal] = useState(false);
-
-   return (
-      <div className="h-full flex flex-col font-sans bg-gray-50 overflow-hidden relative">
-         {/* Detail Header */}
-         <div className="bg-white border-b border-gray-200 px-8 py-6 flex-shrink-0 shadow-sm z-10">
-            <div className="flex items-start justify-between mb-6">
-               <div className="flex items-center space-x-4">
-                  <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors">
-                     <ChevronLeft size={20} />
-                  </button>
-                  <div>
-                     <div className="flex items-center space-x-3">
-                        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{carrier.name}</h1>
-                        <span className="text-sm font-mono text-gray-400 bg-gray-50 px-2 py-0.5 rounded border border-gray-200">{carrier.scac}</span>
-                        {carrier.tier === 'Strategic' && <span className="text-[10px] font-bold bg-purple-100 text-purple-700 px-2 py-0.5 rounded border border-purple-200 uppercase">Strategic Partner</span>}
-                     </div>
-                     <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
-                        <span className="flex items-center"><Globe size={14} className="mr-1"/> {carrier.region}</span>
-                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                        <span className="flex items-center"><Truck size={14} className="mr-1"/> {carrier.mode}</span>
-                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                        <span className="flex items-center text-teal-600 font-medium"><Check size={14} className="mr-1"/> Active Contract</span>
-                     </div>
                   </div>
-               </div>
-               <div className="flex space-x-3">
-                  <button 
-                     onClick={() => setShowEmailModal(true)}
-                     className="flex items-center px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-sm text-xs font-bold uppercase hover:bg-gray-50 shadow-sm"
-                  >
-                     <Mail size={14} className="mr-2"/> Contact
-                  </button>
-                  <button className="flex items-center px-4 py-2 bg-[#004D40] text-white rounded-sm text-xs font-bold uppercase hover:bg-[#00352C] shadow-sm">
-                     <Activity size={14} className="mr-2"/> Scorecard
-                  </button>
-               </div>
-            </div>
 
-            {/* Navigation Tabs */}
-            <div className="flex space-x-8 -mb-6">
-               {[
-                  { id: 'overview', label: 'Overview' },
-                  { id: 'performance', label: 'Performance' },
-                  { id: 'compliance', label: 'Risk & Compliance' },
-                  { id: 'integration', label: 'Integration' },
-               ].map(tab => (
-                  <button
-                     key={tab.id}
-                     onClick={() => setActiveTab(tab.id as any)}
-                     className={`pb-4 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${
-                        activeTab === tab.id ? 'border-teal-600 text-teal-800' : 'border-transparent text-gray-400 hover:text-gray-600'
-                     }`}
-                  >
-                     {tab.label}
-                  </button>
-               ))}
-            </div>
-         </div>
+                  {/* BODY CONTENT */}
+                  <div className="p-8 mt-6 space-y-8">
 
-         {/* Content Body */}
-         <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-            
-            {/* TAB: OVERVIEW */}
-            {activeTab === 'overview' && (
-               <div className="grid grid-cols-3 gap-6 animate-fade-in-up">
-                  {/* Key Stats */}
-                  <div className="col-span-2 grid grid-cols-2 gap-6">
-                     <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Spend Analysis (YTD)</h3>
-                        <div className="flex items-end justify-between">
-                           <span className="text-3xl font-bold text-gray-900">${(carrier.spendYTD / 1000000).toFixed(2)}M</span>
-                           <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">+12% vs LY</span>
+                     {/* 1. METRICS GRID (Premium Cards) */}
+                     <div className="grid grid-cols-4 gap-6">
+                        <div className="group p-5 bg-white border border-slate-100 rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] transition-all relative overflow-hidden">
+                           <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-50 to-transparent rounded-bl-full opacity-50 -mr-4 -mt-4 transition-transform group-hover:scale-110" />
+                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Partner Tier</p>
+                           <div className="flex items-center gap-2">
+                              <p className="text-2xl font-bold text-slate-900">{getTierLabel(selectedPartner.tier)}</p>
+                              {selectedPartner.tier === 'STRATEGIC' && <Star size={20} className="text-yellow-400 fill-yellow-400" />}
+                           </div>
                         </div>
-                        <div className="h-16 mt-4">
-                           <ResponsiveContainer width="100%" height="100%">
-                              <AreaChart data={PERFORMANCE_HISTORY}>
-                                 <Area type="monotone" dataKey="billing" stroke="#004D40" fill="#E0F2F1" strokeWidth={2} />
-                              </AreaChart>
-                           </ResponsiveContainer>
+
+                        <div className="group p-5 bg-white border border-slate-100 rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] transition-all">
+                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Performance</p>
+                           <div className="flex items-end gap-2">
+                              <p className="text-3xl font-bold text-slate-900">{(selectedPartner.performance.customerSatisfaction * 20).toFixed(0)}</p>
+                              <p className="text-sm font-medium text-slate-400 mb-1.5">/ 100</p>
+                           </div>
+                           <div className="w-full bg-slate-100 h-1.5 mt-3 rounded-full overflow-hidden">
+                              <div className="bg-slate-900 h-full rounded-full" style={{ width: `${selectedPartner.performance.customerSatisfaction * 20}%` }} />
+                           </div>
+                        </div>
+
+                        <div className="group p-5 bg-white border border-slate-100 rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] transition-all">
+                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">On-Time %</p>
+                           <div className="flex items-end gap-2">
+                              <p className={`text-3xl font-bold ${selectedPartner.performance.onTimeDelivery > 90 ? 'text-green-600' : 'text-yellow-600'}`}>
+                                 {selectedPartner.performance.onTimeDelivery}%
+                              </p>
+                           </div>
+                        </div>
+
+                        <div className="group p-5 bg-white border border-slate-100 rounded-xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_8px_30px_-4px_rgba(0,0,0,0.1)] transition-all">
+                           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Risk Profile</p>
+                           <p className={`text-xl font-bold ${selectedPartner.riskProfile.level === 'high' ? 'text-red-600' :
+                              selectedPartner.riskProfile.level === 'medium' ? 'text-orange-600' : 'text-green-600'
+                              }`}>
+                              {getRiskLabel(selectedPartner.riskProfile.level)}
+                           </p>
                         </div>
                      </div>
-                     <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Overall Score</h3>
-                        <div className="flex items-end justify-between">
-                           <span className="text-3xl font-bold text-gray-900">{carrier.performance.score}/100</span>
-                           <span className="text-xs font-bold text-gray-500">Top 5% of Network</span>
-                        </div>
-                        <div className="w-full bg-gray-100 h-2 rounded-full mt-6 overflow-hidden">
-                           <div className="h-full bg-teal-600 rounded-full" style={{ width: `${carrier.performance.score}%` }}></div>
-                        </div>
-                        <p className="text-xs text-gray-400 mt-2">Weighted average of OTD, Billing, & Acceptance.</p>
-                     </div>
 
-                     {/* Top Lanes */}
-                     <div className="col-span-2 bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Top Active Lanes</h3>
-                        <div className="space-y-4">
-                           {LANE_VOLUME.map((lane, i) => (
-                              <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-sm border border-gray-100">
-                                 <div className="flex items-center space-x-3">
-                                    <div className="p-2 bg-white border border-gray-200 rounded-full text-gray-600">
-                                       <MapPin size={16}/>
-                                    </div>
-                                    <span className="font-bold text-gray-800 text-sm">{lane.lane}</span>
-                                 </div>
-                                 <div className="text-right">
-                                    <p className="text-sm font-bold text-gray-900">{lane.volume} Shipments</p>
-                                    <p className="text-xs text-gray-500">${(lane.spend/1000).toFixed(0)}k Spend</p>
+                     {/* 2. INFO SECTIONS */}
+                     <div className="grid grid-cols-2 gap-8">
+                        {/* LEFT: Operational */}
+                        <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+                           <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6 flex items-center gap-2">
+                              <GeoTruck size={24} className="text-slate-400" /> Operational Matrix
+                           </h3>
+
+                           <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                              <div>
+                                 <label className="text-[10px] font-bold text-slate-400 uppercase">Service Modes</label>
+                                 <div className="flex flex-wrap gap-2 mt-2">
+                                    {selectedPartner.modes?.map(m => (
+                                       <span key={m} className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 text-[11px] font-bold uppercase tracking-wide rounded shadow-sm hover:shadow-md transition-shadow cursor-default">{m}</span>
+                                    ))}
                                  </div>
                               </div>
-                           ))}
-                        </div>
-                     </div>
-                  </div>
-
-                  {/* Sidebar Info */}
-                  <div className="space-y-6">
-                     <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Account Manager</h3>
-                        <div className="flex items-center space-x-3 mb-4">
-                           <div className="w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center font-bold">
-                              {carrier.contact.name.split(' ').map(n=>n[0]).join('')}
+                              <div>
+                                 <label className="text-[10px] font-bold text-slate-400 uppercase">Primary Region</label>
+                                 <p className="text-sm font-bold text-slate-800 mt-1">{selectedPartner.region}</p>
+                              </div>
+                              <div>
+                                 <label className="text-[10px] font-bold text-slate-400 uppercase">Coverage</label>
+                                 <p className="text-sm font-bold text-slate-800 mt-1">{selectedPartner.coverage.vehicles.toLocaleString()} Vehicles</p>
+                              </div>
+                              <div>
+                                 <label className="text-[10px] font-bold text-slate-400 uppercase">Avg Transit</label>
+                                 <p className="text-sm font-bold text-slate-800 mt-1">{selectedPartner.majorRoutes[0]?.transitTime || 'N/A'}</p>
+                              </div>
                            </div>
-                           <div>
-                              <p className="font-bold text-gray-900 text-sm">{carrier.contact.name}</p>
-                              <p className="text-xs text-gray-500">{carrier.contact.role}</p>
+
+                           <div className="mt-6 pt-6 border-t border-slate-200">
+                              <label className="text-[10px] font-bold text-slate-400 uppercase block mb-3">Strategic Hubs</label>
+                              <div className="flex flex-wrap gap-2">
+                                 {['Mumbai', 'Delhi NCR', 'Bangalore'].map(city => (
+                                    <span key={city} className="flex items-center text-[11px] font-bold text-slate-600 bg-white border border-slate-200 px-3 py-1.5 rounded-full shadow-sm">
+                                       <MapPin size={10} className="mr-1.5 text-blue-500" /> {city}
+                                    </span>
+                                 ))}
+                                 <span className="text-[10px] text-slate-400 flex items-center px-2">+3 more</span>
+                              </div>
                            </div>
                         </div>
-                        <div className="space-y-2 text-sm">
-                           <div className="flex items-center text-gray-600">
-                              <Mail size={14} className="mr-2 text-gray-400" /> {carrier.contact.email}
+
+                        {/* RIGHT: Contact & Compliance */}
+                        <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 flex flex-col">
+                           <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-6 flex items-center gap-2">
+                              <GeoPhone size={24} className="text-slate-400" /> Corporate & Compliance
+                           </h3>
+
+                           <div className="space-y-4 flex-1">
+                              <div className="flex items-start gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
+                                 <div className="h-10 w-10 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center shrink-0">
+                                    <GeoPhone size={24} />
+                                 </div>
+                                 <div className="min-w-0">
+                                    <p className="text-[10px] text-slate-400 uppercase font-bold">Key Account Manager</p>
+                                    <p className="text-sm font-bold text-slate-900 truncate">{selectedPartner.contacts[0]?.name || 'N/A'}</p>
+                                    <p className="text-xs text-slate-500 truncate mt-0.5">{selectedPartner.contacts[0]?.email || 'N/A'}</p>
+                                 </div>
+                              </div>
+
+                              <div className="flex items-start gap-4 p-4 bg-white rounded-xl shadow-sm border border-slate-100">
+                                 <div className="h-10 w-10 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center shrink-0">
+                                    <GeoGlobe size={24} />
+                                 </div>
+                                 <div>
+                                    <p className="text-[10px] text-slate-400 uppercase font-bold">Headquarters</p>
+                                    <p className="text-sm font-bold text-slate-900">{selectedPartner.headquarters.split(',')[0]}</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">{selectedPartner.headquarters}</p>
+                                 </div>
+                              </div>
                            </div>
-                           <div className="flex items-center text-gray-600">
-                              <Phone size={14} className="mr-2 text-gray-400" /> {carrier.contact.phone}
+
+                           <div className="mt-6">
+                              <div className="grid grid-cols-3 gap-2">
+                                 <div className="bg-green-50 border border-green-100 p-2 rounded text-center">
+                                    <p className="text-[9px] font-bold text-green-700 uppercase">GST</p>
+                                    <CheckCircle size={14} className="mx-auto text-green-600 my-1" />
+                                    <p className="text-[9px] font-bold text-green-800">Filed</p>
+                                 </div>
+                                 <div className="bg-green-50 border border-green-100 p-2 rounded text-center">
+                                    <p className="text-[9px] font-bold text-green-700 uppercase">Insurance</p>
+                                    <CheckCircle size={14} className="mx-auto text-green-600 my-1" />
+                                    <p className="text-[9px] font-bold text-green-800">Active</p>
+                                 </div>
+                                 <div className="bg-blue-50 border border-blue-100 p-2 rounded text-center">
+                                    <p className="text-[9px] font-bold text-blue-700 uppercase">Contract</p>
+                                    <FileText size={14} className="mx-auto text-blue-600 my-1" />
+                                    <p className="text-[9px] font-bold text-blue-800">2025</p>
+                                 </div>
+                              </div>
                            </div>
                         </div>
                      </div>
-
-                     <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">Contract Status</h3>
-                        <div className="flex justify-between items-center mb-2">
-                           <span className="text-sm text-gray-600">Agreement</span>
-                           <span className="text-sm font-mono text-blue-600">MSA-2025-001</span>
-                        </div>
-                        <div className="flex justify-between items-center mb-2">
-                           <span className="text-sm text-gray-600">Expiry</span>
-                           <span className="text-sm font-bold text-gray-900">Dec 31, 2026</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                           <span className="text-sm text-gray-600">Payment Terms</span>
-                           <span className="text-sm font-bold text-gray-900">Net 45</span>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            )}
-
-            {/* TAB: PERFORMANCE */}
-            {activeTab === 'performance' && (
-               <div className="space-y-6 animate-fade-in-up">
-                  <div className="grid grid-cols-2 gap-6">
-                     <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-6">On-Time Delivery Trend (6 Months)</h3>
-                        <div className="h-64">
-                           <ResponsiveContainer width="100%" height="100%">
-                              <BarChart data={PERFORMANCE_HISTORY}>
-                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                 <XAxis dataKey="month" tick={{fontSize: 12}} />
-                                 <YAxis domain={[80, 100]} tick={{fontSize: 12}} />
-                                 <Tooltip />
-                                 <Bar dataKey="otd" fill="#0D9488" radius={[4, 4, 0, 0]} name="OTD %" />
-                              </BarChart>
-                           </ResponsiveContainer>
-                        </div>
-                     </div>
-                     <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-6">Billing Accuracy Trend</h3>
-                        <div className="h-64">
-                           <ResponsiveContainer width="100%" height="100%">
-                              <AreaChart data={PERFORMANCE_HISTORY}>
-                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                 <XAxis dataKey="month" tick={{fontSize: 12}} />
-                                 <YAxis domain={[80, 100]} tick={{fontSize: 12}} />
-                                 <Tooltip />
-                                 <Area type="monotone" dataKey="billing" stroke="#2563EB" fill="#EFF6FF" strokeWidth={3} name="Accuracy %" />
-                              </AreaChart>
-                           </ResponsiveContainer>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            )}
-
-            {/* TAB: COMPLIANCE */}
-            {activeTab === 'compliance' && (
-               <div className="animate-fade-in-up bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
-                   <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                      <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Required Documentation</h3>
-                   </div>
-                   <table className="w-full text-sm text-left">
-                      <thead className="text-xs text-gray-500 uppercase border-b border-gray-200">
-                         <tr>
-                            <th className="px-6 py-3">Document Type</th>
-                            <th className="px-6 py-3">Status</th>
-                            <th className="px-6 py-3">Expiry Date</th>
-                            <th className="px-6 py-3 text-right">Action</th>
-                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                         <tr>
-                            <td className="px-6 py-4 font-bold text-gray-800">Certificate of Insurance (Liability)</td>
-                            <td className="px-6 py-4"><span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">Valid</span></td>
-                            <td className="px-6 py-4 text-gray-600">Oct 15, 2026</td>
-                            <td className="px-6 py-4 text-right"><button className="text-blue-600 hover:underline text-xs font-bold">View PDF</button></td>
-                         </tr>
-                         <tr>
-                            <td className="px-6 py-4 font-bold text-gray-800">W-9 Tax Form</td>
-                            <td className="px-6 py-4"><span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded border border-green-200">Valid</span></td>
-                            <td className="px-6 py-4 text-gray-600">N/A</td>
-                            <td className="px-6 py-4 text-right"><button className="text-blue-600 hover:underline text-xs font-bold">View PDF</button></td>
-                         </tr>
-                         <tr>
-                            <td className="px-6 py-4 font-bold text-gray-800">Hazmat Certification</td>
-                            <td className="px-6 py-4"><span className="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-200 flex items-center w-fit"><Clock size={12} className="mr-1"/> Expiring Soon</span></td>
-                            <td className="px-6 py-4 text-orange-600 font-bold">Dec 01, 2025</td>
-                            <td className="px-6 py-4 text-right"><button className="text-blue-600 hover:underline text-xs font-bold">Request Update</button></td>
-                         </tr>
-                         <tr>
-                            <td className="px-6 py-4 font-bold text-gray-800">ISO 9001 Certification</td>
-                            <td className="px-6 py-4"><span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200">Missing</span></td>
-                            <td className="px-6 py-4 text-gray-400">--</td>
-                            <td className="px-6 py-4 text-right"><button className="text-blue-600 hover:underline text-xs font-bold">Upload</button></td>
-                         </tr>
-                      </tbody>
-                   </table>
-               </div>
-            )}
-            
-            {/* TAB: INTEGRATION */}
-            {activeTab === 'integration' && (
-               <div className="animate-fade-in-up space-y-6">
-                  <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm flex items-center justify-between">
-                     <div className="flex items-center space-x-4">
-                        <div className="p-3 bg-green-50 text-green-600 rounded-full border border-green-100">
-                           <Zap size={24} />
-                        </div>
-                        <div>
-                           <h3 className="text-lg font-bold text-gray-900">EDI Connection Active</h3>
-                           <p className="text-sm text-gray-500">Protocol: ANSI X12 (Versions 4010, 5010)</p>
-                        </div>
-                     </div>
-                     <div className="text-right">
-                        <p className="text-xs font-bold text-gray-400 uppercase">Uptime (30 Days)</p>
-                        <p className="text-xl font-bold text-green-600">99.98%</p>
-                     </div>
                   </div>
 
-                  <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
-                     <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Transaction Logs (Last 24h)</h3>
-                     </div>
-                     <div className="p-4 font-mono text-xs space-y-2">
-                        <div className="flex justify-between text-gray-600 border-b border-gray-100 pb-2">
-                           <span>[10:45 AM] 210 Invoice Received</span>
-                           <span className="text-green-600 font-bold">SUCCESS</span>
-                        </div>
-                        <div className="flex justify-between text-gray-600 border-b border-gray-100 pb-2">
-                           <span>[09:30 AM] 214 Status Update</span>
-                           <span className="text-green-600 font-bold">SUCCESS</span>
-                        </div>
-                        <div className="flex justify-between text-gray-600 border-b border-gray-100 pb-2">
-                           <span>[08:15 AM] 990 Response to Tender</span>
-                           <span className="text-green-600 font-bold">SUCCESS</span>
-                        </div>
-                        <div className="flex justify-between text-gray-600 border-b border-gray-100 pb-2">
-                           <span>[04:00 AM] 204 Load Tender Sent</span>
-                           <span className="text-blue-600 font-bold">SENT</span>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            )}
+                  {/* FOOTER */}
+                  <div className="p-6 bg-white border-t border-slate-100 rounded-b-2xl flex justify-between items-center sticky bottom-0 z-10 glass-effect">
+                     <p className="text-xs text-slate-400 font-medium">
+                        Last audited: <span className="text-slate-600 font-bold">2 days ago</span>
+                     </p>
+                     <div className="flex gap-3">
+                        <button
+                           onClick={() => setSelectedPartner(null)}
+                           className="px-6 py-2.5 border border-slate-200 text-slate-600 font-bold text-sm rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all"
+                        >
+                           Close
+                        </button>
+                        <button
+                           onClick={async () => {
+                              try {
+                                 const response = await fetch('http://localhost:5000/api/generate/pdf', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                       type: 'CARRIER_PROFILE',
+                                       id: selectedPartner.id,
+                                       carrierName: selectedPartner.name,
+                                       tier: selectedPartner.tier,
+                                       reportDate: new Date().toLocaleDateString(),
+                                       overallGrade: (selectedPartner.performance.customerSatisfaction * 20) >= 90 ? 'A+' : (selectedPartner.performance.customerSatisfaction * 20) >= 80 ? 'A' : 'B',
+                                       otdScore: selectedPartner.performance.onTimeDelivery,
+                                       damageScore: 99,
+                                       billingScore: 92,
+                                       totalSpend: 1540200,
+                                       totalInvoices: 142
+                                    })
+                                 });
 
-         </div>
-
-         {/* Email Modal */}
-         {showEmailModal && (
-            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm">
-               <div className="bg-white w-full max-w-lg rounded-sm shadow-2xl p-6">
-                  <div className="flex justify-between items-center mb-4">
-                     <h3 className="font-bold text-gray-800">Compose Email</h3>
-                     <button onClick={() => setShowEmailModal(false)}><X size={18}/></button>
-                  </div>
-                  <div className="space-y-4">
-                     <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase block mb-1">To</label>
-                        <input type="text" value={carrier.contact.email} readOnly className="w-full bg-gray-50 border border-gray-300 rounded-sm px-3 py-2 text-sm text-gray-600" />
-                     </div>
-                     <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Subject</label>
-                        <input type="text" placeholder="Regarding: Performance Review" className="w-full border border-gray-300 rounded-sm px-3 py-2 text-sm" />
-                     </div>
-                     <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Message</label>
-                        <textarea className="w-full border border-gray-300 rounded-sm px-3 py-2 text-sm h-32"></textarea>
-                     </div>
-                     <div className="flex justify-end pt-2">
-                        <button onClick={() => setShowEmailModal(false)} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-sm text-sm font-bold hover:bg-blue-700">
-                           <Send size={14} className="mr-2"/> Send Email
+                                 if (response.ok) {
+                                    const blob = await response.blob();
+                                    const url = window.URL.createObjectURL(blob);
+                                    window.open(url, '_blank');
+                                 } else {
+                                    alert('Failed to generate Academic Report');
+                                 }
+                              } catch (e) {
+                                 console.error(e);
+                                 alert('Error connecting to Report Engine');
+                              }
+                           }}
+                           className="px-6 py-2.5 bg-slate-900 text-white font-bold text-sm rounded-lg hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 flex items-center gap-2"
+                        >
+                           <FileText size={16} /> Download Academic Report
                         </button>
                      </div>
                   </div>
+
                </div>
             </div>
          )}
       </div>
    );
 };
+

@@ -4,6 +4,8 @@ import { Network, Server, RefreshCw, CheckCircle, AlertTriangle, ChevronDown, Ch
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { EdiViewer } from '../components/EdiViewer';
 import { ParsedEdi } from '../utils/ediParser';
+import { IntegrationsShowcase } from './IntegrationsShowcase';
+
 
 interface IntegrationHubProps {
    onIngestEdi: (parsed: ParsedEdi) => void;
@@ -34,13 +36,42 @@ export const IntegrationHub: React.FC<IntegrationHubProps> = ({ onIngestEdi }) =
       { name: 'Manual Upload', value: 15, color: '#F59E0B' },
    ];
 
+   // Premium 3D Geometric Icons
+   const GeoServer = ({ size = 24, className = "", color = "currentColor" }: { size?: number, className?: string, color?: string }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={color} className={className}>
+         <rect x="4" y="4" width="16" height="6" rx="1" fillOpacity="0.2" />
+         <rect x="4" y="14" width="16" height="6" rx="1" fillOpacity="0.2" />
+         <path d="M4 10h16" stroke={color} strokeWidth="2" strokeOpacity="0.5" />
+         <circle cx="7" cy="7" r="1.5" fill={color} fillOpacity="0.8" />
+         <circle cx="7" cy="17" r="1.5" fill={color} fillOpacity="0.8" />
+         <path d="M16 17h2" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      </svg>
+   );
+
+   const GeoUpload = ({ size = 24, className = "", color = "currentColor" }: { size?: number, className?: string, color?: string }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={color} className={className}>
+         <path d="M12 3v12" stroke={color} strokeWidth="2" strokeLinecap="round" />
+         <path d="M8 7l4-4 4 4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+         <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" stroke={color} strokeWidth="2" strokeLinecap="round" />
+         <rect x="9" y="12" width="6" height="2" rx="0.5" fill={color} fillOpacity="0.6" />
+      </svg>
+   );
+
+   const GeoEmail = ({ size = 24, className = "", color = "currentColor" }: { size?: number, className?: string, color?: string }) => (
+      <svg width={size} height={size} viewBox="0 0 24 24" fill={color} className={className}>
+         <rect x="3" y="6" width="18" height="12" rx="2" fillOpacity="0.2" />
+         <path d="M3 7l8.2 6.4a1 1 0 0 0 1.6 0L21 7" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+         <rect x="5" y="14" width="4" height="2" rx="0.5" fill={color} fillOpacity="0.6" />
+      </svg>
+   );
+
    const INGESTION_CHANNELS = [
       {
          id: 'edi',
          title: 'Direct EDI / API',
          desc: 'Real-time bidirectional integration.',
          detail: 'X12 (210/310) & REST API',
-         icon: Server,
+         icon: GeoServer,
          color: 'bg-teal-600',
          textColor: 'text-teal-600',
          borderColor: 'border-teal-200',
@@ -52,7 +83,7 @@ export const IntegrationHub: React.FC<IntegrationHubProps> = ({ onIngestEdi }) =
          title: 'Manual Upload',
          desc: 'Service partner portal upload.',
          detail: 'PDF / Excel / Image',
-         icon: UploadCloud,
+         icon: GeoUpload,
          color: 'bg-orange-500',
          textColor: 'text-orange-600',
          borderColor: 'border-orange-200',
@@ -64,7 +95,7 @@ export const IntegrationHub: React.FC<IntegrationHubProps> = ({ onIngestEdi }) =
          title: 'Email Extraction',
          desc: 'AI ingestion via designated ID.',
          detail: 'invoices@sequelstring.ai',
-         icon: Mail,
+         icon: GeoEmail,
          color: 'bg-blue-600',
          textColor: 'text-blue-600',
          borderColor: 'border-blue-200',
@@ -99,6 +130,9 @@ export const IntegrationHub: React.FC<IntegrationHubProps> = ({ onIngestEdi }) =
 
          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-8">
 
+            {/* --- 100+ READY INTEGRATIONS SHOWCASE --- */}
+            <IntegrationsShowcase />
+
             {/* --- INGESTION CHANNELS OVERVIEW --- */}
             <div>
                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4 flex items-center">
@@ -106,22 +140,22 @@ export const IntegrationHub: React.FC<IntegrationHubProps> = ({ onIngestEdi }) =
                </h3>
                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {INGESTION_CHANNELS.map((channel) => (
-                     <div key={channel.id} className="bg-white border border-gray-200 rounded-sm shadow-sm p-5 flex flex-col relative overflow-hidden group hover:shadow-md transition-shadow">
-                        <div className={`absolute top-0 right-0 w-20 h-20 opacity-10 rounded-bl-full ${channel.color} -mr-4 -mt-4 transition-transform group-hover:scale-110`}></div>
+                     <div key={channel.id} className="bg-[#2C3E50] p-5 flex flex-col relative overflow-hidden group hover:shadow-lg transition-all">
+                        <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 transition-transform group-hover:scale-110"></div>
 
-                        <div className="flex justify-between items-start mb-4 z-10">
-                           <div className={`w-10 h-10 rounded-full flex items-center justify-center ${channel.bgLight} ${channel.textColor}`}>
-                              <channel.icon size={20} />
+                        <div className="flex justify-between items-start mb-4 relative z-10">
+                           <div className="w-12 h-12 flex items-center justify-center">
+                              <channel.icon size={48} className="text-green-400" />
                            </div>
-                           <span className="text-[10px] font-bold uppercase bg-green-100 text-green-700 px-2 py-0.5 rounded border border-green-200 flex items-center">
+                           <span className="text-[10px] font-bold uppercase bg-green-900/30 text-green-400 px-2 py-0.5 border border-green-400/30 flex items-center">
                               <CheckCircle size={10} className="mr-1" /> {channel.status}
                            </span>
                         </div>
 
-                        <div className="z-10">
-                           <h4 className="text-lg font-bold text-gray-900">{channel.title}</h4>
-                           <p className="text-xs text-gray-500 font-medium mt-1">{channel.desc}</p>
-                           <div className={`mt-3 pt-3 border-t border-gray-100 text-xs font-mono font-bold ${channel.textColor}`}>
+                        <div className="relative z-10">
+                           <h4 className="text-lg font-bold text-white">{channel.title}</h4>
+                           <p className="text-xs text-gray-400 font-medium mt-1">{channel.desc}</p>
+                           <div className="mt-3 pt-3 border-t border-gray-600 text-xs font-mono font-bold text-green-400">
                               {channel.detail}
                            </div>
                         </div>

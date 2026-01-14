@@ -62,14 +62,6 @@ export const generateSelfBillingAdvice = (shipment: ShipmentData): Invoice => {
             rate: MatchStatus.MATCH,
             delivery: MatchStatus.MATCH,
             unit: MatchStatus.MATCH
-        },
-        history: [
-            {
-                actor: 'System',
-                timestamp: new Date().toISOString(),
-                action: 'Payment Advice Generated',
-                comment: `Self-Billing Advice created based on Shipment #${shipment.shipmentId} and Rate Card #${shipment.rateCardId}.`
-            }
-        ]
+        }
     };
 };

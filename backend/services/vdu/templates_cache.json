@@ -1,0 +1,122 @@
+{
+  "tci-express_INVOICE": {
+    "vendor_id": "tci-express",
+    "vendor_name": "tci-express",
+    "document_type": "INVOICE",
+    "field_patterns": {
+      "invoice_number": {
+        "field_name": "invoice_number",
+        "regex_patterns": [
+          "^STC\\/INV\\/\\d{6}\\/\\d+(?=($|\\n))",
+          "^STC\\/INV\\/\\d{6}\\/\\d+(.*)$",
+          "TAX\\ INVOICE\\\n\\\nInvoice\\ No[\\s:]*(\\S+)",
+          "^Invoice No:\\s*(.*)$"
+        ],
+        "context_keywords": [
+          "Invoice",
+          "No",
+          "INVOICE"
+        ],
+        "position_hints": {},
+        "confidence": 1.0,
+        "examples": [
+          "STC/INV/202601/7162",
+          "STC/INV/202601/7162",
+          "STC/INV/202601/7162",
+          "STC/INV/202601/7162",
+          "STC/INV/202601/7162"
+        ]
+      },
+      "vendor_name": {
+        "field_name": "vendor_name",
+        "regex_patterns": [
+          "Thane\\\n\\\nFor[\\s:]*(\\S+)",
+          "^(.+)$"
+        ],
+        "context_keywords": [
+          "Bhiwandi",
+          "Thane",
+          "For"
+        ],
+        "position_hints": {},
+        "confidence": 1.0,
+        "examples": [
+          "SHARMA TRANSPORT CORPORATION",
+          "SHARMA TRANSPORT CORPORATION",
+          "SHARMA TRANSPORT CORPORATION",
+          "SHARMA TRANSPORT CORPORATION",
+          "SHARMA TRANSPORT CORPORATION"
+        ]
+      },
+      "vendor_gstin": {
+        "field_name": "vendor_gstin",
+        "regex_patterns": [
+          "GSTIN[\\s:]*(\\S+)",
+          "(\\d{2}[A-Z]{5}\\d{4}[A-Z]{1}[A-Z\\d]{1}Z[A-Z\\d]{1})"
+        ],
+        "context_keywords": [
+          "Bhiwandi",
+          "GSTIN",
+          "Thane"
+        ],
+        "position_hints": {},
+        "confidence": 1.0,
+        "examples": [
+          "27AABCS1234E1ZV",
+          "27AABCS1234E1ZV",
+          "27AABCS1234E1ZV",
+          "27AABCS1234E1ZV",
+          "27AABCS1234E1ZV"
+        ]
+      },
+      "buyer_name": {
+        "field_name": "buyer_name",
+        "regex_patterns": [
+          "Bill To:(.*?)\\n",
+          "Bill To:\\s*(.*?)\\s*",
+          "Bill\\ To[\\s:]*(\\S+)",
+          "^Bill To: (.*)$",
+          "Bill To:(.*)"
+        ],
+        "context_keywords": [
+          "Bill",
+          "To",
+          "Date"
+        ],
+        "position_hints": {},
+        "confidence": 1.0,
+        "examples": [
+          "INDOCO REMEDIES LIMITED",
+          "INDOCO REMEDIES LIMITED",
+          "INDOCO REMEDIES LIMITED",
+          "INDOCO REMEDIES LIMITED",
+          "INDOCO REMEDIES LIMITED"
+        ]
+      },
+      "buyer_gstin": {
+        "field_name": "buyer_gstin",
+        "regex_patterns": [
+          "GSTIN[\\s:]*(\\S+)",
+          "(\\d{2}[A-Z]{5}\\d{4}[A-Z]{1}[A-Z\\d]{1}Z[A-Z\\d]{1})"
+        ],
+        "context_keywords": [
+          "GSTIN",
+          "Code",
+          "State"
+        ],
+        "position_hints": {},
+        "confidence": 1.0,
+        "examples": [
+          "27AAACI0380C1Z3",
+          "27AAACI0380C1Z3",
+          "27AAACI0380C1Z3",
+          "27AAACI0380C1Z3",
+          "27AAACI0380C1Z3"
+        ]
+      }
+    },
+    "layout_signature": "b02589030d1f01c9",
+    "sample_count": 9,
+    "last_updated": "2026-01-05T10:49:45.827452"
+  }
+}

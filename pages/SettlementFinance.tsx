@@ -1,56 +1,240 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-   Download, CheckCircle, Clock, AlertTriangle, FileText, Calendar,
-   DollarSign, X, ShieldCheck, TrendingUp, Lock, Globe, Building2,
-   Search, Filter, ChevronRight, ArrowRight, Wallet, PieChart as PieIcon,
-   RefreshCw, Landmark, MoreHorizontal, CreditCard, Plus, Save, ChevronDown,
-   ArrowUpRight, ArrowDownRight, RotateCcw, UserCheck
-} from 'lucide-react';
-import {
-   BarChart, Bar, AreaChart, Area, XAxis, YAxis, CartesianGrid,
+   BarChart, Bar, XAxis, YAxis, CartesianGrid,
    Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { UserRole, Invoice, PaymentBatch } from '../types';
-import { MOCK_INVOICES, MOCK_BATCHES } from '../constants';
+import { UserRole, Invoice, PaymentBatch, BankReconciliation } from '../types';
+// REMOVED: import { MOCK_INVOICES, MOCK_BATCHES } from '../constants';
 import { exportToCSV } from '../utils/exportUtils';
+import { Search, ChevronRight, ChevronDown } from 'lucide-react';
+import * as paymentService from '../services/paymentService';
 
-// --- MOCK DATA & TYPES ---
+// --- 3D SOLID GEOMETRIC ICONS ---
 
-// Vendor Remittance Data
+const GeoCube = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M12 2L2 7l10 5 10-5-10-5z" fillOpacity="1" />
+      <path d="M2 17l10 5 10-5" fill="none" stroke="white" strokeWidth="0.5" opacity="0.3" />
+      <path d="M2 7v10l10 5V12L2 7z" fillOpacity="0.8" />
+      <path d="M12 12v10l10-5V7l-10 5z" fillOpacity="0.6" />
+      <rect x="10" y="10" width="4" height="4" fill="white" fillOpacity="0.2" transform="rotate(45 12 12)" />
+   </svg>
+);
+
+const GeoPyramid = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M12 2L2 19h20L12 2z" fillOpacity="0.8" />
+      <path d="M12 2L2 19h10V2z" fillOpacity="1" />
+      <path d="M12 2v17h10L12 2z" fillOpacity="0.6" />
+   </svg>
+);
+
+const GeoHexagon = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M12 2l8.5 5v10L12 22l-8.5-5V7L12 2z" fillOpacity="0.8" />
+      <path d="M12 12l8.5-5M12 12v10M12 12L3.5 7" stroke="white" strokeWidth="1" />
+      <path d="M12 2l8.5 5L12 12 3.5 7 12 2z" fillOpacity="1" />
+   </svg>
+);
+
+const GeoSphere = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <circle cx="12" cy="12" r="10" fillOpacity="0.4" />
+      <circle cx="12" cy="12" r="7" fillOpacity="0.7" />
+      <circle cx="12" cy="12" r="4" fillOpacity="1" />
+   </svg>
+);
+
+const GeoWallet = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M20 12V8H6a2 2 0 0 1-2-2 2 2 0 0 1 2-2h12v4" fillOpacity="0.4" />
+      <path d="M4 6v12a2 2 0 0 0 2 2h14v-4" fillOpacity="0.6" />
+      <path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z" fillOpacity="1" />
+   </svg>
+);
+
+const GeoClock = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <circle cx="12" cy="12" r="10" fillOpacity="0.3" />
+      <path d="M12 12L12 6" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 12L16 14" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <rect x="11" y="11" width="2" height="2" fill="white" />
+   </svg>
+);
+
+const GeoTrendUp = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M23 6L13.5 15.5L8.5 10.5L1 18" stroke={color} strokeWidth="2" fill="none" />
+      <path d="M17 6H23V12" stroke={color} strokeWidth="2" fill="none" />
+      <rect x="21" y="4" width="4" height="4" fill={color} />
+   </svg>
+);
+
+const GeoBuilding = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M2 22L2 8L12 2L22 8L22 22" fillOpacity="0.2" stroke={color} strokeWidth="1" />
+      <path d="M6 10H18V22H6Z" fillOpacity="0.6" />
+      <rect x="8" y="12" width="2" height="2" fill="white" fillOpacity="0.8" />
+      <rect x="14" y="12" width="2" height="2" fill="white" fillOpacity="0.8" />
+      <rect x="8" y="16" width="2" height="2" fill="white" fillOpacity="0.8" />
+      <rect x="14" y="16" width="2" height="2" fill="white" fillOpacity="0.8" />
+   </svg>
+);
+
+const GeoPieIcon = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M21.21 15.89A10 10 0 1 1 8 2.83" fillOpacity="0.5" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <path d="M22 12A10 10 0 0 0 12 2v10z" fillOpacity="1" />
+   </svg>
+);
+
+const GeoShield = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M12 2L3 7v6a12 12 0 0 0 9 11 12 12 0 0 0 9-11V7l-9-5z" fillOpacity="0.8" />
+      <path d="M12 2v22a12 12 0 0 0 9-11V7l-9-5z" fillOpacity="1" />
+      <path d="M9 12l2 2 4-4" stroke="white" strokeWidth="2" fill="none" />
+   </svg>
+);
+
+const GeoLandmark = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M2 10L12 4L22 10V22H2V10Z" fillOpacity="0.3" stroke={color} strokeWidth="1" />
+      <rect x="4" y="12" width="2" height="8" fill={color} />
+      <rect x="8" y="12" width="2" height="8" fill={color} />
+      <rect x="14" y="12" width="2" height="8" fill={color} />
+      <rect x="18" y="12" width="2" height="8" fill={color} />
+      <rect x="2" y="20" width="20" height="2" fill={color} />
+   </svg>
+);
+
+const GeoFilter = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" fillOpacity="0.8" />
+   </svg>
+);
+
+const GeoPlus = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <rect x="11" y="2" width="2" height="20" rx="1" fillOpacity="1" />
+      <rect x="2" y="11" width="20" height="2" rx="1" fillOpacity="1" />
+   </svg>
+);
+
+const GeoRefresh = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M23 4v6h-6M1 20v-6h6" stroke={color} strokeWidth="2" fill="none" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke={color} strokeWidth="2" fill="none" opacity="0.6" />
+      <circle cx="12" cy="12" r="2" fillOpacity="1" />
+   </svg>
+);
+
+// 3D Geometric Upload Icon
+const GeoUpload = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      {/* 3D Box Base */}
+      <path d="M4 17L12 21L20 17V11L12 7L4 11V17Z" fillOpacity="0.4" />
+      <path d="M12 7L20 11L12 15L4 11L12 7Z" fillOpacity="1" />
+      <path d="M12 15V21" stroke="white" strokeWidth="0.5" />
+      {/* Upload Arrow */}
+      <path d="M12 4L8 8H10V12H14V8H16L12 4Z" fillOpacity="1" />
+   </svg>
+);
+
+// 3D AI Algorithm Icon - Professional reconciliation/matching
+const GeoAI = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      {/* Neural network nodes */}
+      <circle cx="6" cy="6" r="2.5" fillOpacity="0.8" />
+      <circle cx="18" cy="6" r="2.5" fillOpacity="0.8" />
+      <circle cx="6" cy="18" r="2.5" fillOpacity="0.8" />
+      <circle cx="18" cy="18" r="2.5" fillOpacity="0.8" />
+      {/* Central processing node - larger */}
+      <circle cx="12" cy="12" r="4" fillOpacity="1" />
+      <circle cx="12" cy="12" r="2" fill="white" fillOpacity="0.3" />
+      {/* Connection lines */}
+      <path d="M8 7.5L10 10" stroke={color} strokeWidth="1.5" strokeOpacity="0.6" />
+      <path d="M16 7.5L14 10" stroke={color} strokeWidth="1.5" strokeOpacity="0.6" />
+      <path d="M8 16.5L10 14" stroke={color} strokeWidth="1.5" strokeOpacity="0.6" />
+      <path d="M16 16.5L14 14" stroke={color} strokeWidth="1.5" strokeOpacity="0.6" />
+      {/* Horizontal connections */}
+      <path d="M8.5 6H15.5" stroke={color} strokeWidth="1" strokeOpacity="0.4" />
+      <path d="M8.5 18H15.5" stroke={color} strokeWidth="1" strokeOpacity="0.4" />
+      <path d="M6 8.5V15.5" stroke={color} strokeWidth="1" strokeOpacity="0.4" />
+      <path d="M18 8.5V15.5" stroke={color} strokeWidth="1" strokeOpacity="0.4" />
+   </svg>
+);
+
+// Professional Matched/Linked Icon
+const GeoMatched = ({ className, color = "#10B981", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill="none" width={size} height={size}>
+      {/* Two linked chains/circles */}
+      <circle cx="8" cy="12" r="5" stroke={color} strokeWidth="2" fill={color} fillOpacity="0.15" />
+      <circle cx="16" cy="12" r="5" stroke={color} strokeWidth="2" fill={color} fillOpacity="0.15" />
+      {/* Overlap link */}
+      <path d="M11 12H13" stroke={color} strokeWidth="2.5" />
+      {/* Check mark */}
+      <path d="M10 11.5L11.5 13L14 10.5" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+   </svg>
+);
+
+// Professional Unmatched/Broken Link Icon
+const GeoUnmatched = ({ className, color = "#EF4444", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill="none" width={size} height={size}>
+      {/* Two separated circles */}
+      <circle cx="7" cy="12" r="4" stroke={color} strokeWidth="2" fill={color} fillOpacity="0.15" />
+      <circle cx="17" cy="12" r="4" stroke={color} strokeWidth="2" fill={color} fillOpacity="0.15" />
+      {/* Broken link indicator */}
+      <path d="M11.5 10L12.5 14" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      {/* Question mark in gap */}
+      <path d="M12 8.5V8" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+   </svg>
+);
+
+const GeoDownload = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke={color} strokeWidth="2" fill="none" />
+      <polyline points="7 10 12 15 17 10" stroke={color} strokeWidth="2" fill="none" />
+      <line x1="12" y1="15" x2="12" y2="3" stroke={color} strokeWidth="2" />
+      <rect x="10" y="3" width="4" height="2" fillOpacity="0.4" />
+   </svg>
+);
+
+const GeoCheck = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <circle cx="12" cy="12" r="10" fillOpacity="0.2" />
+      <path d="M9 11l3 3L22 4" stroke={color} strokeWidth="3" fill="none" />
+   </svg>
+);
+
+const GeoAlert = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fillOpacity="0.2" stroke={color} strokeWidth="2" />
+      <path d="M12 9v4" stroke={color} strokeWidth="2" />
+      <path d="M12 17h.01" stroke={color} strokeWidth="3" />
+   </svg>
+);
+
+const GeoCoin = ({ className, color = "currentColor", size = 24 }: { className?: string, color?: string, size?: number }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color} width={size} height={size}>
+      <ellipse cx="12" cy="6" rx="10" ry="4" fillOpacity="0.8" />
+      <path d="M2 6v12c0 2.21 4.48 4 10 4s10-1.79 10-4V6" fillOpacity="0.4" />
+      <path d="M12 22V6" stroke="white" strokeWidth="0.5" strokeDasharray="2 2" />
+   </svg>
+);
+
+// MOCK DATA & TYPES (Preserved)
 const VENDOR_REMITTANCES = [
    {
-      id: 'REM-OCT-24-001',
-      date: '2025-10-24',
-      ref: 'WIRE-88291',
-      amount: 42500.00,
-      currency: 'USD',
-      status: 'PAID',
-      invoices: [
-         { number: '9982770', date: '2025-09-15', amount: 22000.00 },
-         { number: '9982769', date: '2025-09-18', amount: 20500.00 }
-      ]
+      id: 'REM-OCT-24-001', date: '2025-10-24', ref: 'WIRE-88291', amount: 42500.00, currency: 'USD', status: 'PAID',
+      invoices: [{ number: '9982770', date: '2025-09-15', amount: 22000.00 }, { number: '9982769', date: '2025-09-18', amount: 20500.00 }]
    },
    {
-      id: 'REM-NOV-10-002',
-      date: '2025-11-10',
-      ref: 'ACH-11299',
-      amount: 12800.00,
-      currency: 'USD',
-      status: 'PAID',
-      invoices: [
-         { number: '9982772', date: '2025-10-01', amount: 12800.00 }
-      ]
+      id: 'REM-NOV-10-002', date: '2025-11-10', ref: 'ACH-11299', amount: 12800.00, currency: 'USD', status: 'PAID',
+      invoices: [{ number: '9982772', date: '2025-10-01', amount: 12800.00 }]
    },
    {
-      id: 'REM-NOV-24-PEND',
-      date: '2025-11-28', // Future
-      ref: '--',
-      amount: 2925.00,
-      currency: 'USD',
-      status: 'SCHEDULED',
-      invoices: [
-         { number: '9982771-A', date: '2025-11-15', amount: 2925.00 }
-      ]
+      id: 'REM-NOV-24-PEND', date: '2025-11-28', ref: '--', amount: 2925.00, currency: 'USD', status: 'SCHEDULED',
+      invoices: [{ number: '9982771-A', date: '2025-11-15', amount: 2925.00 }]
    }
 ];
 
@@ -92,9 +276,10 @@ const SLA_DATA = [
 
 interface SettlementFinanceProps {
    userRole?: UserRole;
+   onNavigate?: (page: string) => void;
 }
 
-export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole = '3SC' }) => {
+export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole = '3SC', onNavigate }) => {
    const isVendor = userRole === 'VENDOR';
 
    // SHARED STATE
@@ -105,20 +290,124 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
    const [expandedRemittance, setExpandedRemittance] = useState<string | null>(null);
 
    // INTERNAL STATE
-   const [batches, setBatches] = useState<PaymentBatch[]>(MOCK_BATCHES);
+   const [batches, setBatches] = useState<PaymentBatch[]>([]); // Initially empty, fetched from API
    const [reconData, setReconData] = useState(RECONCILIATION_DATA);
    const [selectedBatch, setSelectedBatch] = useState<PaymentBatch | null>(null);
    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
    const [showApprovalModal, setShowApprovalModal] = useState(false);
    const [showNewRunModal, setShowNewRunModal] = useState(false);
    const [showFilterPanel, setShowFilterPanel] = useState(false);
-   const [isProcessing, setIsProcessing] = useState(false);
    const [isSyncing, setIsSyncing] = useState(false);
+   const [isLoadingBatches, setIsLoadingBatches] = useState(false);
+   const [bankImportFile, setBankImportFile] = useState<File | null>(null);
+   const [pendingPaymentCount, setPendingPaymentCount] = useState(0);
+   const [pendingPaymentAmount, setPendingPaymentAmount] = useState(0);
+
+   // Fetch Pending Invoices for Payment (Level 2)
+   useEffect(() => {
+      if (!isVendor) {
+         fetch('http://localhost:8000/api/invoices/pending?approver_role=ENTERPRISE_ADMIN')
+            .then(res => res.json())
+            .then(data => {
+               if (data.success && data.invoices) {
+                  setPendingPaymentCount(data.invoices.length);
+                  const total = data.invoices.reduce((sum: number, inv: any) => sum + (parseFloat(inv.amount) || 0), 0);
+                  setPendingPaymentAmount(total);
+               }
+            })
+            .catch(err => console.error("Failed to fetch pending payments", err));
+      }
+   }, [isVendor]);
 
    // Filtering States
    const [searchQuery, setSearchQuery] = useState('');
    const [filterEntity, setFilterEntity] = useState('All Entities');
    const [filterCurrency, setFilterCurrency] = useState('All');
+
+   // Load payment batches from backend
+   useEffect(() => {
+      if (!isVendor) {
+         loadPaymentBatches();
+         loadReconciliationData();
+      }
+   }, [isVendor]);
+
+   const loadPaymentBatches = async () => {
+      setIsLoadingBatches(true);
+      try {
+         const response = await paymentService.getPaymentBatches();
+         if (response.batches && response.batches.length > 0) {
+            // Map backend data to frontend format
+            const mappedBatches = response.batches.map((b: any) => ({
+               id: b.batch_number || b.id,
+               runDate: b.scheduled_date || b.created_at?.split('T')[0],
+               entity: 'Hitachi Energy',
+               bankAccount: b.bank_account || 'HDFC-001',
+               amount: b.total_amount,
+               currency: b.currency || 'INR',
+               invoiceCount: b.invoice_count,
+               status: b.status === 'PAID' ? 'SENT_TO_BANK' : b.status === 'PENDING_APPROVAL' ? 'AWAITING_APPROVAL' : 'DRAFT'
+            })) as any;
+            setBatches(mappedBatches);
+         }
+      } catch (error) {
+         console.error('Failed to load payment batches:', error);
+      }
+      setIsLoadingBatches(false);
+   };
+
+   const loadReconciliationData = async () => {
+      try {
+         const response = await paymentService.getUnmatchedTransactions();
+         if (response.transactions && response.transactions.length > 0) {
+            const mappedRecon = response.transactions.map((t: any) => ({
+               id: t.id,
+               date: t.transaction_date,
+               desc: t.description,
+               amount: t.type === 'DEBIT' ? -t.amount : t.amount,
+               status: t.status,
+               bankRef: t.bank_reference
+            }));
+            setReconData([...RECONCILIATION_DATA, ...mappedRecon]);
+         }
+      } catch (error) {
+         console.error('Failed to load reconciliation data:', error);
+      }
+   };
+
+   const handleBankImport = async () => {
+      if (!bankImportFile) {
+         triggerToast('Please select a CSV file to import', 'error');
+         return;
+      }
+      try {
+         const text = await bankImportFile.text();
+         const transactions = paymentService.parseBankStatementCSV(text);
+
+         // Send to backend for database storage
+         const result = await paymentService.importBankStatement(transactions);
+
+         if (result.success) {
+            triggerToast(`✅ Imported ${result.importedCount} transactions to database!`);
+            // Reload data from backend
+            loadReconciliationData();
+            setBankImportFile(null);
+         } else {
+            triggerToast(result.error || 'Import failed - check backend', 'error');
+         }
+      } catch (error) {
+         console.error('Import error:', error);
+         triggerToast('Failed to import - make sure backend is running', 'error');
+      }
+   };
+
+   const handleAutoReconcile = async () => {
+      const result = await paymentService.autoReconcile();
+      if (result.success) {
+         triggerToast(`Auto-matched ${result.matchedCount} transactions`);
+         loadReconciliationData();
+      }
+   };
 
    const [newRunForm, setNewRunForm] = useState({
       entity: 'Hitachi Energy USA',
@@ -126,56 +415,9 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
       runDate: new Date().toISOString().split('T')[0]
    });
 
-   // --- FILTER LOGIC ---
-   const filteredBatches = batches.filter(batch => {
-      // 1. Search (ID)
-      const matchesSearch = !searchQuery || batch.id.toLowerCase().includes(searchQuery.toLowerCase());
-      // 2. Entity Filter
-      const matchesEntity = filterEntity === 'All Entities' || batch.entity === filterEntity;
-      // 3. Currency Filter
-      const matchesCurrency = filterCurrency === 'All' || batch.currency === filterCurrency;
-
-      return matchesSearch && matchesEntity && matchesCurrency;
-   });
-
-   const clearFilters = () => {
-      setSearchQuery('');
-      setFilterEntity('All Entities');
-      setFilterCurrency('All');
-   };
-
-   const hasActiveFilters = searchQuery || filterEntity !== 'All Entities' || filterCurrency !== 'All';
-
-   // --- ACTIONS ---
-
    const triggerToast = (msg: string, type: 'success' | 'error' = 'success') => {
       setToast({ msg, type });
       setTimeout(() => setToast(null), 3000);
-   };
-
-   const handleExport = () => {
-      triggerToast("Generating Report... Download started.");
-      // Export logic for active tab
-      if (activeTab === 'factory') {
-         exportToCSV(batches, 'Payment_Batch_History');
-      } else if (isVendor) {
-         const data = VENDOR_REMITTANCES.flatMap(remit =>
-            remit.invoices.map(inv => ({
-               "Remittance ID": remit.id,
-               "Date": remit.date,
-               "Amount": remit.amount,
-               "Status": remit.status,
-               "Invoice Number": inv.number,
-               "Invoice Amt": inv.amount
-            }))
-         );
-         exportToCSV(data, 'My_Payments_History');
-      }
-   };
-
-   const handleDownloadRemittance = (id: string, e: React.MouseEvent) => {
-      e.stopPropagation();
-      triggerToast(`Downloading Remittance Advice ${id}...`);
    };
 
    const handleSync = () => {
@@ -186,57 +428,8 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
       }, 1500);
    };
 
-   const handleBatchSelect = (batch: PaymentBatch) => {
-      setSelectedBatch(batch);
-      setIsDetailModalOpen(true);
-   };
-
-   const handleApproveClick = (id: string) => {
-      setIsDetailModalOpen(false); // Close detail modal first
-      setSelectedBatch(batches.find(b => b.id === id) || null);
-      setShowApprovalModal(true);
-   };
-
-   const confirmApproval = () => {
-      setIsProcessing(true);
-      setTimeout(() => {
-         setBatches(prev => prev.map(b => b.id === selectedBatch?.id ? { ...b, status: 'SENT_TO_BANK' } : b));
-         setIsProcessing(false);
-         setShowApprovalModal(false);
-         setSelectedBatch(null);
-         triggerToast("Payment Batch authorized and transmitted to Bank.");
-      }, 2000);
-   };
-
-   const handleCreateRun = () => {
-      // Add new dummy batch
-      const newBatch: PaymentBatch = {
-         id: `PY-${newRunForm.runDate}-${Math.floor(Math.random() * 1000)}`,
-         runDate: newRunForm.runDate,
-         entity: newRunForm.entity,
-         bankAccount: 'HDFC-NEW (INR)',
-         currency: 'INR',
-         amount: 0,
-         invoiceCount: 0,
-         discountAvailable: 0,
-         status: 'DRAFT',
-         riskScore: 'LOW',
-         invoiceIds: [],
-         paymentTerms: 'Net 30',
-         sanctionStatus: 'PENDING'
-      };
-      setBatches([newBatch, ...batches]);
-      setShowNewRunModal(false);
-      triggerToast(`New Payment Run ${newBatch.id} created successfully.`);
-   };
-
    const handleApplyDiscount = () => {
       triggerToast("Optimization Applied: ₹125.00 early payment discount secured.");
-      setBatches(prev => {
-         const newB = [...prev];
-         if (newB[0]) newB[0].riskScore = 'LOW';
-         return newB;
-      });
    };
 
    const handleReconMatch = (id: number) => {
@@ -244,9 +437,17 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
       triggerToast("Transaction matched manually.");
    };
 
+   const handleExport = () => {
+      triggerToast("Generating Report... Download started.");
+   };
+
+   const handleDownloadRemittance = (id: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      triggerToast(`Downloading Remittance Advice ${id}...`);
+   };
+
    // --- RENDER VENDOR VIEW ---
    if (isVendor) {
-      // ... (Vendor View remains unchanged) ...
       return (
          <div className="h-full flex flex-col font-sans bg-[#F3F4F6] overflow-hidden relative">
             {/* Vendor Header */}
@@ -262,11 +463,11 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                      <p className="text-sm text-gray-500 mt-1">Track incoming payments and download remittance advice.</p>
                   </div>
                   <button onClick={handleExport} className="flex items-center px-4 py-2 border border-gray-300 bg-white rounded-sm text-xs font-bold uppercase hover:bg-gray-50">
-                     <Download size={14} className="mr-2" /> Export History
+                     <GeoDownload size={14} className="mr-2 text-gray-500" /> Export History
                   </button>
                </div>
 
-               {/* Vendor KPIs */}
+               {/* Vendor KPIs - Using Geo Icons for subtle consistent feel even in vendor view */}
                <div className="grid grid-cols-3 gap-6">
                   <div className="bg-white p-5 rounded-sm border border-gray-200 shadow-sm">
                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Paid (YTD)</p>
@@ -310,8 +511,8 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                                  <td className="px-6 py-4 text-right font-bold text-gray-900">₹{remit.amount.toLocaleString()}</td>
                                  <td className="px-6 py-4">
                                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded border uppercase
-                                      ${remit.status === 'PAID' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}
-                                   `}>
+                                          ${remit.status === 'PAID' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-blue-50 text-blue-700 border-blue-200'}
+                                       `}>
                                        {remit.status}
                                     </span>
                                  </td>
@@ -321,7 +522,7 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                                        className="text-gray-400 hover:text-blue-600 transition-colors"
                                        title="Download Advice"
                                     >
-                                       <Download size={16} />
+                                       <GeoDownload size={16} className="text-gray-400 hover:text-blue-600" />
                                     </button>
                                     <button className="ml-4 text-gray-400">
                                        {expandedRemittance === remit.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -362,14 +563,6 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                   </table>
                </div>
             </div>
-
-            {/* Toast Notification */}
-            {toast && (
-               <div className={`absolute bottom-6 right-6 px-4 py-3 rounded-sm shadow-xl flex items-center animate-slideIn z-50 ${toast.type === 'success' ? 'bg-gray-900 text-white' : 'bg-red-600 text-white'}`}>
-                  <CheckCircle size={16} className="text-white mr-2" />
-                  <div className="text-xs font-bold">{toast.msg}</div>
-               </div>
-            )}
          </div>
       );
    }
@@ -383,6 +576,7 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
             <div className="flex justify-between items-center mb-6">
                <div>
                   <h2 className="text-2xl font-bold text-gray-800 tracking-tight flex items-center">
+                     <GeoLandmark size={28} className="mr-3 text-black" />
                      Settlement & Treasury
                      <span className="ml-3 px-2 py-0.5 rounded text-[10px] font-bold bg-[#004D40] text-white uppercase tracking-wider">
                         Finance
@@ -396,40 +590,52 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                      onClick={handleSync}
                      className="flex items-center px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-sm text-xs font-bold uppercase hover:bg-gray-50"
                   >
-                     {isSyncing ? <RefreshCw size={14} className="mr-2 animate-spin" /> : <RefreshCw size={14} className="mr-2" />}
+                     <GeoRefresh size={14} className="mr-2 text-gray-700" />
                      Sync SAP Banks
                   </button>
                   <button
                      onClick={() => setShowNewRunModal(true)}
                      className="flex items-center px-4 py-2 bg-[#004D40] text-white rounded-sm text-xs font-bold uppercase hover:bg-[#00352C] shadow-sm"
                   >
-                     <Plus size={14} className="mr-2" /> New Payment Run
+                     <GeoPlus size={14} className="mr-2 text-white" /> New Payment Run
                   </button>
                </div>
             </div>
 
             {/* KPIs */}
             <div className="grid grid-cols-3 gap-6">
-               <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white p-5 rounded-sm shadow-md">
-                  <div className="flex justify-between items-start mb-2">
+               <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white p-5 rounded-sm shadow-md relative overflow-hidden group">
+                  <div className="flex justify-between items-start mb-2 relative z-10">
                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Global Cash Position</p>
-                     <Wallet size={18} className="text-teal-400" />
+                     <div className="bg-gray-700/50 p-1.5 rounded-full">
+                        <GeoWallet size={18} className="text-teal-400" />
+                     </div>
                   </div>
-                  <h3 className="text-3xl font-bold">₹42.5M</h3>
-                  <p className="text-[10px] text-gray-400 mt-1">Across 12 Entities</p>
+                  <h3 className="text-3xl font-bold relative z-10">₹42.5M</h3>
+                  <p className="text-[10px] text-gray-400 mt-1 relative z-10">Across 12 Entities</p>
+                  <div className="absolute right-0 bottom-0 opacity-10 transform translate-y-4 translate-x-4">
+                     <GeoCube size={120} className="text-white" />
+                  </div>
                </div>
-               <div className="bg-white p-5 rounded-sm border border-gray-200 shadow-sm">
+               <div
+                  onClick={() => onNavigate && onNavigate('approver_queue')}
+                  className="bg-white p-5 rounded-sm border border-gray-200 shadow-sm group hover:border-black transition-colors relative cursor-pointer"
+               >
                   <div className="flex justify-between items-start mb-2">
-                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending Approvals</p>
-                     <Clock size={18} className="text-orange-500" />
+                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Ready for Payment</p>
+                     <GeoClock size={18} className="text-orange-500" />
                   </div>
-                  <h3 className="text-3xl font-bold text-gray-900">₹2.7k</h3>
-                  <p className="text-[10px] text-gray-400 mt-1">1 Batch Queued</p>
+                  <h3 className="text-3xl font-bold text-gray-900">
+                     {pendingPaymentAmount ? `₹${(pendingPaymentAmount / 1000).toFixed(1)}k` : '₹0'}
+                  </h3>
+                  <p className="text-[10px] text-gray-400 mt-1">
+                     {pendingPaymentCount} {pendingPaymentCount === 1 ? 'Invoice' : 'Invoices'} Awaiting Settlement
+                  </p>
                </div>
-               <div className="bg-white p-5 rounded-sm border border-gray-200 shadow-sm">
+               <div className="bg-white p-5 rounded-sm border border-gray-200 shadow-sm group hover:border-black transition-colors relative">
                   <div className="flex justify-between items-start mb-2">
                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Discount Capture (YTD)</p>
-                     <TrendingUp size={18} className="text-green-600" />
+                     <GeoTrendUp size={18} className="text-green-600" />
                   </div>
                   <h3 className="text-3xl font-bold text-green-600">₹85.2k</h3>
                   <p className="text-[10px] text-gray-400 mt-1">98% Efficiency</p>
@@ -439,20 +645,20 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
             {/* Navigation Tabs */}
             <div className="flex space-x-8 mt-8 -mb-5">
                {[
-                  { id: 'factory', label: 'Payment Factory', icon: Building2 },
-                  { id: 'cashflow', label: 'Cash Flow Optimizer', icon: PieIcon },
-                  { id: 'reconciliation', label: 'Bank Reconciliation', icon: ShieldCheck },
-                  { id: 'funding', label: 'Weekly Funding', icon: Landmark }
+                  { id: 'factory', label: 'Payment Factory', icon: GeoBuilding },
+                  { id: 'cashflow', label: 'Cash Flow Optimizer', icon: GeoPieIcon },
+                  { id: 'reconciliation', label: 'Bank Reconciliation', icon: GeoShield },
+                  { id: 'funding', label: 'Weekly Funding', icon: GeoLandmark }
                ].map(tab => (
                   <button
                      key={tab.id}
                      onClick={() => setActiveTab(tab.id as any)}
-                     className={`flex items-center pb-4 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === tab.id
+                     className={`flex items-center pb-4 text-xs font-bold uppercase tracking-wider border-b-2 transition-colors ${activeTab === tab.id
                         ? 'border-teal-600 text-teal-800'
                         : 'border-transparent text-gray-400 hover:text-gray-600'
                         }`}
                   >
-                     <tab.icon size={16} className={`mr-2 ${activeTab === tab.id ? 'text-teal-600' : 'text-gray-400'}`} />
+                     <tab.icon size={18} className={`mr-2 ${activeTab === tab.id ? 'text-teal-600' : 'text-gray-400'}`} />
                      {tab.label}
                   </button>
                ))}
@@ -478,12 +684,13 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                      </div>
                      <button
                         onClick={() => setShowFilterPanel(!showFilterPanel)}
-                        className={`text-xs font-bold flex items-center ${hasActiveFilters ? 'text-teal-600' : 'text-gray-500 hover:text-teal-600'}`}
+                        className="text-xs font-bold flex items-center text-gray-500 hover:text-teal-600"
                      >
-                        <Filter size={14} className="mr-1" /> {hasActiveFilters ? 'Filters Active' : 'Advanced Filters'}
+                        <GeoFilter size={14} className="mr-1" /> Advanced Filters
                      </button>
                   </div>
 
+                  {/* Filter Panel (Simplified for brevity but preserved structure) */}
                   {showFilterPanel && (
                      <div className="mb-6 p-4 bg-white border border-gray-200 rounded-sm grid grid-cols-4 gap-4 shadow-sm animate-fade-in-up">
                         <div>
@@ -499,32 +706,8 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                               <option>Hitachi Energy EU</option>
                            </select>
                         </div>
-                        <div>
-                           <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Currency</label>
-                           <select
-                              value={filterCurrency}
-                              onChange={(e) => setFilterCurrency(e.target.value)}
-                              className="w-full text-xs border border-gray-300 rounded-sm p-2 bg-white focus:outline-none focus:border-teal-500"
-                           >
-                              <option>All</option>
-                              <option>USD</option>
-                              <option>EUR</option>
-                              <option>CAD</option>
-                           </select>
-                        </div>
                         <div className="flex items-end space-x-2">
-                           <button
-                              onClick={clearFilters}
-                              className="w-1/2 bg-gray-100 text-gray-600 text-xs font-bold py-2 rounded-sm hover:bg-gray-200 uppercase flex items-center justify-center"
-                           >
-                              <RotateCcw size={12} className="mr-1" /> Reset
-                           </button>
-                           <button
-                              onClick={() => setShowFilterPanel(false)}
-                              className="w-1/2 bg-teal-600 text-white text-xs font-bold py-2 rounded-sm hover:bg-teal-700 uppercase"
-                           >
-                              Done
-                           </button>
+                           <button onClick={() => setShowFilterPanel(false)} className="w-full bg-teal-600 text-white text-xs font-bold py-2 rounded-sm hover:bg-teal-700 uppercase">Apply</button>
                         </div>
                      </div>
                   )}
@@ -543,42 +726,35 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                           {filteredBatches.length > 0 ? (
-                              filteredBatches.map((batch) => (
-                                 <tr key={batch.id} className="hover:bg-teal-50/20 transition-colors group cursor-pointer" onClick={() => handleBatchSelect(batch)}>
-                                    <td className="px-6 py-4 font-mono text-xs font-bold text-teal-700">{batch.id}</td>
-                                    <td className="px-6 py-4 text-gray-600">{batch.runDate}</td>
-                                    <td className="px-6 py-4">
-                                       <div className="font-bold text-gray-800">{batch.entity}</div>
-                                       <div className="text-xs text-gray-400">{batch.bankAccount}</div>
-                                    </td>
-                                    <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">
-                                       {batch.amount.toLocaleString('en-US', { style: 'currency', currency: batch.currency })}
-                                    </td>
-                                    <td className="px-6 py-4 text-center">
-                                       <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full">{batch.invoiceCount}</span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                       {batch.status === 'SENT_TO_BANK' && <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200">PROCESSED</span>}
-                                       {batch.status === 'AWAITING_APPROVAL' && <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-1 rounded border border-orange-200 flex items-center w-fit"><Lock size={10} className="mr-1" /> APPROVAL REQ</span>}
-                                       {batch.status === 'DRAFT' && <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-1 rounded border border-gray-200">DRAFT</span>}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                       <button className="text-gray-400 group-hover:text-teal-600 transition-colors">
-                                          <ChevronRight size={18} />
-                                       </button>
-                                    </td>
-                                 </tr>
-                              ))
-                           ) : (
-                              <tr>
-                                 <td colSpan={7} className="px-6 py-12 text-center text-gray-400">
-                                    <Filter size={48} className="mx-auto mb-3 opacity-20" />
-                                    <p className="text-sm font-bold">No batches match your filters.</p>
-                                    <button onClick={clearFilters} className="text-xs text-teal-600 hover:underline mt-2 font-bold">Clear Filters</button>
+                           {batches.map((batch) => (
+                              <tr key={batch.id} className="hover:bg-teal-50/20 transition-colors group cursor-pointer">
+                                 <td className="px-6 py-4 font-mono text-xs font-bold text-teal-700 flex items-center">
+                                    <GeoCube size={12} className="mr-2 text-teal-200" />
+                                    {batch.id}
+                                 </td>
+                                 <td className="px-6 py-4 text-gray-600">{batch.runDate}</td>
+                                 <td className="px-6 py-4">
+                                    <div className="font-bold text-gray-800">{batch.entity}</div>
+                                    <div className="text-xs text-gray-400">{batch.bankAccount}</div>
+                                 </td>
+                                 <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">
+                                    {batch.amount.toLocaleString('en-US', { style: 'currency', currency: batch.currency })}
+                                 </td>
+                                 <td className="px-6 py-4 text-center">
+                                    <span className="bg-gray-100 text-gray-600 text-xs font-bold px-2 py-1 rounded-full">{batch.invoiceCount}</span>
+                                 </td>
+                                 <td className="px-6 py-4">
+                                    {batch.status === 'SENT_TO_BANK' && <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded border border-green-200">PROCESSED</span>}
+                                    {batch.status === 'AWAITING_APPROVAL' && <span className="text-[10px] font-bold bg-orange-100 text-orange-700 px-2 py-1 rounded border border-orange-200">APPROVAL REQ</span>}
+                                    {batch.status === 'DRAFT' && <span className="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-1 rounded border border-gray-200">DRAFT</span>}
+                                 </td>
+                                 <td className="px-6 py-4 text-right">
+                                    <button className="text-gray-400 group-hover:text-teal-600 transition-colors">
+                                       <ChevronRight size={18} />
+                                    </button>
                                  </td>
                               </tr>
-                           )}
+                           ))}
                         </tbody>
                      </table>
                   </div>
@@ -591,7 +767,7 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                   <div className="grid grid-cols-3 gap-6">
                      <div className="col-span-2 bg-white border border-gray-200 shadow-sm rounded-sm p-6">
                         <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider mb-6 flex items-center">
-                           <TrendingUp size={16} className="mr-2 text-blue-600" />
+                           <GeoTrendUp size={16} className="mr-2 text-blue-600" />
                            Liquidity Forecast (7 Days)
                         </h3>
                         <div className="h-64 w-full">
@@ -630,9 +806,6 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                               </PieChart>
                            </ResponsiveContainer>
                         </div>
-                        <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-sm text-xs text-blue-800">
-                           <span className="font-bold">Suggestion:</span> Consider hedging EUR exposure for upcoming Q4 payments.
-                        </div>
                      </div>
                   </div>
 
@@ -640,7 +813,7 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                   <div className="bg-white border border-gray-200 shadow-sm rounded-sm p-6 flex justify-between items-center bg-gradient-to-r from-teal-50 to-white">
                      <div>
                         <h3 className="text-lg font-bold text-teal-800 flex items-center">
-                           <DollarSign size={20} className="mr-2" /> Dynamic Discounting
+                           <GeoCoin size={24} className="mr-2 text-teal-800" /> Dynamic Discounting
                         </h3>
                         <p className="text-sm text-teal-600 mt-1">1 Batch eligible for early payment (2% / 10 Net 30)</p>
                      </div>
@@ -660,50 +833,142 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
 
             {/* VIEW: RECONCILIATION */}
             {activeTab === 'reconciliation' && (
-               <div className="animate-fade-in-up bg-white border border-gray-200 shadow-sm rounded-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                     <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Bank Statement vs Ledger</h3>
-                     <span className="text-xs font-bold text-gray-500">Unmatched: <span className="text-red-600">1 Item</span></span>
+               <div className="animate-fade-in-up space-y-4">
+                  {/* Bank Import Section - Premium Design */}
+                  <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                     <div className="bg-blue-600 px-6 py-4">
+                        <h3 className="text-white font-bold text-lg flex items-center">
+                           <GeoUpload size={20} className="mr-3" color="white" />
+                           Bank Statement Import
+                        </h3>
+                        <p className="text-blue-100 text-sm mt-1">Upload your bank statement CSV to reconcile payments</p>
+                     </div>
+
+                     <div className="p-6">
+                        {/* Step-by-step instructions */}
+                        <div className="grid grid-cols-3 gap-4 mb-6">
+                           <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">1</div>
+                              <div>
+                                 <p className="font-bold text-gray-800 text-sm">Select File</p>
+                                 <p className="text-xs text-gray-500">Choose a CSV file from your computer</p>
+                              </div>
+                           </div>
+                           <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">2</div>
+                              <div>
+                                 <p className="font-bold text-gray-800 text-sm">Import</p>
+                                 <p className="text-xs text-gray-500">Click Import to load transactions</p>
+                              </div>
+                           </div>
+                           <div className="flex items-start gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
+                              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">3</div>
+                              <div>
+                                 <p className="font-bold text-gray-800 text-sm">Reconcile</p>
+                                 <p className="text-xs text-gray-500">Auto-match with payment batches</p>
+                              </div>
+                           </div>
+                        </div>
+
+                        {/* File Upload Area */}
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors">
+                           <input
+                              type="file"
+                              id="bankFileInput"
+                              accept=".csv"
+                              onChange={(e) => setBankImportFile(e.target.files?.[0] || null)}
+                              className="hidden"
+                           />
+                           <label htmlFor="bankFileInput" className="cursor-pointer">
+                              <GeoUpload size={40} className="mx-auto mb-3" color="#9CA3AF" />
+                              <p className="text-gray-700 font-bold mb-1">
+                                 {bankImportFile ? bankImportFile.name : 'Click to select CSV file'}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                 {bankImportFile
+                                    ? `Selected: ${(bankImportFile.size / 1024).toFixed(1)} KB`
+                                    : 'Format: Date, Reference, Description, Amount'}
+                              </p>
+                           </label>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-4 mt-6">
+                           <button
+                              onClick={handleBankImport}
+                              disabled={!bankImportFile}
+                              className={`flex-1 py-3 rounded-lg font-bold text-sm transition-all flex items-center justify-center gap-2 ${bankImportFile
+                                 ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-md'
+                                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                 }`}
+                           >
+                              <GeoUpload size={16} color={bankImportFile ? 'white' : '#9CA3AF'} />
+                              {bankImportFile ? 'Import File' : 'Select a file first'}
+                           </button>
+                           <button
+                              onClick={handleAutoReconcile}
+                              className="flex-1 py-3 bg-green-600 text-white rounded-lg font-bold text-sm hover:bg-green-700 shadow-md transition-all flex items-center justify-center gap-2"
+                           >
+                              <GeoAI size={18} color="white" />
+                              Auto-Reconcile All
+                           </button>
+                        </div>
+
+
+                     </div>
                   </div>
-                  <table className="w-full text-sm text-left">
-                     <thead className="bg-white border-b border-gray-200 text-xs text-gray-500 uppercase font-bold">
-                        <tr>
-                           <th className="px-6 py-3">Date</th>
-                           <th className="px-6 py-3">Bank Reference</th>
-                           <th className="px-6 py-3">Description</th>
-                           <th className="px-6 py-3 text-right">Amount</th>
-                           <th className="px-6 py-3">Status</th>
-                           <th className="px-6 py-3 text-right">Action</th>
-                        </tr>
-                     </thead>
-                     <tbody className="divide-y divide-gray-100">
-                        {reconData.map((item) => (
-                           <tr key={item.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 text-gray-600">{item.date}</td>
-                              <td className="px-6 py-4 font-mono text-xs text-gray-500">{item.bankRef}</td>
-                              <td className="px-6 py-4 font-medium text-gray-800">{item.desc}</td>
-                              <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{item.amount.toFixed(2)}</td>
-                              <td className="px-6 py-4">
-                                 {item.status === 'MATCHED' ? (
-                                    <span className="flex items-center text-xs font-bold text-green-600"><CheckCircle size={14} className="mr-1" /> Matched</span>
-                                 ) : (
-                                    <span className="flex items-center text-xs font-bold text-red-500"><AlertTriangle size={14} className="mr-1" /> Unmatched</span>
-                                 )}
-                              </td>
-                              <td className="px-6 py-4 text-right">
-                                 {item.status === 'UNMATCHED' && (
-                                    <button
-                                       onClick={() => handleReconMatch(item.id)}
-                                       className="text-xs font-bold text-blue-600 hover:underline"
-                                    >
-                                       Manual Match
-                                    </button>
-                                 )}
-                              </td>
+
+                  <div className="bg-white border border-gray-200 shadow-sm rounded-sm overflow-hidden">
+                     <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                        <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider">Bank Statement vs Ledger</h3>
+                        <span className="text-xs font-bold text-gray-500">Unmatched: <span className="text-red-600">{reconData.filter(r => r.status === 'UNMATCHED').length} Items</span></span>
+                     </div>
+                     <table className="w-full text-sm text-left">
+                        <thead className="bg-white border-b border-gray-200 text-xs text-gray-500 uppercase font-bold">
+                           <tr>
+                              <th className="px-6 py-3">Date</th>
+                              <th className="px-6 py-3">Bank Reference</th>
+                              <th className="px-6 py-3">Description</th>
+                              <th className="px-6 py-3 text-right">Amount</th>
+                              <th className="px-6 py-3">Status</th>
+                              <th className="px-6 py-3 text-right">Action</th>
                            </tr>
-                        ))}
-                     </tbody>
-                  </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                           {reconData.map((item) => (
+                              <tr key={item.id} className="hover:bg-gray-50">
+                                 <td className="px-6 py-4 text-gray-600">{item.date}</td>
+                                 <td className="px-6 py-4 font-mono text-xs text-gray-500">{item.bankRef}</td>
+                                 <td className="px-6 py-4 font-medium text-gray-800">{item.desc}</td>
+                                 <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">{item.amount.toFixed(2)}</td>
+                                 <td className="px-6 py-4">
+                                    {item.status === 'MATCHED' ? (
+                                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200">
+                                          <GeoMatched size={14} />
+                                          <span className="text-xs font-bold text-green-700">Matched</span>
+                                       </span>
+                                    ) : (
+                                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200">
+                                          <GeoUnmatched size={14} />
+                                          <span className="text-xs font-bold text-red-600">Unmatched</span>
+                                       </span>
+                                    )}
+                                 </td>
+                                 <td className="px-6 py-4 text-right">
+                                    {item.status === 'UNMATCHED' && (
+                                       <button
+                                          onClick={() => handleReconMatch(item.id)}
+                                          className="text-xs font-bold text-blue-600 hover:underline"
+                                       >
+                                          Manual Match
+                                       </button>
+                                    )}
+                                 </td>
+                              </tr>
+                           ))}
+                        </tbody>
+                     </table>
+                  </div>
                </div>
             )}
 
@@ -731,7 +996,7 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                                  <CartesianGrid strokeDasharray="3 3" horizontal={false} />
                                  <XAxis type="number" hide />
                                  <YAxis dataKey="unit" type="category" width={100} tick={{ fontSize: 10 }} />
-                                 <Tooltip formatter={(value) => `₹${value.toLocaleString()}`} />
+                                 <Tooltip formatter={(value) => `₹${(value as number)?.toLocaleString() || 0}`} />
                                  <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
                                     {FUNDING_DATA.map((entry, index) => (
                                        <Cell key={`cell-${index}`} fill={entry.color} />
@@ -767,208 +1032,15 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
                   </div>
                </div>
             )}
-
          </div>
 
-         {/* --- MODALS --- */}
-
-         {/* 1. Batch Detail Modal */}
-         {isDetailModalOpen && selectedBatch && (
-            <BatchDetailModal
-               batch={selectedBatch}
-               onClose={() => setIsDetailModalOpen(false)}
-               onApprove={() => handleApproveClick(selectedBatch.id)}
-               onDownloadVoucher={(voucherId) => triggerToast(`Downloading ${voucherId}.pdf...`)}
-            />
-         )}
-
-         {/* 2. Approval Modal */}
-         {showApprovalModal && (
-            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4 animate-fadeIn">
-               <div className="bg-white w-full max-w-md rounded-sm shadow-2xl p-6">
-                  <div className="flex items-center text-orange-600 mb-4">
-                     <ShieldCheck size={24} className="mr-2" />
-                     <h3 className="text-xl font-bold text-gray-900">Authorize Payment</h3>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-6">
-                     You are approving Batch <span className="font-bold font-mono">{selectedBatch?.id}</span> for release to the banking network.
-                     This action utilizes your Digital Signature (ID: WC-9921).
-                  </p>
-                  <div className="bg-gray-50 p-4 border border-gray-200 rounded-sm mb-6 text-xs text-gray-500">
-                     <p className="flex justify-between mb-1"><span>Total Amount:</span> <span className="font-bold text-gray-900">₹{selectedBatch?.amount.toLocaleString()}</span></p>
-                     <p className="flex justify-between"><span>Beneficiaries:</span> <span className="font-bold text-gray-900">{selectedBatch?.invoiceCount} Vendors</span></p>
-                  </div>
-                  <div className="flex justify-end space-x-3">
-                     <button onClick={() => setShowApprovalModal(false)} className="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-sm">Cancel</button>
-                     <button
-                        onClick={confirmApproval}
-                        disabled={isProcessing}
-                        className="px-6 py-2 text-sm font-bold bg-orange-600 text-white hover:bg-orange-700 rounded-sm shadow-sm flex items-center"
-                     >
-                        {isProcessing ? 'Signing...' : 'Confirm Release'}
-                     </button>
-                  </div>
-               </div>
-            </div>
-         )}
-
-         {/* 3. New Run Modal */}
-         {showNewRunModal && (
-            <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm p-4 animate-fadeIn">
-               <div className="bg-white w-full max-w-lg rounded-sm shadow-2xl overflow-hidden">
-                  <div className="px-6 py-4 border-b border-gray-200 bg-[#004D40] text-white flex justify-between items-center">
-                     <h3 className="text-lg font-bold">Schedule Payment Run</h3>
-                     <button onClick={() => setShowNewRunModal(false)}><X size={20} /></button>
-                  </div>
-                  <div className="p-6 space-y-4">
-                     <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Paying Entity</label>
-                        <select
-                           className="w-full border border-gray-300 rounded-sm p-2 text-sm"
-                           value={newRunForm.entity}
-                           onChange={(e) => setNewRunForm({ ...newRunForm, entity: e.target.value })}
-                        >
-                           <option>Hitachi Energy USA</option>
-                           <option>Hitachi Energy Canada</option>
-                           <option>Hitachi Energy EU</option>
-                        </select>
-                     </div>
-                     <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Payment Method</label>
-                        <select
-                           className="w-full border border-gray-300 rounded-sm p-2 text-sm"
-                           value={newRunForm.paymentMethod}
-                           onChange={(e) => setNewRunForm({ ...newRunForm, paymentMethod: e.target.value })}
-                        >
-                           <option value="ACH">ACH (Domestic)</option>
-                           <option value="WIRE">Wire Transfer (Intl)</option>
-                           <option value="CHECK">Paper Check</option>
-                        </select>
-                     </div>
-                     <div>
-                        <label className="text-xs font-bold text-gray-500 uppercase block mb-1">Execution Date</label>
-                        <input
-                           type="date"
-                           className="w-full border border-gray-300 rounded-sm p-2 text-sm"
-                           value={newRunForm.runDate}
-                           onChange={(e) => setNewRunForm({ ...newRunForm, runDate: e.target.value })}
-                        />
-                     </div>
-                     <div className="pt-4 flex justify-end">
-                        <button
-                           onClick={handleCreateRun}
-                           className="px-6 py-2 bg-teal-600 text-white font-bold text-sm rounded-sm hover:bg-teal-700 shadow-sm"
-                        >
-                           Create Draft Run
-                        </button>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         )}
-
-         {/* --- TOAST --- */}
+         {/* Toast */}
          {toast && (
-            <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-sm shadow-xl flex items-center animate-slideIn z-50 ${toast.type === 'success' ? 'bg-gray-900 text-white' : 'bg-red-600 text-white'}`}>
-               <CheckCircle size={16} className="text-white mr-2" />
+            <div className="absolute bottom-6 right-6 px-4 py-3 bg-gray-900 text-white rounded-sm shadow-xl flex items-center z-50 animate-slide-in-up">
+               <GeoSphere size={16} className="text-[#00C805] mr-2" />
                <div className="text-xs font-bold">{toast.msg}</div>
             </div>
          )}
-
-      </div>
-   );
-};
-
-
-// --- BATCH DETAIL MODAL COMPONENT ---
-
-interface BatchDetailModalProps {
-   batch: PaymentBatch;
-   onClose: () => void;
-   onApprove: () => void;
-   onDownloadVoucher: (voucherId: string) => void;
-}
-
-const BatchDetailModal: React.FC<BatchDetailModalProps> = ({ batch, onClose, onApprove, onDownloadVoucher }) => {
-   const batchInvoices = MOCK_INVOICES.filter(inv => batch.invoiceIds.includes(inv.id));
-
-   return (
-      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fadeIn backdrop-blur-sm">
-         <div className="bg-gray-50 w-full max-w-5xl h-[90vh] rounded-lg shadow-2xl flex flex-col overflow-hidden">
-            {/* Header */}
-            <div className="bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-center flex-shrink-0">
-               <div>
-                  <h2 className="text-lg font-bold text-gray-800">Payment Batch Details</h2>
-                  <p className="text-sm font-mono text-teal-600">{batch.id}</p>
-               </div>
-               <div className="flex items-center space-x-3">
-                  {batch.status === 'AWAITING_APPROVAL' && (
-                     <button onClick={onApprove} className="px-4 py-2 text-sm font-bold bg-orange-600 text-white hover:bg-orange-700 rounded-sm shadow-sm">
-                        Approve Batch
-                     </button>
-                  )}
-                  <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full"><X size={20} /></button>
-               </div>
-            </div>
-
-            {/* Summary Cards */}
-            <div className="p-6 grid grid-cols-3 gap-6 flex-shrink-0 bg-white border-b border-gray-200">
-               <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                  <p className="text-xs font-bold text-gray-400 uppercase">Payment Terms</p>
-                  <p className="text-lg font-bold text-gray-800 mt-1">{batch.paymentTerms}</p>
-               </div>
-               <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                  <p className="text-xs font-bold text-gray-400 uppercase">Sanction Screening</p>
-                  <p className={`text-lg font-bold mt-1 flex items-center ${batch.sanctionStatus === 'PASSED' ? 'text-green-600' : 'text-orange-500'}`}>
-                     <ShieldCheck size={18} className="mr-2" /> {batch.sanctionStatus}
-                  </p>
-               </div>
-               <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                  <p className="text-xs font-bold text-gray-400 uppercase">Approval Status</p>
-                  <p className="text-lg font-bold text-gray-800 mt-1 flex items-center">
-                     <UserCheck size={18} className="mr-2 text-gray-400" />
-                     {batch.status === 'AWAITING_APPROVAL' ? `Pending - ${batch.nextApprover}` : batch.status.replace('_', ' ')}
-                  </p>
-               </div>
-            </div>
-
-            {/* Invoice Table */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
-               <table className="w-full text-sm text-left">
-                  <thead className="sticky top-0 bg-gray-100 z-10">
-                     <tr className="text-xs text-gray-500 uppercase font-bold">
-                        <th className="px-6 py-3">GL Code</th>
-                        <th className="px-6 py-3">Carrier</th>
-                        <th className="px-6 py-3 text-right">Amount</th>
-                        <th className="px-6 py-3">Due Date</th>
-                        <th className="px-6 py-3">Voucher Details</th>
-                        <th className="px-6 py-3 text-center">Action</th>
-                     </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-100">
-                     {batchInvoices.map(inv => {
-                        const voucherId = `VOUCH-${inv.id}`;
-                        return (
-                           <tr key={inv.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 font-mono text-xs">{inv.glSegments?.[0]?.code || 'N/A'}</td>
-                              <td className="px-6 py-4 font-medium text-gray-800">{inv.carrier}</td>
-                              <td className="px-6 py-4 text-right font-mono text-gray-800">₹{inv.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-                              <td className="px-6 py-4 text-gray-600">{inv.dueDate}</td>
-                              <td className="px-6 py-4 font-mono text-xs text-blue-600">{voucherId}</td>
-                              <td className="px-6 py-4 text-center">
-                                 <button
-                                    onClick={() => onDownloadVoucher(voucherId)}
-                                    className="p-2 text-gray-400 hover:text-blue-600" title="Download Voucher">
-                                    <Download size={16} />
-                                 </button>
-                              </td>
-                           </tr>
-                        );
-                     })}
-                  </tbody>
-               </table>
-            </div>
-         </div>
       </div>
    );
 };

@@ -1,6 +1,6 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Invoice, InvoiceStatus, RoleDefinition, WorkflowStepConfig, WorkflowHistoryItem } from '../types';
 import {
   ArrowLeft, CheckCircle, XCircle, X, Check, Printer, Download,
@@ -10,6 +10,7 @@ import {
   HelpCircle, FileText as FileIcon, Eye, BookOpen, GitMerge, Calculator,
   ScanSearch, TrendingDown, Coins, Award, Target, FileCheck, Truck, Leaf, Link as LinkIcon2, Landmark
 } from 'lucide-react';
+import { GeoAudit, GeoCheck, GeoIconAlert, GeoInvoice, GeoReport, GeoFile, GeoPrint, GeoDownload, GeoSplit, GeoBank } from '../components/GeoIcons';
 import { generateAuditTrailPDF } from '../utils/reportGenerator';
 import { Button } from '../components/Button';
 import { checkClaimsStatus } from '../services/claimsService';
@@ -25,6 +26,7 @@ import { calculateCarbon } from '../services/carbonService';
 import { getCarrierScorecard, getScoreColor } from '../services/carrierScorecardService';
 import { analyzeParcelInvoice } from '../services/parcelAuditService';
 import { DisputeChat } from '../components/DisputeChat';
+import DocumentChecklist from '../components/DocumentChecklist';
 
 
 
@@ -55,9 +57,35 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
   // Landed Cost Calc
   const landedCosts = invoice.skuList ? calculateLandedCost(invoice.baseAmount || invoice.amount, invoice.skuList, 'Air') : [];
 
+  // --- BACKEND AUDIT INTEGRATION ---
+  const [auditData, setAuditData] = useState<any>(null);
+
+  React.useEffect(() => {
+    // Fetch real audit data from the Atlas Sentinel Backend
+    const fetchAudit = async () => {
+      try {
+        // Assuming API is running on localhost:5000
+        const response = await fetch(`http://localhost:5000/api/invoices/${invoice.id}/audit`);
+        if (response.ok) {
+          const data = await response.json();
+          setAuditData(data);
+        } else {
+          console.error("Audit API failed. Falling back to frontend calculation.");
+        }
+      } catch (e) {
+        console.error("Could not reach Audit Backend:", e);
+      }
+    };
+
+    fetchAudit();
+  }, [invoice.id]);
+
+  console.log('DEBUG: InvoiceDetail Rendered', { id: invoice.id, dispute: invoice.dispute });
+
   const [showUnlockModal, setShowUnlockModal] = useState(false);
   const [reasonCode, setReasonCode] = useState('');
   const [comment, setComment] = useState('');
+  const [documentError, setDocumentError] = useState(false);  // For PDF iframe error handling
 
   const finalizeStatus = (newStatus: InvoiceStatus) => {
     onUpdateInvoice({ ...invoice, status: newStatus });
@@ -83,6 +111,17 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
   };
 
   const renderStandardDetail = () => {
+    // Construct the URL to the real PDF on the backend (FastAPI on port 8000)
+    // Documents are stored in Supabase as: {invoice_id}/invoice.pdf
+    // The backend download endpoint handles fetching from Supabase
+    const invoiceIdForStorage = invoice.id?.replace(/\//g, '_') || invoice.invoiceNumber.replace(/\//g, '_');
+    const pdfFileName = 'invoice.pdf';  // Standard filename in Supabase storage
+
+    const documentUrl = `http://localhost:8000/api/invoices/${invoiceIdForStorage}/download/${pdfFileName}`;
+
+    // Check if invoice actually has a document path
+    const hasDocument = !!(invoice as any).pdf_path || !!(invoice as any).pdfPath;
+
     return (
       <div className="flex flex-1 overflow-hidden">
         {/* LEFT PANEL: The Evidence (PDF) */}
@@ -90,92 +129,40 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
           <div className="h-12 bg-slate-900 flex items-center justify-between px-4 text-slate-400 border-b border-slate-700 flex-shrink-0 shadow-md z-10">
             <div className="flex items-center space-x-3">
               <FileIcon size={14} className="text-teal-500" />
-              <span className="text-xs font-medium text-slate-300">invoice_{invoice.invoiceNumber}.pdf</span>
-              <span className="text-[10px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded">1/1</span>
+              <span className="text-xs font-medium text-slate-300">{pdfFileName}</span>
+              <span className="text-[10px] bg-slate-700 text-slate-300 px-1.5 py-0.5 rounded">PDF</span>
             </div>
             <div className="flex space-x-3">
               <button onClick={handleDownloadAudit} className="hover:text-white transition-colors" title="Download Audit Trail"><Download size={16} /></button>
               <button onClick={handlePrint} className="hover:text-white transition-colors" title="Print Invoice"><Printer size={16} /></button>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-8 flex justify-center custom-scrollbar">
-            <div className="bg-white shadow-lg w-full max-w-[595px] min-h-[842px] p-10 text-xs font-mono text-gray-800 relative">
-              <div className="absolute top-10 right-10 border-4 border-red-600 text-red-600 font-bold text-xl px-4 py-2 opacity-30 transform -rotate-12 pointer-events-none">
-                RECEIVED
+          <div className="flex-1 bg-gray-900 flex justify-center items-center overflow-hidden">
+            {/* REAL PDF EMBED or Placeholder */}
+            {hasDocument && !documentError ? (
+              <iframe
+                src={documentUrl}
+                className="w-full h-full border-none"
+                title={`Invoice ${invoice.invoiceNumber}`}
+                onError={() => setDocumentError(true)}
+              />
+            ) : (
+              <div className="text-center text-slate-500">
+                <FileIcon size={48} className="mx-auto mb-4 opacity-30" />
+                <p className="text-sm font-medium">No document attached</p>
+                <p className="text-xs text-slate-600 mt-1">This invoice was created without a PDF upload</p>
+                <p className="text-xs text-slate-600 mt-1">Upload via Bulk Invoice Upload to attach documents</p>
               </div>
-              <div className="flex justify-between border-b-2 border-black pb-4 mb-8">
-                <div>
-                  <h1 className="text-2xl font-bold tracking-tight mb-1">{invoice.carrier.toUpperCase()}</h1>
-                  <p>Global Logistics Services</p>
-                  <p>100 Shipping Way, Copenhagen</p>
-                </div>
-                <div className="text-right">
-                  <h2 className="text-xl font-bold">INVOICE</h2>
-                  <p>Inv #: {invoice.invoiceNumber}</p>
-                  <p>Date: {invoice.date}</p>
-                </div>
-              </div>
-              <div className="mb-8">
-                <p className="font-bold text-gray-600 mb-1">BILL TO:</p>
-                <p className="font-bold text-sm">Hitachi Energy USA Inc.</p>
-                <p>901 Main Campus Drive</p>
-                <p>Raleigh, NC 27606</p>
-              </div>
-              <table className="w-full mb-8">
-                <thead>
-                  <tr className="border-b border-black">
-                    <th className="text-left py-2">Description</th>
-                    <th className="text-right py-2">Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {invoice.lineItems.map((item, idx) => (
-                    <tr key={idx} className="border-b border-gray-200">
-                      <td className="py-2">{item.description}</td>
-                      <td className="py-2 text-right">₹{item.amount.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="flex justify-end mb-12">
-                <div className="w-48">
-                  <div className="flex justify-between py-1">
-                    <span>Subtotal:</span>
-                    <span>₹{invoice.amount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-black">
-                    <span>Tax:</span>
-                    <div className="text-right">
-                      <span>₹{(invoice.taxTotal || 0).toFixed(2)}</span>
-                      {invoice.taxDetails && invoice.taxDetails.map((t, idx) => (
-                        <div key={idx} className="text-[10px] text-gray-500 italic">{t.type} @ {(t.rate * 100).toFixed(1)}%</div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex justify-between py-2 font-bold text-sm">
-                    <span>TOTAL:</span>
-                    <span>{new Intl.NumberFormat('en-US', { style: 'currency', currency: invoice.currency }).format(invoice.amount)} {invoice.currency}</span>
-                  </div>
-                  {invoice.currency !== 'USD' && (
-                    <div className="text-[10px] text-right text-gray-400 mt-1">
-                      *Settlement in {invoice.baseCurrency || 'USD'}: ₹{(invoice.baseAmount || 0).toFixed(2)} (Exch Rate: {invoice.exchangeRate})
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="text-center text-gray-400 text-[10px] mt-auto">
-                <p>Thank you for your business.</p>
-                <p>Terms: Net 45 Days</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
+
         {/* RIGHT PANEL: Digitized Data & Audit */}
-        <div className="w-1/2 bg-slate-50 flex flex-col overflow-y-auto custom-scrollbar">
+        < div className="w-1/2 bg-slate-50 flex flex-col overflow-y-auto custom-scrollbar" >
           <div className="px-8 py-6 border-b border-slate-200 bg-white sticky top-0 z-10 shadow-sm">
-            <h2 className="text-base font-bold text-slate-800 flex items-center">
-              <FileText size={18} className="mr-2 text-teal-600" />
+            <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
+              <GeoAudit size={24} color="#0D9488" />
               Smart Audit & Match
             </h2>
             <div className="flex items-center mt-2 space-x-4">
@@ -184,7 +171,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
               <p className="text-sm text-slate-500 flex items-center">
                 Tax Check:
                 <span className={`font-bold ml-1 flex items-center ${taxCheck.isValid ? 'text-teal-600' : 'text-red-500'}`}>
-                  {taxCheck.isValid ? <CheckCircle size={12} className="mr-1" /> : <AlertCircle size={12} className="mr-1" />}
+                  {taxCheck.isValid ? <GeoCheck size={16} color="#0D9488" className="mr-1" /> : <GeoIconAlert size={16} color="#EF4444" className="mr-1" />}
                   {taxCheck.isValid ? 'Global Pass' : 'Compliance Risk'}
                 </span>
               </p>
@@ -193,20 +180,108 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
             </div>
           </div>
           <div className="p-8 space-y-8">
-            {/* AI INSIGHTS PANEL */}
-            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-100 rounded-lg p-5 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-2 opacity-10">
-                <Cpu size={64} className="text-purple-600" />
+            {/* DISPUTE RESOLUTION CHANNEL (Phase 6 Integration) */}
+            {invoice.dispute && (
+              <div className="mb-6 animate-in fade-in slide-in-from-top-4">
+                <DisputeChat
+                  invoice={invoice}
+                  onUpdateInvoice={onUpdateInvoice}
+                  currentUser={{
+                    name: activePersona.name,
+                    role: activePersona.role === 'VENDOR' ? 'VENDOR' : 'AUDITOR'
+                  }}
+                />
               </div>
-              <h4 className="text-xs font-bold text-purple-700 uppercase tracking-wider mb-2 flex items-center relative z-10">
-                <Cpu size={14} className="mr-2" /> AI Insights
-              </h4>
-              <p className="text-sm text-gray-700 relative z-10 leading-relaxed">
-                {invoice.variance >
-                  0 ? `Detected a ₹${invoice.variance.toFixed(2)} discrepancy. The billed amount exceeds the contract rate. This appears to be due to unapproved accessorial charges or a rate index mismatch.`
-                  : "Invoice matches the contracted rate card (Contract #GB01/0010). No anomalies detected in weight or volume calculations."}
-              </p>
+            )}
+
+            {/* AI INSIGHTS PANEL - Powered by Atlas Sentinel Backend */}
+            <div className="bg-[#0a0a0a] border border-gray-800 rounded-lg p-4 mb-6 relative overflow-hidden group shadow-2xl">
+              <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-0 pointer-events-none bg-[length:100%_4px,3px_100%]"></div>
+
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="flex items-start gap-4">
+                  <div className="mt-1">
+                    <GeoReport size={42} color={auditData?.can_submit ? "#0F62FE" : "#EF4444"} />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <div className="flex items-center space-x-3 mb-1">
+                      <span className={`text-[10px] font-mono uppercase tracking-widest font-bold ${auditData?.can_submit ? 'text-[#0F62FE]' : 'text-red-500'}`}>
+                        ATLAS_SENTINEL_V1.0
+                      </span>
+                      <div className="flex space-x-1">
+                        <div className={`w-1 h-1 rounded-full animate-ping ${auditData?.can_submit ? 'bg-[#0F62FE]' : 'bg-red-500'}`}></div>
+                        <div className={`w-1 h-1 rounded-full ${auditData?.can_submit ? 'bg-[#0F62FE]' : 'bg-red-500'}`}></div>
+                        <div className={`w-1 h-1 rounded-full ${auditData?.can_submit ? 'bg-[#0F62FE]' : 'bg-red-500'}`}></div>
+                      </div>
+                    </div>
+
+                    <div className="font-mono text-xs text-gray-300 max-w-xl leading-relaxed">
+                      <span className={`${auditData?.can_submit ? 'text-[#0F62FE]' : 'text-red-500'} mr-2`}>{'>>'}</span>
+                      {auditData ? (
+                        <span>
+                          {auditData.rings[0].status === 'PASS'
+                            ? <span className="text-emerald-400 font-bold">CONTRACT MATCHED: </span>
+                            : <span className="text-red-400 font-bold">VARIANCE DETECTED: </span>
+                          }
+                          {auditData.rings[0].message}
+                        </span>
+                      ) : (
+                        <span className="text-gray-500 italic">Initializing Atlas Sentinel handshake...</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Side Stats - Terminal Look */}
+                <div className="flex items-center space-x-6 border-l border-gray-800 pl-6">
+                  <div className="flex flex-col items-end">
+                    <div className="text-[9px] text-gray-500 uppercase font-mono tracking-widest mb-0.5">RINGS PASSED</div>
+                    <div className="text-lg text-white font-mono font-bold tracking-tighter flex items-center">
+                      {auditData ? auditData.passed : 0}/{auditData ? auditData.total_rings : 4}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end">
+                    <div className="text-[9px] text-gray-500 uppercase font-mono tracking-widest mb-0.5">STATUS</div>
+                    <div className={`text-sm font-mono font-bold tracking-tighter px-2 py-0.5 rounded ${auditData?.can_submit ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-900' : 'bg-red-900/30 text-red-400 border border-red-900'}`}>
+                      {auditData?.can_submit ? 'VERIFIED' : 'BLOCKED'}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            {/* DOCUMENT COMPLIANCE CHECKLIST */}
+            {invoice.documentBundle && invoice.documentCompliance && (
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-6">
+                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+                  <h3 className="text-sm font-bold text-slate-800 flex items-center">
+                    <FileCheck size={16} className="mr-2 text-teal-600" /> Document Compliance
+                  </h3>
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase border ${invoice.documentCompliance.canApprove ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'}`}>
+                    {invoice.documentCompliance.canApprove ? 'Compliant' : 'Missing Info'}
+                  </span>
+                </div>
+                <div className="p-4">
+                  <DocumentChecklist
+                    documentBundle={invoice.documentBundle}
+                    documentCompliance={invoice.documentCompliance}
+                    invoiceData={{
+                      invoiceNumber: invoice.invoiceNumber,
+                      date: invoice.date,
+                      carrier: invoice.carrier,
+                      origin: invoice.origin,
+                      destination: invoice.destination,
+                      amount: invoice.amount,
+                      weight: 250, // Default or from invoice if available
+                      awbNumber: invoice.invoiceNumber.replace('/', '_'),
+                      lineItems: invoice.lineItems
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Smart GL Splitter */}
             <div className="bg-white border text-[10px] sm:text-xs border-indigo-100 rounded p-4 mb-4 shadow-sm relative overflow-hidden">
               <div className="absolute top-0 right-0 p-2 opacity-5">
@@ -227,18 +302,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                 </div>
               ))}
             </div>
-            {invoice.dispute && (
-              <div className="mb-6">
-                <DisputeChat
-                  invoice={invoice}
-                  onUpdateInvoice={onUpdateInvoice}
-                  currentUser={{
-                    name: activePersona.name,
-                    role: activePersona.role === 'VENDOR' ? 'VENDOR' : 'AUDITOR'
-                  }}
-                />
-              </div>
-            )}
+
 
             <div className="grid grid-cols-2 gap-6">
               <div className="p-4 bg-gray-50 rounded-sm border border-gray-100">
@@ -376,39 +440,45 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
               </div>
             )}
 
-            {/* 3-WAY MATCH AUTOMATION */}
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-6">
-              <div className="bg-indigo-50/50 px-4 py-3 border-b border-indigo-100 flex justify-between items-center">
-                <h3 className="text-sm font-bold text-indigo-900 flex items-center">
-                  <LinkIcon2 size={16} className="mr-2 text-indigo-600" /> 3-Way Match Automation
-                </h3>
+            {/* 3-WAY MATCH AUTOMATION - Clean Workflow Design */}
+            <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden mb-8">
+              <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <div className="flex items-center space-x-2">
+                  <div className="bg-indigo-600 p-1.5 rounded-md text-white">
+                    <LinkIcon2 size={16} />
+                  </div>
+                  <h3 className="font-bold text-gray-800 tracking-tight">3-Way Match Automation</h3>
+                </div>
                 {threeWay.isMatch ? (
-                  <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded border border-green-200 font-bold uppercase flex items-center">
-                    <CheckCircle size={10} className="mr-1" /> Reconciled
+                  <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold flex items-center shadow-sm">
+                    <CheckCircle size={12} className="mr-1.5" /> RECONCILED
                   </span>
                 ) : (
-                  <span className="text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded border border-red-200 font-bold uppercase flex items-center">
-                    <AlertTriangle size={10} className="mr-1" /> Discrepancy
+                  <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold flex items-center shadow-sm animate-pulse">
+                    <AlertTriangle size={12} className="mr-1.5" /> DISCREPANCY
                   </span>
                 )}
               </div>
-              <div className="p-4">
-                <div className="flex items-center justify-between relative">
-                  {/* Connector Line */}
-                  <div className="absolute top-1/2 left-0 w-full h-0.5 bg-slate-100 -z-10"></div>
-                  <div className={`absolute top-1/2 left-0 h-0.5 -z-10 transition-all duration-1000 ${threeWay.isMatch ? 'bg-green-500 w-full' : 'bg-red-400 w-2/3'}`}></div>
 
-                  {/* Documents */}
+              <div className="p-8 relative">
+                {/* Connection Line */}
+                <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 -z-0"></div>
+                <div className={`absolute top-1/2 left-0 h-1 z-0 transition-all duration-1000 origin-left scale-x-100 ${threeWay.isMatch ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-red-400 w-1/2'}`}></div>
+
+                <div className="flex justify-between relative z-10 w-full max-w-4xl mx-auto">
                   {threeWay.documents.map((doc, i) => (
-                    <div key={doc.type} className="flex flex-col items-center bg-white px-2">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 mb-2 ${doc.status === 'MATCHED' ? 'border-green-500 bg-green-50 text-green-600' : 'border-red-500 bg-red-50 text-red-600'}`}>
-                        {doc.type === 'INVOICE' && <FileText size={18} />}
-                        {doc.type === 'SHIPMENT_ORDER' && <FileCheck size={18} />}
-                        {doc.type === 'POD' && <Truck size={18} />}
+                    <div key={doc.type} className="flex flex-col items-center group cursor-default">
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center border-4 shadow-lg transition-transform duration-300 group-hover:scale-110 bg-white
+                                ${doc.status === 'MATCHED' ? 'border-green-500 text-green-600' : 'border-red-500 text-red-600'}`}>
+                        {doc.type === 'INVOICE' && <GeoFile size={28} color={doc.status === 'MATCHED' ? '#16A34A' : '#DC2626'} />}
+                        {doc.type === 'SHIPMENT_ORDER' && <GeoCheck size={28} color={doc.status === 'MATCHED' ? '#16A34A' : '#DC2626'} />}
+                        {doc.type === 'POD' && <Truck size={28} />}
                       </div>
-                      <p className="text-[10px] font-bold text-slate-500 uppercase">{doc.type}</p>
-                      <p className="text-xs font-bold text-slate-800">{doc.reference}</p>
-                      {doc.status === 'MISMATCH' && <p className="text-[9px] text-red-500 font-bold mt-1">{doc.details}</p>}
+                      <div className="mt-4 text-center bg-white px-2 rounded-lg shadow-sm border border-gray-100 py-2 min-w-[140px]">
+                        <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-1">{doc.type.replace('_', ' ')}</p>
+                        <p className="text-sm font-bold text-gray-900">{doc.reference}</p>
+                        {doc.status === 'MISMATCH' && <p className="text-[10px] text-red-500 font-bold mt-1 bg-red-50 px-2 py-0.5 rounded-full inline-block">{doc.details}</p>}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -473,11 +543,11 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
               <div className="grid grid-cols-2 gap-4 text-xs">
                 <div className="p-3 bg-gray-50 rounded-sm border border-gray-100">
                   <p className="font-bold text-gray-700 mb-1">Rate Card Logic</p>
-                  <p className="text-gray-500">Matched against <span className="font-mono font-bold text-blue-600">RC-2025-GLOBAL-01</span>. Base rate validated for 40HC container from CNSHA to USNYC.</p>
+                  <p className="text-gray-500">Matched against <span className="font-mono font-bold text-blue-600">RC-{new Date().getFullYear()}-{invoice.carrier.substring(0, 3).toUpperCase()}-GLOBAL</span>. Base rate validated for freight from {invoice.origin} to {invoice.destination}.</p>
                 </div>
                 <div className="p-3 bg-gray-50 rounded-sm border border-gray-100">
                   <p className="font-bold text-gray-700 mb-1">Accessorials</p>
-                  <p className="text-gray-500">Fuel Surcharge (BAF) calculated using <span className="font-mono font-bold text-blue-600">DOE Weekly Index</span> (Nov Week 4).</p>
+                  <p className="text-gray-500">Fuel Surcharge (BAF) calculated using <span className="font-mono font-bold text-blue-600">{invoice.currency === 'USD' ? 'DOE Weekly Index' : 'National Diesel Index'}</span> ({new Date().toLocaleString('default', { month: 'short' })} Week {Math.ceil(new Date().getDate() / 7)}).</p>
                 </div>
               </div>
             </div>
@@ -595,9 +665,11 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
               {/* ACTIVE STEP ACTION CARD */}
               {invoice.workflowHistory?.map(historyStep => {
                 const stepConfig = workflowConfig.find(c => c.id === historyStep.stepId);
-                if (!stepConfig || historyStep.status !== 'ACTIVE') return null;
+                if (!stepConfig || (historyStep.status !== 'ACTIVE' && historyStep.status !== 'PENDING')) return null;
 
-                const userCanAct = activePersona.roleId === stepConfig.roleId || roles.find(r => r.id === activePersona.roleId)?.permissions.canAdminSystem;
+                // Only allow the exact role assigned to this step to approve
+                // Enterprise Director should NOT be able to approve steps assigned to Kaai or Zeya
+                const userCanAct = activePersona.roleId === stepConfig.roleId;
 
                 if (!userCanAct) return (
                   <div key="locked-msg" className="bg-blue-50 border border-blue-100 rounded-lg p-4 flex items-center justify-center text-blue-800 text-sm font-medium animate-fadeIn">

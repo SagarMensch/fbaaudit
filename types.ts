@@ -54,7 +54,7 @@ export interface WorkflowHistoryItem {
 
 export interface Notification {
   id: string;
-  type: 'ASSIGNMENT' | 'ALERT' | 'INFO';
+  type: 'ASSIGNMENT' | 'ALERT' | 'INFO' | 'SUCCESS';
   message: string;
   timestamp: string;
   read: boolean;
@@ -78,6 +78,7 @@ export interface LogisticsDetails {
 export interface Invoice {
   id: string;
   invoiceNumber: string;
+  poNumber?: string;
   businessUnit?: string; // Added for Phase 6
   carrier: string;
   origin: string;
@@ -127,6 +128,12 @@ export interface Invoice {
   sapShipmentRef?: string;
   spotQuoteRef?: string;
 
+  // Added to support InvoiceDetail.tsx
+  logistics?: LogisticsDetails;
+  skuList?: SKUItem[];
+
+
+
   // Tax Compliance (Global)
   taxTotal?: number;
   taxDetails?: TaxDetail[];
@@ -148,10 +155,24 @@ export interface Invoice {
   // Dispute Management
   dispute?: Dispute;
 
-  // Logistics Context
-  logistics?: LogisticsDetails;
-  // Landed Cost
-  skuList?: SKUItem[];
+  documentBundle?: InvoiceDocumentBundle;
+  documentCompliance?: DocumentComplianceStatus;
+}
+
+export interface Dispute {
+  status: 'OPEN' | 'VENDOR_RESPONDED' | 'UNDER_REVIEW' | 'RESOLVED';
+  ticketId?: string;
+  invoiceId?: string;
+  subject?: string;
+  priority?: 'HIGH' | 'MEDIUM' | 'LOW';
+  assignedTo?: string;
+  messages: ChatMessage[];
+  history: {
+    actor: 'Vendor' | 'SCM' | 'System';
+    timestamp: string;
+    action: string;
+    comment?: string;
+  }[];
 }
 
 export interface SKUItem {
@@ -177,6 +198,73 @@ export interface LineItem {
   expectedAmount: number;
 }
 
+// --- DOCUMENT COMPLIANCE SYSTEM ---
+
+export type DocumentStatus = 'ATTACHED' | 'MISSING' | 'PENDING_UPLOAD' | 'REJECTED';
+export type DocumentSource = 'MANUAL' | 'EDI' | 'API' | 'EMAIL' | 'PORTAL' | 'ERP' | 'AI_EXTRACTED' | 'AI_PREDICTED';
+
+export interface DocumentMetadata {
+  status: DocumentStatus;
+  source?: DocumentSource;
+  confidence?: number; // 0-100, for AI-extracted/predicted
+  uploadedDate?: string;
+  uploadedBy?: string;
+  fileUrl?: string;
+  fileName?: string;
+  mandatory?: boolean; // If true, blocks approval
+  blocker?: boolean; // If true and missing, cannot approve
+  aiPredicted?: boolean;
+  predictedValue?: string; // What AI predicted (e.g., "1,850 kg")
+  predictionMethod?: string; // How AI predicted it
+  predictionConfidence?: number; // 0-100
+}
+
+export interface InvoiceDocumentBundle {
+  // Mandatory Documents
+  commercialInvoice?: DocumentMetadata;
+  billOfLading?: DocumentMetadata; // LR Number
+  proofOfDelivery?: DocumentMetadata; // POD
+  purchaseOrder?: DocumentMetadata;
+  rateConfirmation?: DocumentMetadata;
+
+  // India-Specific Mandatory
+  gstInvoice?: DocumentMetadata;
+  ewayBill?: DocumentMetadata; // For interstate
+
+  // Recommended Documents
+  packingList?: DocumentMetadata;
+  weightCertificate?: DocumentMetadata;
+
+  // Conditional Documents
+  customsDocuments?: DocumentMetadata; // If international
+  insuranceCertificate?: DocumentMetadata; // If insured
+  detentionProof?: DocumentMetadata; // If detention charges
+  demurrageProof?: DocumentMetadata; // If demurrage charges
+
+  // Tax Documents
+  tdsCertificate?: DocumentMetadata; // If TDS applicable
+  msmeCertificate?: DocumentMetadata; // If vendor is MSME
+}
+
+export interface AIPrediction {
+  field: string; // e.g., "weight", "deliveryDate", "fuelSurcharge"
+  predictedValue: string | number;
+  confidence: number; // 0-100
+  method: string; // e.g., "Historical lane analysis", "Contract rate lookup"
+  basedOn: string[]; // e.g., ["Last 10 shipments on DEL-MUM lane"]
+  accuracy?: string; // e.g., "±50 kg", "±1 day"
+}
+
+export interface DocumentComplianceStatus {
+  totalRequired: number;
+  totalAttached: number;
+  totalMissing: number;
+  mandatoryMissing: number;
+  canApprove: boolean; // False if any mandatory docs missing
+  aiAssisted: boolean; // True if any AI predictions used
+  aiPredictions: AIPrediction[];
+}
+
 
 export interface RateCard {
   id: string;
@@ -187,7 +275,7 @@ export interface RateCard {
   containerType: string;
   rate: number;
   currency: string;
-  status: 'ACTIVE' | 'EXPIRED';
+  status: 'ACTIVE' | 'EXPIRED' | 'PENDING';
   validFrom: string;
   validTo: string;
 }
@@ -281,7 +369,7 @@ export interface CarrierScorecard {
 export interface AnomalyRecord {
   id: string;
   shipmentId: string;
-  type: 'FUEL_SURCHARGE' | 'WEIGHT_VARIANCE' | 'RATE_MISMATCH' | 'DUPLICATE';
+  type: 'FUEL_SURCHARGE' | 'WEIGHT_VARIANCE' | 'RATE_MISMATCH' | 'DUPLICATE' | 'EWAY_BILL_MISSING' | 'POD_MISMATCH' | 'GST_RATE_VARIANCE' | 'BENFORD_FRAUD';
   severity: 'HIGH' | 'MEDIUM' | 'LOW';
   score: number; // 0-100 (Confidence)
   detectedAt: string;
@@ -356,6 +444,87 @@ export interface Contract {
   freightMatrix: FreightRate[];
   pvcConfig: PVCConfig;
   accessorials: AccessorialRules;
+
+  // Deep Contract Details (Phase 3)
+  contractVersion?: string; // e.g. "v2.1"
+
+  // Parties
+  parties?: {
+    shipper: {
+      name: string;
+      legalEntity: string;
+      address: string;
+      gstin: string;
+      pan: string;
+    };
+    carrier: {
+      name: string;
+      legalEntity: string;
+      address: string;
+      gstin: string;
+      pan: string;
+    };
+  };
+
+  // Governing Law
+  governingLaw?: string; // e.g. "Indian Contract Act, 1872; Jurisdiction: Delhi High Court"
+
+  // SLA Metrics & Performance
+  sla?: {
+    onTimeDeliveryTarget: number; // e.g. 95 (%)
+    podSubmissionDays: number; // e.g. 7 days
+    damageLimitPercent: number; // e.g. 0.5 (%)
+    claimRatioTarget: number; // e.g. 1.0 (%)
+    responseTimeHours: number; // e.g. 4 hours
+    penalties: {
+      metric: string; // e.g. "On-Time Delivery"
+      threshold: string; // e.g. "< 90%"
+      penalty: string; // e.g. "₹5,000 per shipment or 2% of freight, whichever is higher"
+    }[];
+    incentives?: {
+      metric: string;
+      threshold: string;
+      reward: string;
+    }[];
+  };
+
+  // Insurance & Liability
+  insurance?: {
+    cargoInsuranceCoverage: number; // e.g. 500000 (₹)
+    liabilityLimitPerShipment: number; // e.g. 100000 (₹)
+    claimsProcess: string; // e.g. "Claims to be filed within 7 days with POD and damage report"
+    forceMajeure: string; // e.g. "Carrier not liable for delays due to natural disasters, strikes, govt. actions"
+  };
+
+  // Terms & Conditions
+  termsAndConditions?: {
+    terminationNotice: string; // e.g. "90 days written notice required"
+    terminationPenalty?: string; // e.g. "Early termination: 3 months average freight as penalty"
+    disputeResolution: string; // e.g. "Arbitration in Delhi under Arbitration Act, 1996"
+    confidentiality: string; // e.g. "Both parties agree to maintain confidentiality of rates and terms"
+    compliance: string; // e.g. "Carrier must comply with Motor Vehicles Act, 1988 and GST regulations"
+    amendment: string; // e.g. "Amendments require written approval from both parties"
+  };
+
+  // RCM & GST Details
+  gstDetails?: {
+    rcmApplicable: boolean;
+    gstRate: number; // e.g. 5 or 12 or 18 (%)
+    rcmSplitRatio?: string; // e.g. "50:50" or "Shipper pays full GST"
+    placeOfSupply: string; // e.g. "As per delivery location"
+    invoicingRequirements: string; // e.g. "E-way bill mandatory for shipments > ₹50,000"
+  };
+
+  // Cross-Linking
+  relatedInvoiceIds?: string[]; // Link to invoices using this contract
+  relatedShipmentIds?: string[]; // Link to shipments under this contract
+
+  // Performance Tracking
+  performanceGrade?: 'A+' | 'A' | 'A-' | 'B+' | 'B' | 'B-' | 'C' | 'D' | 'F';
+  lastAmendmentDate?: string;
+  nextReviewDate?: string;
+  spendMTD?: number; // Month-to-date spend
+  utilizationPercent?: number; // % of target utilization
 }
 
 // --- MODULE 2: SPOT-BUY ENGINE ---
@@ -553,4 +722,414 @@ export interface ShipmentUpload {
   // Aggregate Status
   overallStatus: 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'NEEDS_REVIEW';
   flaggedKeywords: string[]; // Union of all docs
+}
+
+// --- LOCATION GROUPING MASTER ---
+
+export interface LocationZone {
+  id: string;
+  code: string; // e.g., "NORTH-INDIA", "DL-NCR"
+  name: string; // e.g., "North India", "Delhi NCR"
+  type: 'REGION' | 'STATE' | 'CITY' | 'PINCODE_CLUSTER';
+  parentZoneId?: string; // Hierarchical structure
+  locations: string[]; // City names
+  pincodes?: string[]; // Pincode list for granular matching
+  coordinates?: { lat: number; lng: number }; // For distance calculations
+  metadata?: {
+    population?: number;
+    economicZone?: string; // SEZ, Non-SEZ
+    tier?: '1' | '2' | '3'; // City tier classification
+  };
+  createdBy?: string;
+  createdDate?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+}
+
+export interface DistanceMatrix {
+  id: string;
+  fromZone: string; // Zone ID or City name
+  toZone: string;
+  distanceKm: number;
+  estimatedTransitHrs: number;
+  calculationMethod: 'HAVERSINE' | 'ROAD_NETWORK' | 'HISTORICAL' | 'MANUAL';
+  lastUpdated: string;
+  confidence?: number; // 0-100 for AI-calculated distances
+}
+
+export interface LocationCluster {
+  id: string;
+  name: string; // e.g., "Western Hub Cluster"
+  zoneIds: string[];
+  centroid: { lat: number; lng: number };
+  aiSuggested: boolean;
+  confidence?: number; // 0-100
+  rationale?: string; // Why AI suggested this cluster
+  shipmentVolume?: number; // Historical shipments in this cluster
+  avgCost?: number;
+}
+
+// --- FUEL MASTER ---
+
+export interface FuelPriceRecord {
+  id: string;
+  date: string;
+  city: string;
+  dieselPrice: number;
+  petrolPrice?: number;
+  source: 'MANUAL' | 'API' | 'GOVERNMENT' | 'VENDOR';
+  verified: boolean;
+  verifiedBy?: string;
+  apiProvider?: string; // e.g., "Indian Oil Corporation"
+}
+
+export interface FuelSurchargeRule {
+  id: string;
+  name: string; // e.g., "TCI Express PVC Rule"
+  contractId?: string; // Link to specific contract
+  vendorId?: string; // Or apply to all contracts of a vendor
+  formula: 'PVC' | 'SLAB' | 'PERCENTAGE' | 'CUSTOM';
+
+  // PVC Formula Parameters
+  baseDieselPrice: number;
+  mileageBenchmark: number; // KMPL
+  referenceCity: string;
+
+  // Slab-based Formula
+  slabs?: { min: number; max: number; surcharge: number }[]; // Price range → Surcharge amount
+
+  // Percentage Formula
+  percentageRate?: number; // e.g., 5% of base freight
+
+  // Custom Formula
+  customFormula?: string; // JavaScript expression, e.g., "(currentPrice - basePrice) * 0.5 * distance"
+
+  validFrom: string;
+  validTo: string;
+  status: 'ACTIVE' | 'EXPIRED' | 'DRAFT';
+  autoUpdate?: boolean; // Auto-fetch fuel prices
+  updateFrequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+
+  createdBy?: string;
+  createdDate?: string;
+  lastModified?: string;
+}
+
+export interface FuelSurchargeCalculation {
+  ruleId: string;
+  ruleName: string;
+  currentPrice: number;
+  basePrice: number;
+  priceDiff: number;
+  distanceKm?: number;
+  baseFreight?: number;
+  surchargeAmount: number;
+  breakdown: string[]; // Step-by-step calculation
+  calculatedAt: string;
+}
+
+export interface FuelPriceTrend {
+  city: string;
+  period: 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR';
+  dataPoints: { date: string; price: number }[];
+  avgPrice: number;
+  minPrice: number;
+  maxPrice: number;
+  trend: 'RISING' | 'FALLING' | 'STABLE';
+  changePercent: number;
+}
+
+// --- LANE MASTER ---
+
+export interface Lane {
+  id: string;
+  laneCode: string; // e.g., "DEL-MUM-001"
+  origin: string;
+  destination: string;
+  distance: number; // km
+  status: 'ACTIVE' | 'PENDING_APPROVAL' | 'REJECTED' | 'INACTIVE';
+
+  // Request Information
+  requestedBy?: string;
+  requestedDate?: string;
+  approvedBy?: string;
+  approvedDate?: string;
+  rejectionReason?: string;
+
+  // Performance Metrics (Auto-calculated from shipments)
+  totalShipments?: number;
+  avgTransitTime?: number; // hours
+  onTimePercent?: number;
+  avgCost?: number;
+  lastShipmentDate?: string;
+
+  // Rate Information
+  benchmarkRate?: number; // Market average
+  currentRate?: number; // Active contract rate
+  lowestRate?: number; // Historical lowest
+  highestRate?: number; // Historical highest
+  rateHistory?: LaneRateHistory[];
+
+  // AI Insights
+  aiOptimizationScore?: number; // 0-100 (higher = better optimization opportunity)
+  aiRecommendations?: string[]; // e.g., ["Consider consolidating with DEL-PUN lane", "Rate 15% above market"]
+  utilizationPercent?: number; // % of available capacity used
+
+  // Linked Data
+  contractIds?: string[]; // Contracts covering this lane
+  vendorIds?: string[]; // Vendors servicing this lane
+
+  createdDate?: string;
+  lastModified?: string;
+}
+
+export interface LaneRateHistory {
+  id: string;
+  effectiveDate: string;
+  rate: number;
+  contractId: string;
+  vendorName: string;
+  changePercent?: number; // % change from previous rate
+  changeReason?: string; // e.g., "GRI", "Fuel escalation", "Contract renewal"
+  approvedBy?: string;
+}
+
+export interface LaneApprovalRequest {
+  id: string;
+  laneId?: string; // If updating existing lane
+  requestType: 'NEW_LANE' | 'RATE_CHANGE' | 'REACTIVATION' | 'DEACTIVATION';
+
+  // Request Details
+  origin: string;
+  destination: string;
+  requestedBy: string;
+  requestDate: string;
+  justification: string;
+  urgency: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+  // Rate Information
+  proposedRate?: number;
+  currentRate?: number; // For rate changes
+
+  // Benchmarking
+  benchmarkComparison?: {
+    marketAvg: number;
+    variance: number; // % difference from market
+    competitorRates: { vendor: string; rate: number; source: string }[];
+    dataSource: string; // Where benchmark came from
+  };
+
+  // Supporting Documents
+  attachments?: { name: string; url: string; type: string }[];
+
+  // Approval Status
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'WITHDRAWN';
+  approvalWorkflow?: WorkflowHistoryItem[];
+  approvedBy?: string;
+  approvedDate?: string;
+  rejectionReason?: string;
+
+  // Business Impact
+  estimatedMonthlyVolume?: number; // Shipments/month
+  estimatedMonthlyCost?: number;
+  customerRequirement?: string; // Customer name if specific requirement
+}
+
+export interface LanePerformanceMetrics {
+  laneId: string;
+  period: 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR';
+
+  // Volume Metrics
+  totalShipments: number;
+  totalWeight: number; // tons
+  totalCost: number;
+
+  // Performance Metrics
+  avgTransitTime: number; // hours
+  onTimeDeliveries: number;
+  onTimePercent: number;
+  delayedShipments: number;
+  avgDelay: number; // hours
+
+  // Quality Metrics
+  damageIncidents: number;
+  damagePercent: number;
+  claimsCount: number;
+  claimsValue: number;
+
+  // Cost Metrics
+  avgCostPerShipment: number;
+  avgCostPerKg: number;
+  costTrend: 'RISING' | 'FALLING' | 'STABLE';
+  costVariance: number; // % from benchmark
+
+  // Vendor Performance (if single vendor)
+  primaryVendor?: string;
+  vendorScore?: number; // 0-100
+}
+
+export interface LaneOptimizationSuggestion {
+  id: string;
+  type: 'CONSOLIDATION' | 'RATE_NEGOTIATION' | 'VENDOR_CHANGE' | 'ROUTE_CHANGE' | 'MODE_SHIFT';
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  affectedLanes: string[]; // Lane IDs
+
+  // Suggestion Details
+  title: string;
+  description: string;
+  rationale: string;
+
+  // Impact Analysis
+  estimatedSavings: number; // Annual savings
+  savingsPercent: number;
+  implementationCost?: number;
+  roi?: number; // Return on investment
+  paybackPeriod?: number; // months
+
+  // Implementation
+  actionItems: string[];
+  estimatedEffort: 'LOW' | 'MEDIUM' | 'HIGH';
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+
+  // AI Metadata
+  aiConfidence: number; // 0-100
+  basedOn: string[]; // Data sources used
+  generatedDate: string;
+
+  status: 'PENDING_REVIEW' | 'ACCEPTED' | 'REJECTED' | 'IMPLEMENTED';
+}
+
+// ============================================================================
+// PAYMENT SYSTEM TYPES
+// ============================================================================
+
+export type PaymentMethod = 'ACH' | 'WIRE' | 'CHECK' | 'NEFT' | 'RTGS' | 'UPI' | 'IMPS';
+export type PaymentBatchStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'PROCESSING' | 'PAID' | 'FAILED' | 'CANCELLED';
+export type PaymentTransactionStatus = 'PENDING' | 'INCLUDED' | 'PROCESSING' | 'PAID' | 'FAILED' | 'CANCELLED';
+export type ReconciliationStatus = 'UNMATCHED' | 'MATCHED' | 'EXCEPTION' | 'IGNORED';
+
+export interface PaymentBatch {
+  id: string;
+  batchNumber: string;
+  totalAmount: number;
+  currency: string;
+  invoiceCount: number;
+  status: PaymentBatchStatus;
+  paymentMethod: PaymentMethod;
+
+  // Workflow
+  createdBy: string;
+  approvedBy?: string;
+  approvedAt?: string;
+
+  // Bank Details
+  bankReference?: string;
+  bankAccount?: string;
+  scheduledDate?: string;
+  paidAt?: string;
+
+  // Metadata
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+
+  // Related data (when detail view)
+  transactions?: PaymentTransaction[];
+}
+
+export interface PaymentTransaction {
+  id: string;
+  batchId?: string;
+  invoiceId: string;
+  vendorId: string;
+  vendorName: string;
+
+  // Amounts
+  originalAmount: number;
+  discountAmount: number;
+  finalAmount: number;
+
+  // Multi-currency
+  currency: string;
+  exchangeRate: number;
+  baseCurrencyAmount?: number;
+
+  // Status
+  status: PaymentTransactionStatus;
+  paymentReference?: string;
+  paidAt?: string;
+  createdAt: string;
+}
+
+export interface BankReconciliation {
+  id: string;
+  statementId?: string;
+  transactionDate: string;
+  valueDate?: string;
+  bankReference: string;
+  description: string;
+  amount: number;
+  type: 'CREDIT' | 'DEBIT';
+  currency: string;
+  bankAccount?: string;
+
+  // Matching
+  status: ReconciliationStatus;
+  matchedBatchId?: string;
+  matchedInvoiceId?: string;
+  matchedBy?: string;
+  matchedAt?: string;
+  exceptionReason?: string;
+
+  createdAt: string;
+}
+
+export interface EarlyPaymentTerms {
+  id: string;
+  vendorId: string;
+  vendorName?: string;
+  discountPercent: number;
+  daysEarly: number;
+  standardPaymentDays: number;
+  validFrom?: string;
+  validTo?: string;
+  isActive: boolean;
+}
+
+export interface EarlyPaymentDiscount {
+  eligible: boolean;
+  reason?: string;
+  discountPercent?: number;
+  discountAmount?: number;
+  finalAmount?: number;
+  daysUntilDiscountExpires?: number;
+  originalDueDate?: string;
+}
+
+export interface VendorPaymentSummary {
+  totalPayments: number;
+  totalPaid: number;
+  totalDiscountsReceived: number;
+  pendingPayments: number;
+  pendingAmount: number;
+}
+
+export interface PaymentAccount {
+  id: string;
+  accountName: string;
+  bankName: string;
+  accountNumber: string;
+  ifscCode?: string;
+  swiftCode?: string;
+  currency: string;
+  isDefault: boolean;
+  isActive: boolean;
+}
+
+export interface CurrencyRate {
+  id: string;
+  fromCurrency: string;
+  toCurrency: string;
+  rate: number;
+  effectiveDate: string;
+  source: 'API' | 'MANUAL' | 'RBI';
 }

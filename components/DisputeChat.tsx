@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, MessageSquare, Lock, Globe, User } from 'lucide-react';
+import { Send, Paperclip, MessageSquare, Lock, Globe, User, Download } from 'lucide-react';
 import { Invoice, ChatMessage } from '../types';
-import { sendMessage } from '../services/disputeService';
+import { disputeService } from '../services/disputeService';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface DisputeChatProps {
     invoice: Invoice;
@@ -12,14 +14,78 @@ interface DisputeChatProps {
 export const DisputeChat: React.FC<DisputeChatProps> = ({ invoice, onUpdateInvoice, currentUser }) => {
     const [newMessage, setNewMessage] = useState('');
     const [isInternal, setIsInternal] = useState(false);
+    // Use local state for messages to allow instant updates
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+
+    // Find the real ticket
+    const ticketId = invoice.dispute?.ticketId || disputeService.getTicketByInvoice(invoice.invoiceNumber)?.ticketId;
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const messages = invoice.dispute?.messages || [];
+    const loadMessages = () => {
+        if (!ticketId) {
+            // Fallback to prop if no ticket found (simulated env)
+            setMessages(invoice.dispute?.messages || []);
+            return;
+        }
+        const ticket = disputeService.getTicket(ticketId);
+        if (ticket) {
+            setMessages(ticket.messages);
+        }
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    const handleDownloadPDF = () => {
+        const doc = new jsPDF();
+
+        // Header
+        doc.setFontSize(18);
+        doc.setTextColor(40, 40, 40);
+        doc.text(`Dispute Transcript: ${ticketId || 'Unknown'}`, 14, 22);
+
+        doc.setFontSize(10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(`Invoice: ${invoice.invoiceNumber}`, 14, 30);
+        doc.text(`Date Generated: ${new Date().toLocaleString()}`, 14, 35);
+
+        // Table Data
+        const tableData = messages.map(msg => [
+            new Date(msg.timestamp).toLocaleString(),
+            msg.sender + (msg.isInternal ? ' (Internal)' : ''),
+            msg.content
+        ]);
+
+        autoTable(doc, {
+            startY: 45,
+            head: [['Time', 'Sender', 'Message']],
+            body: tableData,
+            styles: { fontSize: 9, cellPadding: 3 },
+            headStyles: { fillColor: [41, 128, 185], textColor: 255 },
+            columnStyles: {
+                0: { cellWidth: 40 },
+                1: { cellWidth: 40 },
+                2: { cellWidth: 'auto' }
+            },
+            alternateRowStyles: { fillColor: [245, 245, 245] }
+        });
+
+        doc.save(`Dispute_Transcript_${ticketId}.pdf`);
+    };
+
+    useEffect(() => {
+        loadMessages();
+        scrollToBottom();
+
+        // Subscribe to updates
+        const handleUpdate = () => loadMessages();
+        window.addEventListener('disputes-updated', handleUpdate);
+        return () => window.removeEventListener('disputes-updated', handleUpdate);
+    }, [ticketId, invoice]); // Re-run if invoice changes
+
+    // Auto-scroll on new messages
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
@@ -27,18 +93,33 @@ export const DisputeChat: React.FC<DisputeChatProps> = ({ invoice, onUpdateInvoi
     const handleSend = () => {
         if (!newMessage.trim()) return;
 
-        const updatedInvoice = sendMessage(
-            invoice,
-            newMessage,
-            currentUser.name,
-            currentUser.role,
-            isInternal
-        );
+        if (ticketId) {
+            // Real Service Call
+            const updatedTicket = disputeService.sendMessage(
+                ticketId,
+                newMessage,
+                currentUser.name,
+                currentUser.role,
+                isInternal
+            );
 
-        onUpdateInvoice(updatedInvoice);
+            // Optimistic update of parent invoice if needed
+            if (updatedTicket) {
+                // We don't necessarily need to update the entire invoice prop if we are using local state for messages,
+                // but checking if status changed is good.
+                // onUpdateInvoice({...invoice, dispute: updatedTicket}); 
+            }
+        } else {
+            console.warn("No active ticket found for this invoice.");
+        }
+
         setNewMessage('');
     };
 
+    // ... (keep handleKeyDown and return JSX) ...
+    // Just replace "invoice.dispute?.messages || []" usage with "messages" state
+
+    // Render logic remains similar, just make sure to use `messages` variable from state
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -54,8 +135,17 @@ export const DisputeChat: React.FC<DisputeChatProps> = ({ invoice, onUpdateInvoi
                     <MessageSquare size={18} className="text-gray-500 mr-2" />
                     <h3 className="font-semibold text-gray-800">Dispute Resolution Channel</h3>
                 </div>
-                <div className="text-xs text-gray-500">
-                    Ticket: <span className="font-mono font-bold text-gray-700">{invoice.invoiceNumber}-D</span>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleDownloadPDF}
+                        title="Download Transcript"
+                        className="flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                    >
+                        <Download size={14} /> Export PDF
+                    </button>
+                    <div className="text-xs text-gray-500">
+                        Ticket: <span className="font-mono font-bold text-gray-700">{ticketId || 'NEW'}</span>
+                    </div>
                 </div>
             </div>
 
@@ -68,6 +158,7 @@ export const DisputeChat: React.FC<DisputeChatProps> = ({ invoice, onUpdateInvoi
                     </div>
                 ) : (
                     messages.map((msg) => {
+                        // ... rest of map logic is same ...
                         const isMe = msg.role === currentUser.role; // Simplified check
                         const isSystem = msg.role === 'SYSTEM';
 
@@ -88,10 +179,10 @@ export const DisputeChat: React.FC<DisputeChatProps> = ({ invoice, onUpdateInvoi
                             >
                                 <div
                                     className={`max-w-[75%] rounded-lg p-3 shadow-sm ${isMe
-                                            ? 'bg-blue-600 text-white rounded-br-none'
-                                            : msg.isInternal
-                                                ? 'bg-yellow-50 border border-yellow-200 text-gray-800 rounded-bl-none'
-                                                : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
+                                        ? 'bg-blue-600 text-white rounded-br-none'
+                                        : msg.isInternal
+                                            ? 'bg-yellow-50 border border-yellow-200 text-gray-800 rounded-bl-none'
+                                            : 'bg-white border border-gray-200 text-gray-800 rounded-bl-none'
                                         }`}
                                 >
                                     <div className="flex items-center justify-between mb-1 gap-2">
@@ -159,8 +250,8 @@ export const DisputeChat: React.FC<DisputeChatProps> = ({ invoice, onUpdateInvoi
                             onKeyDown={handleKeyDown}
                             placeholder={isInternal ? "Add an internal note..." : "Type a message to the vendor..."}
                             className={`w-full p-3 pr-10 border rounded-lg focus:ring-2 focus:outline-none resize-none text-sm transition-all ${isInternal
-                                    ? 'bg-yellow-50 border-yellow-200 focus:ring-yellow-200 focus:border-yellow-300'
-                                    : 'bg-gray-50 border-gray-200 focus:ring-blue-100 focus:border-blue-300'
+                                ? 'bg-yellow-50 border-yellow-200 focus:ring-yellow-200 focus:border-yellow-300'
+                                : 'bg-gray-50 border-gray-200 focus:ring-blue-100 focus:border-blue-300'
                                 }`}
                             rows={2}
                         />
@@ -169,8 +260,8 @@ export const DisputeChat: React.FC<DisputeChatProps> = ({ invoice, onUpdateInvoi
                         onClick={handleSend}
                         disabled={!newMessage.trim()}
                         className={`p-3 rounded-lg shadow-sm transition-all ${!newMessage.trim()
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
+                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-md'
                             }`}
                     >
                         <Send size={20} />

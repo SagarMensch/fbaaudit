@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-   Download, Calendar, DollarSign, ShieldCheck,
+   Download, Calendar, IndianRupee, ShieldCheck,
    TrendingUp, TrendingDown, Filter, PieChart as PieIcon,
    Layers, ArrowUpRight, ArrowDownRight, Printer, Share2,
    Lightbulb, AlertCircle, Target, Activity, X, CheckCircle,
@@ -14,7 +14,77 @@ import {
 } from 'recharts';
 import { generatePDFReport, formatInvoiceDataForReport, INVOICE_REPORT_COLUMNS } from '../utils/reportGenerator';
 import { exportToCSV } from '../utils/exportUtils';
-import { MOCK_INVOICES } from '../constants';
+// REMOVED: import { MOCK_INVOICES } from '../constants';
+
+// --- 3D SOLID GEOMETRIC ICONS ---
+const GeoCube = ({ className, color = "currentColor" }: { className?: string, color?: string }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color}>
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="none" />
+      <path d="M12 22v-10" stroke="none" />
+      <path d="M2.5 7.5v10l9.5 5V12.5L2.5 7.5z" fillOpacity="0.8" />
+      <path d="M21.5 7.5v10l-9.5 5V12.5l9.5-5z" fillOpacity="0.6" />
+      <path d="M12 2l9.5 5-9.5 5-9.5-5L12 2z" fillOpacity="1" />
+   </svg>
+);
+
+const GeoPyramid = ({ className, color = "currentColor" }: { className?: string, color?: string }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color}>
+      <path d="M12 2L2 19h20L12 2z" fillOpacity="0.8" />
+      <path d="M12 2L2 19h10V2z" fillOpacity="1" />
+      <path d="M12 2v17h10L12 2z" fillOpacity="0.6" />
+   </svg>
+);
+
+const GeoHexagon = ({ className, color = "currentColor" }: { className?: string, color?: string }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color}>
+      <path d="M12 2l8.5 5v10L12 22l-8.5-5V7L12 2z" fillOpacity="0.8" />
+      <path d="M12 12l8.5-5M12 12v10M12 12L3.5 7" stroke="white" strokeWidth="1" />
+      <path d="M12 2l8.5 5L12 12 3.5 7 12 2z" fillOpacity="1" />
+   </svg>
+);
+
+const GeoSphere = ({ className, color = "currentColor" }: { className?: string, color?: string }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color}>
+      <circle cx="12" cy="12" r="10" fillOpacity="0.4" />
+      <circle cx="12" cy="12" r="7" fillOpacity="0.7" />
+      <circle cx="12" cy="12" r="4" fillOpacity="1" />
+   </svg>
+);
+
+const GeoPrism = ({ className, color = "currentColor" }: { className?: string, color?: string }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color}>
+      <path d="M12 2l10 6v10l-10 4-10-4V8l10-6z" fillOpacity="0.2" />
+      <path d="M12 6l6 4v6l-6 4-6-4v-6l6-4z" fillOpacity="1" />
+   </svg>
+);
+
+const GeoPie = ({ className, color = "currentColor" }: { className?: string, color?: string }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color}>
+      <path d="M12 12V2A10 10 0 0 1 22 12H12z" fillOpacity="1" />
+      <path d="M12 12H2a10 10 0 0 1 10-10v10z" fillOpacity="0.6" />
+      <path d="M12 12l-7.07 7.07A10 10 0 0 1 2 12h10z" fillOpacity="0.4" />
+      <path d="M12 12H22a10 10 0 0 1-10 10V12z" fillOpacity="0.8" />
+   </svg>
+);
+
+const GeoBar = ({ className, color = "currentColor" }: { className?: string, color?: string }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color}>
+      <rect x="2" y="10" width="4" height="12" fillOpacity="0.4" />
+      <rect x="8" y="6" width="4" height="16" fillOpacity="0.7" />
+      <rect x="14" y="14" width="4" height="8" fillOpacity="0.4" />
+      <rect x="20" y="2" width="4" height="20" fillOpacity="1" />
+   </svg>
+);
+
+const GeoCoin = ({ className, color = "currentColor", stroke = "white" }: { className?: string, color?: string, stroke?: string }) => (
+   <svg viewBox="0 0 24 24" className={className} fill={color}>
+      <circle cx="12" cy="12" r="8" fillOpacity="1" />
+      {/* Abstract 3D Coin representation */}
+      <path d="M12 4c-4.42 0-8 1.79-8 4s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4z" fillOpacity="1" />
+      <path d="M20 8v8c0 2.21-3.58 4-8 4s-8-1.79-8-4V8" fillOpacity="0.6" />
+      <path d="M12 12c-4.42 0-8-1.79-8-4" fill="none" stroke={stroke} strokeWidth="0.5" />
+   </svg>
+);
 
 // --- MOCK DATA DATASETS ---
 
@@ -82,21 +152,18 @@ const COST_TO_SERVE_DATA = [
    { lane: 'IN-US West', cpu: 2100, benchmark: 1850 }, // Bad
 ];
 
-// CARRIER SCORECARD DATA (Quadrant Analysis)
+// CARRIER SCORECARD DATA (Quadrant Analysis) - Indian Carriers
 // x: Cost Variance (Lower is better, left side)
 // y: Performance Score (Higher is better, top side)
 // z: Volume (Bubble size)
 const CARRIER_SCATTER_DATA = [
-   { name: 'Maersk', x: 2, y: 95, z: 4000, fill: '#004D40' }, // High Perf, Low Cost (Strategic)
-   { name: 'K-Line', x: 5, y: 88, z: 1200, fill: '#0F62FE' }, // Good Perf, Mid Cost
-   { name: 'MSC', x: -2, y: 82, z: 3000, fill: '#004D40' }, // Good Perf, Low Cost
-   { name: 'Hapag', x: 8, y: 90, z: 2500, fill: '#F59E0B' }, // High Perf, High Cost
-   { name: 'ONE', x: 4, y: 75, z: 1500, fill: '#6B7280' }, // Mid Perf, Mid Cost
-   { name: 'Evergreen', x: 12, y: 65, z: 800, fill: '#EF4444' }, // Low Perf, High Cost (Risk)
-   { name: 'ZIM', x: 1, y: 78, z: 1100, fill: '#6B7280' },
+   { name: 'Blue Dart Express', x: 1, y: 96, z: 2800, fill: '#004D40' }, // High Perf, Low Cost (Strategic)
+   { name: 'TCI Express', x: 3, y: 94, z: 3500, fill: '#0F62FE' }, // High Perf, Mid Cost
+   { name: 'Delhivery', x: 5, y: 91, z: 2200, fill: '#F59E0B' }, // Good Perf, Mid Cost
+   { name: 'Gati Limited', x: 7, y: 88, z: 1800, fill: '#6B7280' }, // Mid Perf, Higher Cost
 ];
 
-export const IntelligenceHub: React.FC = () => {
+export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> = ({ onNavigate }) => {
    const [activeView, setActiveView] = useState<'spend' | 'audit' | 'cts' | 'carrier'>('spend');
    const [timeRange, setTimeRange] = useState<'YTD' | 'QTD' | '30D'>('YTD');
    const [showFilters, setShowFilters] = useState(false);
@@ -119,23 +186,31 @@ export const IntelligenceHub: React.FC = () => {
       setTimeout(() => setIsLoadingData(false), 600); // Simulate data fetch
    };
 
-   const handleExport = () => {
+   const handleExport = async () => {
       setIsExporting(true);
-      setTimeout(() => {
+      try {
+         // Fetch real invoices from API
+         const response = await fetch('http://localhost:8000/api/invoices');
+         const result = await response.json();
+         const invoices = result.invoices || [];
+
          // Generate CSV Report using Universal Utility
-         const data = MOCK_INVOICES.map(inv => ({
+         const data = invoices.map((inv: any) => ({
             "Invoice #": inv.invoiceNumber,
-            "Carrier": inv.carrier,
-            "Date": inv.date,
+            "Carrier": inv.carrier || inv.vendor,
+            "Date": inv.invoiceDate,
             "Amount": inv.amount,
             "Status": inv.status
          }));
          exportToCSV(data, 'Financial_Intelligence_Report');
 
-         setIsExporting(false);
          setShowExportToast(true);
          setTimeout(() => setShowExportToast(false), 3000);
-      }, 1000);
+      } catch (error) {
+         console.error('Failed to export:', error);
+      } finally {
+         setIsExporting(false);
+      }
    };
 
    // Helper for formatting currency
@@ -148,14 +223,125 @@ export const IntelligenceHub: React.FC = () => {
       }).format(val);
    };
 
+   // Generate Detailed Accessorial Report
+   const generateAccessorialReport = () => {
+      // Comprehensive report data
+      const reportData = [
+         ['ACCESSORIAL & SURCHARGE IMPACT REPORT'],
+         ['Generated:', new Date().toLocaleString()],
+         ['Period:', timeRange],
+         [''],
+         ['EXECUTIVE SUMMARY'],
+         ['Total Accessorial Spend:', formatCurrency(ACCESSORIAL_IMPACT.reduce((sum, item) => sum + item.amount, 0))],
+         ['% of Base Freight:', '18.5%'],
+         ['YoY Change:', '+12.3%'],
+         [''],
+         ['DETAILED BREAKDOWN'],
+         ['Category', 'Amount', '% of Total', 'Count', 'Avg per Invoice', 'Trend'],
+         ...ACCESSORIAL_IMPACT.map(item => {
+            const total = ACCESSORIAL_IMPACT.reduce((sum, i) => sum + i.amount, 0);
+            const percentage = ((item.amount / total) * 100).toFixed(1);
+            const count = Math.floor(Math.random() * 200) + 50; // Mock count
+            const avgPerInvoice = item.amount / count;
+            const trend = item.amount > 50000 ? '↑ High Impact' : item.amount > 30000 ? '→ Moderate' : '↓ Low';
+            return [
+               item.name,
+               formatCurrency(item.amount),
+               `${percentage}%`,
+               count.toString(),
+               formatCurrency(avgPerInvoice),
+               trend
+            ];
+         }),
+         [''],
+         ['MONTHLY TREND ANALYSIS'],
+         ['Month', 'Fuel (FSC)', 'Detention', 'GRI', 'Chassis', 'Waiting', 'Total'],
+         ['Jan', '$98,000', '$38,000', '$28,000', '$15,000', '$10,000', '$189,000'],
+         ['Feb', '$105,000', '$41,000', '$30,000', '$16,000', '$11,000', '$203,000'],
+         ['Mar', '$112,000', '$43,000', '$31,000', '$17,000', '$11,500', '$214,500'],
+         ['Apr', '$118,000', '$44,000', '$31,500', '$17,500', '$11,800', '$222,800'],
+         ['May', '$122,000', '$45,000', '$32,000', '$18,000', '$12,000', '$229,000'],
+         ['Jun', '$125,000', '$45,000', '$32,000', '$18,000', '$12,000', '$232,000'],
+         [''],
+         ['KEY INSIGHTS & RECOMMENDATIONS'],
+         ['1. Fuel Surcharge (FSC)', 'Represents 54% of total accessorial spend'],
+         ['   - Recommendation:', 'Negotiate fuel cap clauses in contracts'],
+         ['   - Potential Savings:', '$15,000 - $20,000 per month'],
+         [''],
+         ['2. Detention/Demurrage', 'Second highest cost driver at 19%'],
+         ['   - Root Cause:', 'Average dwell time: 4.2 hours (target: 2 hours)'],
+         ['   - Recommendation:', 'Improve dock scheduling and pre-clearance'],
+         ['   - Potential Savings:', '$8,000 - $12,000 per month'],
+         [''],
+         ['3. GRI (General Rate Increase)', '14% of accessorial spend'],
+         ['   - Observation:', 'Applied quarterly without negotiation'],
+         ['   - Recommendation:', 'Lock in rates for 12-month periods'],
+         ['   - Potential Savings:', '$5,000 - $8,000 per month'],
+         [''],
+         ['4. Chassis Split Fee', '8% of total'],
+         ['   - Issue:', 'Charged on 45% of shipments'],
+         ['   - Recommendation:', 'Consolidate with carriers offering bundled chassis'],
+         ['   - Potential Savings:', '$3,000 - $5,000 per month'],
+         [''],
+         ['5. Waiting Time Charges', '5% of total'],
+         ['   - Average Wait:', '2.8 hours per shipment'],
+         ['   - Recommendation:', 'Implement appointment scheduling system'],
+         ['   - Potential Savings:', '$2,000 - $4,000 per month'],
+         [''],
+         ['TOTAL POTENTIAL SAVINGS:', '$33,000 - $49,000 per month'],
+         ['Annual Savings Opportunity:', '$396,000 - $588,000'],
+         [''],
+         ['CARRIER COMPARISON'],
+         ['Carrier', 'FSC %', 'Detention Rate', 'GRI Frequency', 'Overall Score'],
+         ['Maersk', '12.5%', '$85/hr', 'Quarterly', 'A'],
+         ['MSC', '13.2%', '$90/hr', 'Quarterly', 'B+'],
+         ['Hapag-Lloyd', '11.8%', '$80/hr', 'Semi-Annual', 'A+'],
+         ['ONE', '14.1%', '$95/hr', 'Quarterly', 'B'],
+         ['Evergreen', '15.2%', '$100/hr', 'Monthly', 'C'],
+         [''],
+         ['NEXT STEPS'],
+         ['1. Schedule carrier negotiations for Q4 2024'],
+         ['2. Implement dock scheduling system by end of Q3'],
+         ['3. Analyze top 20 lanes for consolidation opportunities'],
+         ['4. Review and update service level agreements'],
+         ['5. Establish monthly accessorial tracking dashboard'],
+         [''],
+         ['Report prepared by: SequelString AI Control Tower'],
+         ['For questions, contact: analytics@sequelstring.com']
+      ];
+
+      // Convert to CSV
+      const csvContent = reportData.map(row =>
+         Array.isArray(row) ? row.join(',') : row
+      ).join('\n');
+
+      // Create download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Accessorial_Surcharge_Report_${timeRange}_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Show success toast
+      setShowExportToast(true);
+      setTimeout(() => setShowExportToast(false), 3000);
+   };
+
    // --- SUB-COMPONENTS ---
 
-   const KPICard = ({ label, value, subtext, trend, color, icon: Icon }: any) => (
+   const KPICard = ({ label, value, subtext, trend, color, icon: Icon, iconColor }: any) => (
       <div className="bg-white p-5 rounded-sm border border-gray-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-shadow">
          <div className={`absolute right-0 top-0 w-24 h-24 ${color} opacity-10 rounded-bl-full -mr-4 -mt-4 transition-transform group-hover:scale-110`}></div>
          <div className="flex justify-between items-start relative z-10 mb-2">
             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</p>
-            <Icon size={18} className="text-gray-400 group-hover:text-gray-600" />
+            {/* 3D ICON REPLACEMENT - Maintaining original card colors logic for passing 'color' prop if needed, or using specific icon color */}
+            <div className={`w-8 h-8 ${iconColor || 'text-gray-500'}`}>
+               <Icon className="w-full h-full drop-shadow-md" />
+            </div>
          </div>
          <div className="flex items-end justify-between relative z-10">
             <h3 className="text-3xl font-bold text-gray-900">{isLoadingData ? '...' : value}</h3>
@@ -171,36 +357,40 @@ export const IntelligenceHub: React.FC = () => {
    const renderExecutiveSummary = () => (
       <div className="grid grid-cols-4 gap-6 mb-8 animate-fade-in-up">
          <KPICard
-            label="Total Spend"
-            value={timeRange === 'YTD' ? "$10.98M" : timeRange === 'QTD' ? "$3.2M" : "$980k"}
-            subtext={timeRange === 'YTD' ? "2.4% vs Bud" : "1.1% vs Bud"}
-            trend="up"
+            label="Total Freight Spend"
+            value={timeRange === 'YTD' ? "₹12.91M" : timeRange === 'QTD' ? "₹3.45M" : "₹1.12M"}
+            subtext={timeRange === 'YTD' ? "2.1% Under Budget" : "1.5% Under Budget"}
+            trend="down" // Good trend (under budget)
             color="bg-teal-500"
-            icon={DollarSign}
+            iconColor="text-teal-600"
+            icon={GeoCoin}
          />
          <KPICard
-            label="Audit Recovery"
-            value={timeRange === 'YTD' ? "$452.1k" : timeRange === 'QTD' ? "$125k" : "$42k"}
-            subtext="12% Rate"
-            trend="up" // Good trend (up means more savings)
+            label="Audit Savings"
+            value={timeRange === 'YTD' ? "₹90,025" : timeRange === 'QTD' ? "₹28,500" : "₹9,200"}
+            subtext="From 15 Auto-Rejections"
+            trend="up" // Good trend (more savings)
+            color="bg-green-500"
+            iconColor="text-green-600"
+            icon={GeoBar}
+         />
+         <KPICard
+            label="Touchless Rate"
+            value="57.0%"
+            subtext="Target: 85%"
+            trend="up" // Good trend (improving)
             color="bg-blue-500"
-            icon={ShieldCheck}
+            iconColor="text-blue-600"
+            icon={GeoSphere}
          />
          <KPICard
-            label="Cost Per Unit"
-            value="$124.50"
-            subtext="1.8% vs LY"
-            trend="down" // Good trend (down cost)
+            label="Open Exceptions"
+            value="12"
+            subtext="Avg: 1.5 Days"
+            trend="down" // Good trend (fewer exceptions)
             color="bg-orange-500"
-            icon={Target}
-         />
-         <KPICard
-            label="Active Disputes"
-            value="14"
-            subtext="$85.2k Risk"
-            trend="up" // Bad trend (more disputes)
-            color="bg-gray-500"
-            icon={AlertCircle}
+            iconColor="text-orange-500"
+            icon={GeoPyramid}
          />
       </div>
    );
@@ -289,7 +479,10 @@ export const IntelligenceHub: React.FC = () => {
                   <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Accessorial & Surcharge Impact</h3>
                   <p className="text-xs text-gray-500">Unplanned spend leakage beyond base freight.</p>
                </div>
-               <button className="text-teal-600 text-xs font-bold hover:underline flex items-center">
+               <button
+                  onClick={generateAccessorialReport}
+                  className="text-teal-600 text-xs font-bold hover:underline flex items-center cursor-pointer"
+               >
                   View Detailed Report <ArrowRight size={12} className="ml-1" />
                </button>
             </div>
@@ -310,6 +503,46 @@ export const IntelligenceHub: React.FC = () => {
 
    const renderAuditDashboard = () => (
       <div className="space-y-6 animate-fade-in-up">
+         {/* Audit-Specific KPI Cards */}
+         <div className="grid grid-cols-4 gap-6">
+            <KPICard
+               label="Audit Recovery (MTD)"
+               value="₹452.1k"
+               subtext="12% Recovery Rate"
+               trend="up"
+               color="bg-green-500"
+               iconColor="text-green-600"
+               icon={GeoCoin}
+            />
+            <KPICard
+               label="Auto-Rejection Rate"
+               value="8.5%"
+               subtext="Target: <5%"
+               trend="up" // Bad trend (too high)
+               color="bg-red-500"
+               iconColor="text-red-500"
+               icon={GeoPyramid}
+            />
+            <KPICard
+               label="Avg Audit Time"
+               value="2.3 hrs"
+               subtext="Target: <4 hrs"
+               trend="down" // Good trend (faster)
+               color="bg-blue-500"
+               iconColor="text-blue-500"
+               icon={GeoSphere}
+            />
+            <KPICard
+               label="Compliance Score"
+               value="94%"
+               subtext="Document Completeness"
+               trend="up" // Good trend
+               color="bg-teal-500"
+               iconColor="text-teal-500"
+               icon={GeoHexagon}
+            />
+         </div>
+
          <div className="grid grid-cols-2 gap-6">
             {/* Savings by Category */}
             <div className="bg-white border border-gray-200 rounded-sm shadow-sm p-6 min-w-0 min-h-0">
@@ -367,7 +600,7 @@ export const IntelligenceHub: React.FC = () => {
                   <Activity size={20} className="text-orange-500 mr-2" />
                   <h4 className="font-bold text-gray-800">Duplicate Prevention</h4>
                </div>
-               <p className="text-3xl font-bold text-gray-900">$89,000</p>
+               <p className="text-3xl font-bold text-gray-900">₹89,000</p>
                <p className="text-xs text-gray-500 mt-1">Saved from 12 duplicate invoices blocked.</p>
             </div>
 
@@ -385,6 +618,46 @@ export const IntelligenceHub: React.FC = () => {
 
    const renderCostToServe = () => (
       <div className="space-y-6 animate-fade-in-up">
+         {/* Cost-Specific KPI Cards */}
+         <div className="grid grid-cols-4 gap-6">
+            <KPICard
+               label="Cost Per Shipment"
+               value="₹124.50"
+               subtext="1.8% vs LY"
+               trend="down" // Good trend (lower cost)
+               color="bg-green-500"
+               iconColor="text-green-600"
+               icon={GeoCoin}
+            />
+            <KPICard
+               label="Cost Per Kg"
+               value="₹8.50"
+               subtext="Trending Down"
+               trend="down" // Good trend
+               color="bg-blue-500"
+               iconColor="text-blue-500"
+               icon={GeoBar}
+            />
+            <KPICard
+               label="Accessorial Charges"
+               value="₹2.1M"
+               subtext="18% of Total"
+               trend="up" // Bad trend (increasing)
+               color="bg-orange-500"
+               iconColor="text-orange-500"
+               icon={GeoPyramid}
+            />
+            <KPICard
+               label="Fuel Surcharge Impact"
+               value="₹1.8M"
+               subtext="15% of Base"
+               trend="up" // Bad trend
+               color="bg-red-500"
+               iconColor="text-red-500"
+               icon={GeoPrism}
+            />
+         </div>
+
          <div className="bg-white border border-gray-200 rounded-sm shadow-sm p-6 min-w-0 min-h-0">
             <div className="flex justify-between items-center mb-6">
                <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Cost Per TEU vs Benchmark</h3>
@@ -410,7 +683,7 @@ export const IntelligenceHub: React.FC = () => {
                <div>
                   <h4 className="text-sm font-bold text-red-800">High Cost Alert: IN-US West</h4>
                   <p className="text-xs text-red-700 mt-1">
-                     Current CPU ($2,100) is 13.5% above market benchmark ($1,850). Recommended action: Renegotiate detention terms or switch to Maersk Spot.
+                     Current CPU (₹2,100) is 13.5% above market benchmark (₹1,850). Recommended action: Renegotiate detention terms or switch to Maersk Spot.
                   </p>
                </div>
             </div>
@@ -420,38 +693,44 @@ export const IntelligenceHub: React.FC = () => {
 
    const renderCarrierScorecard = () => (
       <div className="space-y-6 animate-fade-in-up">
-         <div className="grid grid-cols-3 gap-6">
-            {/* KPI Cards for Carriers */}
-            <div className="bg-white border border-gray-200 p-5 rounded-sm shadow-sm flex items-center justify-between">
-               <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase">Network OTD</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">94.2%</p>
-                  <p className="text-[10px] text-green-600 font-bold">▲ 1.2% vs Last Month</p>
-               </div>
-               <div className="w-10 h-10 bg-teal-100 text-teal-700 rounded-full flex items-center justify-center">
-                  <Truck size={20} />
-               </div>
-            </div>
-            <div className="bg-white border border-gray-200 p-5 rounded-sm shadow-sm flex items-center justify-between">
-               <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase">Billing Accuracy</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">98.5%</p>
-                  <p className="text-[10px] text-gray-400 font-bold">− Stable</p>
-               </div>
-               <div className="w-10 h-10 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center">
-                  <FileText size={20} />
-               </div>
-            </div>
-            <div className="bg-white border border-gray-200 p-5 rounded-sm shadow-sm flex items-center justify-between">
-               <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase">Tender Acceptance</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">88.0%</p>
-                  <p className="text-[10px] text-red-500 font-bold">▼ 2.1% Capacity Constraint</p>
-               </div>
-               <div className="w-10 h-10 bg-orange-100 text-orange-700 rounded-full flex items-center justify-center">
-                  <CheckCircle size={20} />
-               </div>
-            </div>
+         {/* Carrier Performance Summary Cards (Intelligence Hub) */}
+         <div className="grid grid-cols-4 gap-6">
+            <KPICard
+               label="Top Carrier"
+               value="Blue Dart"
+               subtext="Score: 96.2"
+               trend="up"
+               color="bg-teal-500"
+               iconColor="text-teal-500"
+               icon={GeoPrism}
+            />
+            <KPICard
+               label="Avg On-Time %"
+               value="92.3%"
+               subtext="Across All Carriers"
+               trend="up"
+               color="bg-green-500"
+               iconColor="text-green-600"
+               icon={GeoHexagon}
+            />
+            <KPICard
+               label="Invoice Accuracy"
+               value="94.5%"
+               subtext="Industry: 89%"
+               trend="up"
+               color="bg-blue-500"
+               iconColor="text-blue-500"
+               icon={GeoPie}
+            />
+            <KPICard
+               label="Active Anomalies"
+               value="2"
+               subtext="TCI, Delhivery"
+               trend="down" // Good trend (fewer anomalies)
+               color="bg-orange-500"
+               iconColor="text-orange-500"
+               icon={GeoPyramid}
+            />
          </div>
 
          {/* Main Quadrant Chart */}
@@ -629,7 +908,7 @@ export const IntelligenceHub: React.FC = () => {
             {/* Navigation Tabs */}
             <div className="flex space-x-8 mt-6 -mb-5 overflow-x-auto">
                {[
-                  { id: 'spend', label: 'Global Freight Spend', icon: DollarSign },
+                  { id: 'spend', label: 'Global Freight Spend', icon: IndianRupee },
                   { id: 'audit', label: 'Audit & Recovery', icon: ShieldCheck },
                   { id: 'cts', label: 'Cost-to-Serve', icon: Layers },
                   { id: 'carrier', label: 'Carrier Scorecard', icon: Activity }
@@ -651,11 +930,13 @@ export const IntelligenceHub: React.FC = () => {
 
          {/* 2. Main Content */}
          <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-            {/* Common Executive Summary */}
-            {renderExecutiveSummary()}
-
-            {/* Dynamic Content */}
-            {activeView === 'spend' && renderSpendDashboard()}
+            {/* Dynamic Content - Each section has its own unique KPI cards */}
+            {activeView === 'spend' && (
+               <>
+                  {renderExecutiveSummary()}
+                  {renderSpendDashboard()}
+               </>
+            )}
             {activeView === 'audit' && renderAuditDashboard()}
             {activeView === 'cts' && renderCostToServe()}
             {activeView === 'carrier' && renderCarrierScorecard()}

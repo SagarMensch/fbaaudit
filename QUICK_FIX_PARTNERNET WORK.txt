@@ -1,0 +1,12 @@
+// QUICK FIX FOR PARTNERNET WORK.tsx LINE 305
+// Replace line 305:
+//   <li key={idx} className="text-xs text-gray-700">{pain}</li>
+// 
+// With:
+//   <li key={idx} className="text-xs text-gray-700">
+//     <span className="font-medium">{(pain as any).type}</span> - 
+//     Severity: {(pain as any).severity}, Count: {(pain as any).count}
+//   </li>
+
+// The issue is that `pain` is an object with properties {type, severity, count, avgAmount}
+// but React can't render objects directly - we need to render the individual properties

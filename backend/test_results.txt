@@ -1,0 +1,170 @@
+﻿======================================================================
+VDU ENGINE TEST - Laxmi Pharma Invoice
+======================================================================
+Γ£à VDUEngine initialized (Cloud-based, CPU-only)
+Γ£à ConfidenceCalibrator initialized
+
+[1] RAW TEXT EXTRACTION
+--------------------------------------------------
+Γä╣∩╕Å Scanned PDF detected - using OCR...
+Characters extracted: 2000
+Method: llama-3.3-70b-versatile
+Processing time: 3.791s
+
+RAW TEXT (first 2500 chars):
+LAXMI PHA
+
+Plant: Survey No. 467, At. Mota
+
+RMA PACK
+
+pondha, Wadi Falia, Ta. Kaprada,
+Dist. Valsad, Vapi, Gujarat - 396 191
+Tel.: +91 2633223100 (30 lines) email id: Ipp.sales@laxmigroup.in
+Crafting Clothes for your products ....
+
+Section 3
+
+G.S.T. TAX INVOICE
+
+1 of CGST Act. 2017 read with Rule 4 of Revised Invoice Rule 2017
+
+ORIGINAL FOR BUYER
+
+GSTIN : 24AADFL9441P1ZU_ PAN: AADFL9441P
+
+State Code: 24 Place of Supply : GUJARAT
+
+IRN No. : 8d66fd832d823db141 873fe2f2228e2063aa98bb569b964458bebb7e36c2b603
+
+[Ack No. : 162522770287126
+
+Ack. Date : 29-11-2025 Udyam Reg.No.: UDYAM-Gu-25-0003625
+
+E-Waybill No. : 602012826548 Date : 29-11-2025 Valid till: 01-12-2025
+
+INDOCO REMEDIES LIMITED
+B-20,MIDC, WALUJ
+
+PAN No. :
+
+Customer Code; IN
+
+Account To / Buyer :
+INDOCO REMEDIES LIMITED
+B-20,MIDC, WALUJ
+
+MAHARASHTRA
+
+Aurangabad 431136 Aurangabad 431136
+
+State : MAHARASHTRA State :
+
+State Code: 27 State Code: 27
+
+GSTIN No. : 27AAACI0380C1Z3 GSTIN No. : 27AAACI0380C1Z3
+PAN No.: ΓÇö AAACIO380C
+
+AAACI0380C
+Customer Code: IN
+
+P.O.No. ; 4500084568 Invoice No. LPP/25-26/3329
+
+P.O. Date =: 11/11/2025 Date & Time of Preparation: 29-11-2025 18:17 hrs.
+
+Vehicle No. : GJ15YY3730 Date & Time of Removal: LY f2 a 19-5CO
+
+Transit : ROAD Challan No. & Date: LPP/25-26/3329 29/11/2025
+
+Delivery ; PAID Whether under Reverse Charge: N
+
+DELIVERY LOCATION: |
+
+Assessable
+Value
+
+Batch No. LPP/25-26/3751-1
+
+| IDOCO REMEDIES LTD. WALU.
+
+Received Goods subject te the
+ity
+
+Approval of Quality & Quant
+cross Weight:
+
+Tare Weigitt: 7
+Net Weight: SPO
+
+Sign & date\ 4
+ign ae I
+
+Sr. Code No. Product Description Quantity | Final
+No. per Box pa
+PRINTED CARTONS - (HSN:48192090)
+1 |2012271 CTN NOSIC 10 MG 5 X 30 TABLETS a! Zz 1350
+
+10500 1600/THD 16800.00
+
+1050
+
+, DEC qos
+
+Lr Tora] 8 10500[ =|
+Notification No. 09/2025 Central Tax (Rate) Dated 17-09-2025 TOTAL AMOUNT BEFORE TAX 16800.00
+| "HEN Code "| Taxable Value IGST CESS )CGST - |
+ΓÇ£amt. [% | amt. |SGST .
+48192090 16800.00 840.00 - |IGST 840.00,
+Totals 16800.00 840.0
+
+
+[2] FIELD MAPPINGS (Structured Extraction)
+--------------------------------------------------
+  invoice_number: LPP/25-26/3329
+  invoice_date: 2025-11-29
+  vendor_name: LAXMI PHA
+  vendor_gstin: 24AADFL9441P1ZU
+  buyer_name: INDOCO REMEDIES LIMITED
+  buyer_gstin: 27AAACI0380C1Z3
+  origin: GUJARAT
+  destination: MAHARASHTRA
+  vehicle_number: GJ15YY3730
+  base_amount: 16800.0
+  igst_amount: 840.0
+  total_amount: 17640.0
+
+
+[3] TABLE DETECTION
+--------------------------------------------------
+Tables found: 0
+
+  Line Items Found in Text:
+  [OK] Product Description column detected
+  [OK] Quantity column detected
+  [OK] Amount/Value column detected
+  [OK] Tax columns detected
+
+
+[4] CONFIDENCE CALIBRATION
+--------------------------------------------------
+Overall Confidence: 71.2%
+Quality Rating: FAIR
+Needs Review: True
+
+Field Confidences:
+  invoice_number: 61% (validated: False)
+  invoice_date: 47% (validated: False)
+  vendor_name: 74% (validated: True)
+  vendor_gstin: 78% (validated: True)
+  buyer_name: 74% (validated: True)
+  buyer_gstin: 78% (validated: True)
+  origin: 74% (validated: True)
+  destination: 74% (validated: True)
+  vehicle_number: 78% (validated: True)
+  base_amount: 78% (validated: True)
+  igst_amount: 74% (validated: True)
+  total_amount: 64% (validated: True)
+
+======================================================================
+TEST COMPLETE
+======================================================================

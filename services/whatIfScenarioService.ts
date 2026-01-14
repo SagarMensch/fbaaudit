@@ -61,7 +61,7 @@ export const runSimulation = (source: string, target: string, percent: number, t
         riskAssessment: risk,
         details: [
             `Moving ${Math.round(volumeToShift)} units from ${source} to ${target}.`,
-            `Rate Difference: $${sourceProfile.avgCost} -> $${targetProfile.avgCost} per unit.`,
+            `Rate Difference: ₹${sourceProfile.avgCost} -> ₹${targetProfile.avgCost} per unit.`,
             targetProfile.reliability < 0.9 ? 'Warning: Target carrier has lower reliability score.' : 'Target carrier reliability is stable.'
         ]
     };

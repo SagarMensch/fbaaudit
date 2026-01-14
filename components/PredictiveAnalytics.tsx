@@ -60,7 +60,7 @@ export const PredictiveAnalytics: React.FC = () => {
                         />
                         <YAxis
                             tick={{ fontSize: 11, fill: '#64748B' }}
-                            tickFormatter={(val) => `$${val / 1000000}M`}
+                            tickFormatter={(val) => `₹${val / 1000000}M`}
                         />
                         <Tooltip
                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}

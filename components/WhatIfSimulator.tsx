@@ -89,7 +89,7 @@ export const WhatIfSimulator: React.FC = () => {
                         </p>
                         <h4 className={`text-xl font-black mt-1 flex items-center ${result.savings >= 0 ? 'text-green-700' : 'text-red-700'}`}>
                             {result.savings >= 0 ? <TrendingDown size={20} className="mr-1" /> : <TrendingUp size={20} className="mr-1" />}
-                            ${Math.abs(result.savings).toLocaleString()}
+                            ₹{Math.abs(result.savings).toLocaleString()}
                         </h4>
                     </div>
 
