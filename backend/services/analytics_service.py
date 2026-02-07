@@ -1,18 +1,20 @@
 
-import mysql.connector
-from mysql.connector import errorcode
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import random
+import os
 from datetime import datetime, timedelta
 import uuid
+from db_config import DATABASE_URL
 
 class AnalyticsService:
-    def __init__(self, db_config):
-        self.db_config = db_config
+    def __init__(self, db_config=None):
+        self.database_url = DATABASE_URL
 
     def get_db_connection(self):
         try:
-            return mysql.connector.connect(**self.db_config)
-        except mysql.connector.Error as err:
+            return psycopg2.connect(self.database_url)
+        except psycopg2.Error as err:
             print(f"Error connecting to database: {err}")
             return None
 
@@ -21,7 +23,7 @@ class AnalyticsService:
         if not conn:
             return {'error': 'Database connection failed'}
 
-        cursor = conn.cursor(dictionary=True)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
         try:
             # Check if data exists, if not seed it
             cursor.execute("SELECT COUNT(*) as count FROM shipments")
@@ -65,7 +67,7 @@ class AnalyticsService:
 
             return {'shipments': cts_data}
 
-        except mysql.connector.Error as err:
+        except psycopg2.Error as err:
             print(f"Error querying data: {err}")
             return {'error': str(err)}
         finally:

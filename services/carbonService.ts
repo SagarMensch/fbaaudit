@@ -30,6 +30,7 @@ export const calculateCarbon = (invoice: Invoice): CarbonFootprint => {
     let mode: 'OCEAN' | 'AIR' | 'ROAD' | 'RAIL' = 'OCEAN';
     if (invoice.carrier.includes('Air') || invoice.carrier.includes('Express') || invoice.origin?.includes('Airport')) mode = 'AIR';
     else if (invoice.carrier.includes('Truck') || invoice.carrier.includes('Road')) mode = 'ROAD';
+    else if (invoice.carrier.includes('Rail') || invoice.carrier.includes('Train')) mode = 'RAIL';
 
     // Construct lane key or default
     const laneKey = `${invoice.origin}-${invoice.destination}`;

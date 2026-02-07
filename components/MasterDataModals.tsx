@@ -394,10 +394,14 @@ export const AddAccessorialModal: React.FC<{ isOpen: boolean; onClose: () => voi
             code: formData.code.toUpperCase(),
             description: formData.description,
             category: formData.category as any,
-            chargeType: formData.chargeType,
+            chargeType: formData.chargeType as 'Fixed' | 'Per Day' | 'Per KM' | '% of Freight' | 'Per Trip' | 'Per Ton',
             amount: parseFloat(formData.amount),
             currency: 'INR',
-            logic: formData.logic as any
+            logic: formData.logic as any,
+            applicableFor: ['FTL'], // Default
+            status: 'active',
+            createdBy: 'System', // Default
+            conditions: '' // Default
         });
 
         EventBus.emit('accessorial.created', { code: formData.code });

@@ -20,26 +20,26 @@ export interface SupplierInvoice {
     invoiceNumber: string;
     invoiceDate: string;
     dueDate?: string;
-    lrNumber: string;
+    lrNumber?: string;
     vehicleNumber?: string;
     origin?: string;
     destination?: string;
     currency?: string;
-    lineItems: InvoiceLineItem[];
-    subtotal: number;
-    fuelSurcharge: number;
-    fuelSurchargePercent: number;
-    gst: number;
-    gstPercent: number;
+    lineItems?: InvoiceLineItem[];
+    subtotal?: number;
+    fuelSurcharge?: number;
+    fuelSurchargePercent?: number;
+    gst?: number;
+    gstPercent?: number;
     totalAmount: number;
     podStatus: 'pending' | 'uploaded' | 'verified';
     podUploadDate?: string;
-    status: 'submitted' | 'under_review' | 'approved' | 'rejected' | 'paid';
-    submittedDate: string;
+    status: 'submitted' | 'under_review' | 'approved' | 'rejected' | 'paid' | 'pending';
+    submittedDate?: string;
     reviewedDate?: string;
     reviewedBy?: string;
     comments?: string;
-    dispute?: any; // Linked Dispute Ticket
+    dispute?: any;
 }
 
 export interface MatchingResult {

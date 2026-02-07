@@ -128,7 +128,10 @@ export class EnhancedLaneService extends TemporalDataService<EnhancedLane> {
         if (!enrichedData.onTimePercent) enrichedData.onTimePercent = 100;
         if (!enrichedData.averageLoadFactor) enrichedData.averageLoadFactor = 0;
 
-        return await this.createVersion(enrichedData, new Date(), userId, 'Lane created');
+        return await this.createVersion({
+            ...enrichedData,
+            id: enrichedData.laneCode || `LANE-${Date.now()}`
+        } as EnhancedLane, new Date(), userId, 'Lane created');
     }
 
     /**

@@ -1,52 +1,38 @@
 """
-Location Service - MySQL Integration
-=====================================
-CRUD operations for locations from MySQL database.
+Location Service - PostgreSQL Integration
+==========================================
+CRUD operations for locations from PostgreSQL database.
 """
 
-import mysql.connector
-from mysql.connector import Error
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from psycopg2 import Error
 from typing import List, Dict, Optional
 from datetime import datetime
+import os
 
 # Import database config
 try:
-    from db_config import DB_CONFIG, DB_NAME
+    from db_config import DATABASE_URL
 except ImportError:
-    DB_CONFIG = {
-        'host': 'localhost',
-        'user': 'root',
-        'password': 'Password123!',
-        'port': 3306
-    }
-    DB_NAME = 'ledgerone'
+    DATABASE_URL = os.getenv('DATABASE_URL')
 
 
 def get_connection():
-    """Get MySQL connection with database"""
-    config = DB_CONFIG.copy()
-    config['database'] = DB_NAME
-    return mysql.connector.connect(**config)
-
-
-def dict_from_row(cursor, row) -> Dict:
-    """Convert a database row to a dictionary"""
-    if row is None:
-        return None
-    columns = [desc[0] for desc in cursor.description]
-    return dict(zip(columns, row))
+    """Get PostgreSQL connection"""
+    return psycopg2.connect(DATABASE_URL)
 
 
 class LocationServiceDB:
     """
-    Location Service with MySQL backend.
+    Location Service with PostgreSQL backend.
     """
     
     def get_all_locations(self, location_type: Optional[str] = None, city: Optional[str] = None) -> List[Dict]:
         """Get all locations with optional filtering"""
         try:
             conn = get_connection()
-            cursor = conn.cursor()
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             query = "SELECT * FROM locations WHERE is_active = TRUE"
             params = []
@@ -56,7 +42,7 @@ class LocationServiceDB:
                 params.append(location_type)
             
             if city:
-                query += " AND city LIKE %s"
+                query += " AND city ILIKE %s"
                 params.append(f"%{city}%")
             
             query += " ORDER BY city, name ASC"
@@ -66,7 +52,7 @@ class LocationServiceDB:
             
             locations = []
             for row in rows:
-                location = dict_from_row(cursor, row)
+                location = dict(row)
                 for field in ['created_at', 'updated_at']:
                     if location.get(field):
                         location[field] = str(location[field])
@@ -85,22 +71,15 @@ class LocationServiceDB:
         """Get a single location by ID"""
         try:
             conn = get_connection()
-            cursor = conn.cursor()
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             cursor.execute("SELECT * FROM locations WHERE id = %s", (location_id,))
             row = cursor.fetchone()
             
-            if not row:
-                cursor.close()
-                conn.close()
-                return None
-            
-            location = dict_from_row(cursor, row)
-            
             cursor.close()
             conn.close()
             
-            return location
+            return dict(row) if row else None
             
         except Error as e:
             print(f"Error fetching location {location_id}: {e}")

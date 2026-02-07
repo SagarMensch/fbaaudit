@@ -114,6 +114,10 @@ export interface IndianSupplier {
     createdDate: string;
     lastUpdated: string;
     contractExpiry: string;
+
+    // Backward compatibility aliases
+    gstin?: string;
+    contactPerson?: string;
 }
 
 // ==================== INDIAN SUPPLIER DATA ====================

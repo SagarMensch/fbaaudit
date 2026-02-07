@@ -1,1 +1,0 @@
-types.ts(1033,1): error TS1131: Property or signature expected.

@@ -1,15 +1,17 @@
 """
-s-ETS Shock-Proof Rate Benchmark API Routes
+s-ETS Shock-Proof Rate Benchmark API Routes (PostgreSQL)
 Endpoints for rate validation, disruption management, and benchmark queries
 """
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import logging
+import os
 
-from db_config import DB_CONFIG
+from db_config import DATABASE_URL
 from ml.shock_ets import shock_model
 
 logger = logging.getLogger(__name__)
@@ -27,7 +29,7 @@ class ValidateRateRequest(BaseModel):
 class DisruptionRequest(BaseModel):
     lane: str
     is_disruption: bool
-    event_type: Optional[str] = "STRIKE"  # STRIKE, FESTIVAL, WEATHER, OTHER
+    event_type: Optional[str] = "STRIKE"
     region: Optional[str] = None
 
 
@@ -56,37 +58,37 @@ class ValidationResponse(BaseModel):
     explanation: str
 
 
-# MySQL Connection
+# PostgreSQL Connection
 def get_db():
-    return mysql.connector.connect(**DB_CONFIG)
+    return psycopg2.connect(DATABASE_URL)
 
 
 def init_shock_tables():
-    """Create tables if they don't exist"""
+    """Create tables if they don't exist (PostgreSQL syntax)"""
     try:
         db = get_db()
         cursor = db.cursor()
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS rate_benchmarks (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 lane VARCHAR(100) NOT NULL UNIQUE,
                 current_level DECIMAL(12,2),
                 current_shock DECIMAL(12,2),
                 last_rate DECIMAL(12,2),
                 is_disruption BOOLEAN DEFAULT FALSE,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS disruption_events (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                event_type ENUM('STRIKE','FESTIVAL','WEATHER','OTHER') DEFAULT 'STRIKE',
+                id SERIAL PRIMARY KEY,
+                event_type VARCHAR(20) DEFAULT 'STRIKE',
                 region VARCHAR(100),
                 affected_lanes TEXT,
-                start_date DATETIME,
-                end_date DATETIME,
+                start_date TIMESTAMP,
+                end_date TIMESTAMP,
                 impact_factor DECIMAL(3,2) DEFAULT 1.5,
                 is_active BOOLEAN DEFAULT TRUE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -95,12 +97,12 @@ def init_shock_tables():
         
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS rate_validations (
-                id INT AUTO_INCREMENT PRIMARY KEY,
+                id SERIAL PRIMARY KEY,
                 lane VARCHAR(100),
                 submitted_rate DECIMAL(12,2),
                 benchmark DECIMAL(12,2),
                 variance_pct DECIMAL(5,2),
-                verdict ENUM('APPROVED','FLAGGED_HIGH','FLAGGED_LOW'),
+                verdict VARCHAR(20),
                 is_disruption BOOLEAN,
                 validated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -120,12 +122,7 @@ init_shock_tables()
 
 @router.post("/validate-rate", response_model=ValidationResponse)
 async def validate_rate(request: ValidateRateRequest):
-    """
-    Validate a submitted rate against the s-ETS benchmark.
-    
-    Returns APPROVED if within tolerance, FLAGGED_HIGH if over, FLAGGED_LOW if under.
-    Automatically accounts for disruption premium when active.
-    """
+    """Validate a submitted rate against the s-ETS benchmark."""
     try:
         result = shock_model.validate_rate(
             lane=request.lane,
@@ -133,7 +130,7 @@ async def validate_rate(request: ValidateRateRequest):
             update_state=request.update_model
         )
         
-        # Log validation to MySQL
+        # Log validation to PostgreSQL
         try:
             db = get_db()
             cursor = db.cursor()
@@ -172,11 +169,7 @@ async def validate_rate(request: ValidateRateRequest):
 
 @router.get("/benchmark/{lane}", response_model=BenchmarkResponse)
 async def get_benchmark(lane: str):
-    """
-    Get current benchmark for a lane.
-    
-    Returns base level, shock component, and total benchmark.
-    """
+    """Get current benchmark for a lane."""
     try:
         benchmark = shock_model.calculate_benchmark(lane)
         
@@ -196,7 +189,7 @@ async def get_benchmark(lane: str):
 
 @router.get("/benchmarks", response_model=List[BenchmarkResponse])
 async def get_all_benchmarks():
-    """Get benchmarks for all tracked lanes from MySQL"""
+    """Get benchmarks for all tracked lanes"""
     try:
         rows = shock_model.get_all_benchmarks()
         benchmarks = []
@@ -225,12 +218,7 @@ async def get_all_benchmarks():
 
 @router.put("/disruption")
 async def toggle_disruption(request: DisruptionRequest):
-    """
-    Toggle disruption state for a lane.
-    
-    When disruption is activated, the shock component starts absorbing the premium.
-    When deactivated, the shock resets to 0 and benchmark snaps back to base level.
-    """
+    """Toggle disruption state for a lane."""
     try:
         result = shock_model.set_disruption(
             lane=request.lane,
@@ -238,7 +226,7 @@ async def toggle_disruption(request: DisruptionRequest):
             event_type=request.event_type
         )
         
-        # Log to MySQL
+        # Log to PostgreSQL
         try:
             db = get_db()
             cursor = db.cursor()
@@ -297,21 +285,20 @@ async def initialize_lane(request: InitializeLaneRequest):
 
 @router.get("/history/{lane}")
 async def get_history(lane: str, limit: int = 50):
-    """Get rate validation history for a lane from MySQL"""
+    """Get rate validation history for a lane"""
     try:
         db = get_db()
-        cursor = db.cursor(dictionary=True)
+        cursor = db.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("""
-            SELECT submitted_rate, benchmark, base_level, shock_premium, 
-                   variance_pct, verdict, is_disruption, validated_at
+            SELECT submitted_rate, benchmark, variance_pct, verdict, is_disruption, validated_at
             FROM rate_validations 
             WHERE lane = %s 
             ORDER BY validated_at DESC 
             LIMIT %s
         """, (lane, limit))
         
-        rows = cursor.fetchall()
+        rows = [dict(row) for row in cursor.fetchall()]
         cursor.close()
         db.close()
         
@@ -319,7 +306,7 @@ async def get_history(lane: str, limit: int = 50):
         for row in rows:
             if row.get('validated_at'):
                 row['validated_at'] = str(row['validated_at'])
-            for key in ['submitted_rate', 'benchmark', 'base_level', 'shock_premium', 'variance_pct']:
+            for key in ['submitted_rate', 'benchmark', 'variance_pct']:
                 if row.get(key):
                     row[key] = float(row[key])
         
@@ -335,7 +322,7 @@ async def get_active_disruptions():
     """Get all currently active disruptions"""
     try:
         db = get_db()
-        cursor = db.cursor(dictionary=True)
+        cursor = db.cursor(cursor_factory=RealDictCursor)
         
         cursor.execute("""
             SELECT * FROM disruption_events 
@@ -343,18 +330,15 @@ async def get_active_disruptions():
             ORDER BY start_date DESC
         """)
         
-        events = cursor.fetchall()
+        events = [dict(row) for row in cursor.fetchall()]
         cursor.close()
         db.close()
         
         # Convert datetime to string
         for event in events:
-            if event.get('start_date'):
-                event['start_date'] = str(event['start_date'])
-            if event.get('end_date'):
-                event['end_date'] = str(event['end_date'])
-            if event.get('created_at'):
-                event['created_at'] = str(event['created_at'])
+            for dt_field in ['start_date', 'end_date', 'created_at']:
+                if event.get(dt_field):
+                    event[dt_field] = str(event[dt_field])
         
         return {"active_disruptions": events}
         

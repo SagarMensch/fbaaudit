@@ -89,7 +89,7 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Extract Unique Carriers for Dropdown
-  const uniqueCarriers = ['All', ...Array.from(new Set(invoices.map(inv => inv.carrier))).sort()];
+  const uniqueCarriers: string[] = ['All', ...Array.from(new Set<string>(invoices.map((inv: Invoice) => inv.carrier))).sort()];
 
   const triggerToast = (msg: string) => {
     setToast(msg);
@@ -976,7 +976,7 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
                     origin: documentPopupInvoice.origin,
                     destination: documentPopupInvoice.destination,
                     amount: documentPopupInvoice.amount,
-                    weight: documentPopupInvoice.weight || 250,
+                    weight: documentPopupInvoice.logistics?.weight || 250,
                     awbNumber: documentPopupInvoice.invoiceNumber.replace('/', '_'),
                     lineItems: documentPopupInvoice.lineItems
                   }}

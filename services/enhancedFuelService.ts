@@ -427,29 +427,23 @@ export class FuelPriceScraperService {
             const petrolPrice = 100 + Math.random() * 10;
 
             await this.fuelService.addFuelPrice({
-                id: `IOCL_${city}_DIESEL_${Date.now()}`,
                 city,
                 state: this.getCityState(city),
                 country: 'India',
                 fuelType: 'DIESEL',
                 price: dieselPrice,
                 source: 'IOCL',
-                thresholdPercent: 2,
-                createdBy: 'SCRAPER',
-                modifiedBy: 'SCRAPER'
+                thresholdPercent: 2
             }, 'SCRAPER');
 
             await this.fuelService.addFuelPrice({
-                id: `IOCL_${city}_PETROL_${Date.now()}`,
                 city,
                 state: this.getCityState(city),
                 country: 'India',
                 fuelType: 'PETROL',
                 price: petrolPrice,
                 source: 'IOCL',
-                thresholdPercent: 2,
-                createdBy: 'SCRAPER',
-                modifiedBy: 'SCRAPER'
+                thresholdPercent: 2
             }, 'SCRAPER');
         }
 

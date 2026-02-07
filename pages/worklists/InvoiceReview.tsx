@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import InvoiceStorageService from '../../services/invoiceStorageService';
 import InvoiceMatchingService, { SupplierInvoice, MatchingResult } from '../../services/invoiceMatchingService';
-import IndianSupplierService from '../../services/supplierService';
+import { IndianSupplierService } from '../../services/supplierService';
 import {
     FileText, CheckCircle, XCircle, AlertTriangle, Eye, Download,
     TrendingUp, TrendingDown, Minus, Check, X
@@ -210,7 +210,7 @@ export const InvoiceReview: React.FC = () => {
                                         <div className="text-right">
                                             <p className="text-xs text-gray-600">Recommendation</p>
                                             <p className={`text-lg font-bold ${matchingResult.recommendation === 'approve' ? 'text-green-700' :
-                                                    matchingResult.recommendation === 'review' ? 'text-orange-700' : 'text-red-700'
+                                                matchingResult.recommendation === 'review' ? 'text-orange-700' : 'text-red-700'
                                                 }`}>
                                                 {matchingResult.recommendation.toUpperCase()}
                                             </p>
@@ -245,7 +245,7 @@ export const InvoiceReview: React.FC = () => {
                                         <div className="space-y-2">
                                             {matchingResult.discrepancies.map((disc, idx) => (
                                                 <div key={idx} className={`p-3 border ${disc.severity === 'high' ? 'bg-red-50 border-red-200' :
-                                                        disc.severity === 'medium' ? 'bg-orange-50 border-orange-200' : 'bg-yellow-50 border-yellow-200'
+                                                    disc.severity === 'medium' ? 'bg-orange-50 border-orange-200' : 'bg-yellow-50 border-yellow-200'
                                                     }`}>
                                                     <div className="flex items-start justify-between">
                                                         <div className="flex-1">
@@ -267,7 +267,7 @@ export const InvoiceReview: React.FC = () => {
                                                             )}
                                                         </div>
                                                         <span className={`px-2 py-0.5 text-xs font-bold rounded ${disc.severity === 'high' ? 'bg-red-100 text-red-700' :
-                                                                disc.severity === 'medium' ? 'bg-orange-100 text-orange-700' : 'bg-yellow-100 text-yellow-700'
+                                                            disc.severity === 'medium' ? 'bg-orange-100 text-orange-700' : 'bg-yellow-100 text-yellow-700'
                                                             }`}>
                                                             {disc.severity.toUpperCase()}
                                                         </span>

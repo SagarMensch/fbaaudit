@@ -80,7 +80,6 @@ const GeoPulseIcon = ({ className }: { className?: string }) => (
 
 const GeoCoin = ({ className }: { className?: string }) => (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-        <cylinder cx="12" cy="12" r="8" height="4" fillOpacity="1" />
         {/* Abstract 3D Coin representation */}
         <path d="M12 4c-4.42 0-8 1.79-8 4s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4z" fillOpacity="1" />
         <path d="M20 8v8c0 2.21-3.58 4-8 4s-8-1.79-8-4V8" fillOpacity="0.6" />
@@ -448,7 +447,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, activePersona,
                             </div>
                         </div>
                         <button onClick={() => {
-                            import('../services/pdfGenerator').then(({ pdfGenerator }) => {
+                            import('../../services/pdfGenerator').then(({ pdfGenerator }) => {
                                 const blob = pdfGenerator.generateExecutiveReport();
                                 const url = URL.createObjectURL(blob);
                                 const a = document.createElement('a');

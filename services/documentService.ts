@@ -165,7 +165,7 @@ const MOCK_DOCUMENTS: LogisticsDocument[] = [
         documentNumber: 'AIP-TCI-2024',
         metadata: {
             vehicleCount: '5000+',
-            states: 'All India'
+            states: ['All India']
         }
     },
 

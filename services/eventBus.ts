@@ -58,6 +58,7 @@ export type EventType =
     // Vehicle Events
     | 'vehicle.created'
     | 'vehicle.available'
+    | 'vehicle.updated'
 
     // Accessorial Events
     | 'accessorial.created'

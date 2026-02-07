@@ -987,7 +987,7 @@ export interface LaneOptimizationSuggestion {
 // ============================================================================
 
 export type PaymentMethod = 'ACH' | 'WIRE' | 'CHECK' | 'NEFT' | 'RTGS' | 'UPI' | 'IMPS';
-export type PaymentBatchStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'PROCESSING' | 'PAID' | 'FAILED' | 'CANCELLED';
+export type PaymentBatchStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'AWAITING_APPROVAL' | 'APPROVED' | 'PROCESSING' | 'PAID' | 'FAILED' | 'CANCELLED' | 'SENT_TO_BANK';
 export type PaymentTransactionStatus = 'PENDING' | 'INCLUDED' | 'PROCESSING' | 'PAID' | 'FAILED' | 'CANCELLED';
 export type ReconciliationStatus = 'UNMATCHED' | 'MATCHED' | 'EXCEPTION' | 'IGNORED';
 

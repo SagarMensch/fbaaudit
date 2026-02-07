@@ -1,0 +1,27 @@
+﻿components/MasterDataModals.tsx(397,13): error TS2322: Type 'string' is not assignable to type '"Per Trip" | "Per Ton" | "Fixed" | "Per Day" | "Per KM" | "% of Freight"'.
+pages/analytics/CapacityForecast.tsx(36,24): error TS2304: Cannot find name 'int'.
+pages/master-data/MasterDataHub.tsx(441,25): error TS2345: Argument of type '"vehicle.updated"' is not assignable to parameter of type 'EventType'.
+pages/master-data/MasterDataHub.tsx(975,21): error TS2345: Argument of type '"vehicle.updated"' is not assignable to parameter of type 'EventType'.
+pages/master-data/MasterDataHub.tsx(984,27): error TS2345: Argument of type '"vehicle.updated"' is not assignable to parameter of type 'EventType'.
+pages/master-data/MasterDataHub.tsx(994,27): error TS2345: Argument of type '"vehicle.updated"' is not assignable to parameter of type 'EventType'.
+pages/master-data/MasterDataHub.tsx(1032,122): error TS2345: Argument of type '"vehicle.updated"' is not assignable to parameter of type 'EventType'.
+pages/master-data/PartnerNetwork.tsx(117,74): error TS2339: Property 'otd' does not exist on type '{ networkOTD: number; onTimeDelivery: number; firstAttemptSuccess: number; damageRate: number; podReturnTime: number; customerSatisfaction: number; }'.
+pages/master-data/PartnerNetwork.tsx(127,75): error TS2345: Argument of type 'string' is not assignable to parameter of type '"surface" | "express" | "air" | "ptl" | "ftl"'.
+pages/master-data/PartnerNetwork.tsx(329,102): error TS2339: Property 'score' does not exist on type '{ networkOTD: number; onTimeDelivery: number; firstAttemptSuccess: number; damageRate: number; podReturnTime: number; customerSatisfaction: number; }'.
+pages/master-data/RateCards.tsx(228,110): error TS2322: Type '"Delay"' is not assignable to type '"Handling" | "Fuel" | "Security" | "Seasonal"'.
+pages/master-data/RateCards.tsx(229,118): error TS2322: Type '"Location"' is not assignable to type '"Handling" | "Fuel" | "Security" | "Seasonal"'.
+pages/master-data/RateCards.tsx(231,102): error TS2322: Type '"Route"' is not assignable to type '"Handling" | "Fuel" | "Security" | "Seasonal"'.
+pages/supplier/ProfileCompliance.tsx(131,110): error TS2339: Property 'gstin' does not exist on type 'IndianSupplier'.
+pages/supplier/ProfileCompliance.tsx(240,86): error TS2339: Property 'gstin' does not exist on type 'IndianSupplier'.
+pages/supplier/ResolutionCenter.tsx(45,22): error TS2339: Property 'contactPerson' does not exist on type 'IndianSupplier'.
+pages/worklists/Dashboard.tsx(83,9): error TS2339: Property 'cylinder' does not exist on type 'JSX.IntrinsicElements'.
+pages/worklists/Dashboard.tsx(451,36): error TS2307: Cannot find module '../services/pdfGenerator' or its corresponding type declarations.
+pages/worklists/InvoiceReview.tsx(27,48): error TS2576: Property 'getSupplierById' does not exist on type 'IndianSupplierService'. Did you mean to access the static member 'IndianSupplierService.getSupplierById' instead?
+pages/worklists/InvoiceWorkbench.tsx(979,50): error TS2339: Property 'weight' does not exist on type 'Invoice'.
+pages/worklists/SettlementFinance.tsx(747,38): error TS2367: This comparison appears to be unintentional because the types 'PaymentBatchStatus' and '"SENT_TO_BANK"' have no overlap.
+pages/worklists/SettlementFinance.tsx(748,38): error TS2367: This comparison appears to be unintentional because the types 'PaymentBatchStatus' and '"AWAITING_APPROVAL"' have no overlap.
+services/carbonService.ts(49,29): error TS2367: This comparison appears to be unintentional because the types '"ROAD" | "AIR"' and '"RAIL"' have no overlap.
+services/documentService.ts(168,13): error TS2322: Type 'string' is not assignable to type 'string[]'.
+services/enhancedFuelService.ts(430,17): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<EnhancedFuelPrice, keyof TemporalEntity>'.
+services/enhancedFuelService.ts(443,17): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'Omit<EnhancedFuelPrice, keyof TemporalEntity>'.
+services/enhancedLaneService.ts(131,41): error TS2345: Argument of type '{ name: string; status: "ACTIVE" | "INACTIVE" | "SEASONAL" | "PENDING_APPROVAL"; utilizationPercent: number; laneCode: string; onTimePercent: number; originClusterId: string; ... 17 more ...; seasonalPeriods?: Array<{ start: string; end: string; }>; }' is not assignable to parameter of type 'Omit<EnhancedLane, "createdBy" | "modifiedBy" | "effectiveFrom" | "effectiveTo" | "versionId" | "createdAt" | "modifiedAt" | "isActive">'.

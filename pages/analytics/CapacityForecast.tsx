@@ -33,7 +33,7 @@ interface Prediction {
     forecast_date: string;
     week_label: string;
     predicted_trucks: number;
-    contracted_trucks: int;
+    contracted_trucks: number;
     gap: number;
     confidence: number;
     alert_level: string;

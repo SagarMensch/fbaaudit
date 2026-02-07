@@ -1,21 +1,23 @@
 """
-s-ETS (Shock Exponential Smoothing) Algorithm - MySQL Integrated
+s-ETS (Shock Exponential Smoothing) Algorithm - PostgreSQL Integrated
 Separates Normal Rate Level from Disruption Premium (Strike/Festival)
-All data is stored and retrieved from MySQL
+All data is stored and retrieved from PostgreSQL via Supabase
 """
 from typing import Dict, Tuple, List, Optional
 from datetime import datetime, timedelta
 from dataclasses import dataclass
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 import logging
+import os
 
-from db_config import DB_CONFIG
+from db_config import DATABASE_URL
 
 logger = logging.getLogger(__name__)
 
 
 def get_db():
-    return mysql.connector.connect(**DB_CONFIG)
+    return psycopg2.connect(DATABASE_URL)
 
 
 @dataclass
@@ -44,9 +46,9 @@ class RateValidation:
 
 class ShockETSModel:
     """
-    s-ETS Model Implementation - MySQL Backed
+    s-ETS Model Implementation - PostgreSQL Backed
     
-    All lane states are stored in MySQL rate_benchmarks table.
+    All lane states are stored in PostgreSQL rate_benchmarks table.
     """
     
     def __init__(
@@ -61,10 +63,10 @@ class ShockETSModel:
         self.default_level = 40000.0
     
     def get_state(self, lane: str) -> Dict:
-        """Get current state for a lane from MySQL"""
+        """Get current state for a lane from PostgreSQL"""
         try:
             db = get_db()
-            cursor = db.cursor(dictionary=True)
+            cursor = db.cursor(cursor_factory=RealDictCursor)
             
             cursor.execute("""
                 SELECT lane, current_level, current_shock, last_rate, is_disruption
@@ -102,7 +104,7 @@ class ShockETSModel:
             }
     
     def update_state(self, lane: str, level: float, shock: float, is_disruption: bool, last_rate: float) -> None:
-        """Update lane state in MySQL"""
+        """Update lane state in PostgreSQL"""
         try:
             db = get_db()
             cursor = db.cursor()
@@ -139,7 +141,7 @@ class ShockETSModel:
             logger.info(f"Disruption ended for {lane}. Resetting shock component.")
             new_shock = 0.0
         
-        # Update in MySQL
+        # Update in PostgreSQL
         self.update_state(lane, state["level"], new_shock, is_disruption, state["last_rate"])
         
         return {
@@ -186,7 +188,7 @@ class ShockETSModel:
             new_level = max(1000, new_level)
             new_shock = max(0, new_shock)
             
-            # Update in MySQL
+            # Update in PostgreSQL
             self.update_state(lane, new_level, new_shock, is_disruption, current_rate)
             
             # Update local state for return
@@ -211,9 +213,7 @@ class ShockETSModel:
         submitted_rate: float,
         update_state: bool = True
     ) -> RateValidation:
-        """
-        Validate a submitted rate against the s-ETS benchmark.
-        """
+        """Validate a submitted rate against the s-ETS benchmark."""
         if update_state:
             benchmark = self.calculate_benchmark(lane, submitted_rate)
         else:
@@ -243,17 +243,16 @@ class ShockETSModel:
                 f"Suspiciously low - verify quality/compliance."
             )
         
-        # Log validation to MySQL
+        # Log validation to PostgreSQL
         try:
             db = get_db()
             cursor = db.cursor()
             cursor.execute("""
                 INSERT INTO rate_validations 
-                (lane, submitted_rate, benchmark, base_level, shock_premium, variance_pct, verdict, is_disruption)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                (lane, submitted_rate, benchmark, variance_pct, verdict, is_disruption)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """, (
                 lane, submitted_rate, benchmark.total_benchmark,
-                benchmark.base_level, benchmark.shock_component if benchmark.is_disruption else 0,
                 variance_pct, verdict, benchmark.is_disruption
             ))
             db.commit()
@@ -274,17 +273,17 @@ class ShockETSModel:
         )
     
     def get_all_benchmarks(self) -> List[Dict]:
-        """Get all lane benchmarks from MySQL"""
+        """Get all lane benchmarks from PostgreSQL"""
         try:
             db = get_db()
-            cursor = db.cursor(dictionary=True)
+            cursor = db.cursor(cursor_factory=RealDictCursor)
             
             cursor.execute("""
                 SELECT lane, current_level, current_shock, is_disruption, last_rate
                 FROM rate_benchmarks ORDER BY lane
             """)
             
-            rows = cursor.fetchall()
+            rows = [dict(row) for row in cursor.fetchall()]
             cursor.close()
             db.close()
             
@@ -300,15 +299,16 @@ class ShockETSModel:
         initial_level: float,
         initial_shock: float = 0.0
     ) -> Dict:
-        """Initialize a lane with known values in MySQL"""
+        """Initialize a lane with known values in PostgreSQL"""
         try:
             db = get_db()
             cursor = db.cursor()
             
+            # PostgreSQL UPSERT syntax
             cursor.execute("""
                 INSERT INTO rate_benchmarks (lane, current_level, current_shock, last_rate, is_disruption)
                 VALUES (%s, %s, %s, %s, FALSE)
-                ON DUPLICATE KEY UPDATE current_level = VALUES(current_level)
+                ON CONFLICT (lane) DO UPDATE SET current_level = EXCLUDED.current_level
             """, (lane, initial_level, initial_shock, initial_level))
             
             db.commit()

@@ -114,7 +114,7 @@ export const PartnerNetwork: React.FC = () => {
    const stats = {
       total: partners.length,
       strategic: partners.filter(p => p.tier === 'STRATEGIC').length,
-      avgOTD: Math.round(partners.reduce((sum, p) => sum + p.performance.otd, 0) / partners.length * 10) / 10,
+      avgOTD: Math.round(partners.reduce((sum, p) => sum + p.performance.networkOTD, 0) / partners.length * 10) / 10,
       complianceRisks: partners.filter(p => p.riskProfile.level === 'medium' || p.riskProfile.level === 'high').length
    };
 
@@ -124,7 +124,7 @@ export const PartnerNetwork: React.FC = () => {
          partner.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
          partner.gstNumber?.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesMode = filterMode === 'all' || partner.modes?.includes(filterMode);
+      const matchesMode = filterMode === 'all' || partner.modes?.includes(filterMode as 'surface' | 'express' | 'air' | 'ptl' | 'ftl');
       const matchesTier = filterTier === 'all' || partner.tier === filterTier;
 
       return matchesSearch && matchesMode && matchesTier;
@@ -326,7 +326,7 @@ export const PartnerNetwork: React.FC = () => {
                         </td>
                         <td className="px-6 py-4">
                            <div className="text-sm font-medium text-gray-900">{partner.performance.onTimeDelivery}% OTD</div>
-                           <div className="text-xs text-gray-500 mt-0.5">Score: {partner.performance.score}/100</div>
+                           <div className="text-xs text-gray-500 mt-0.5">Score: {(partner.performance.customerSatisfaction * 20).toFixed(0)}/100</div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-700">{getRiskLabel(partner.riskProfile.level)}</td>
                         <td className="px-6 py-4">{getStatusBadge(partner.connectivity?.status || 'inactive')}</td>

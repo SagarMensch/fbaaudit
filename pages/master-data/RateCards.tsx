@@ -94,7 +94,7 @@ interface Accessorial {
    chargeType: string;
    amount: number;
    currency: string;
-   category: 'Fuel' | 'Security' | 'Handling' | 'Seasonal';
+   category: 'Fuel' | 'Security' | 'Handling' | 'Seasonal' | 'Delay' | 'Location' | 'Route';
    logic: 'Fixed' | 'Pass-through' | '% of Freight';
 }
 

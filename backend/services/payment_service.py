@@ -1,10 +1,11 @@
 """
-Payment Service - Full Payment System Backend
+Payment Service - Full Payment System Backend (PostgreSQL)
 Handles: Batches, Transactions, Bank Reconciliation, Early Payment Discounts
 """
 
 import uuid
-import mysql.connector
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Any
 from decimal import Decimal
@@ -13,11 +14,11 @@ import sys
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from db_config import DB_CONFIG
+from db_config import DATABASE_URL
 
 # Database Connection - using db_config.py
 def get_db_connection():
-    return mysql.connector.connect(**DB_CONFIG)
+    return psycopg2.connect(DATABASE_URL)
 
 
 class PaymentService:
@@ -34,7 +35,7 @@ class PaymentService:
         """
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             # Get approved invoices not yet in a batch
             cursor.execute("""
@@ -48,7 +49,7 @@ class PaymentService:
                 ORDER BY si.due_date ASC
             """, (status_filter,))
             
-            invoices = cursor.fetchall()
+            invoices = [dict(row) for row in cursor.fetchall()]
             cursor.close()
             conn.close()
             
@@ -76,13 +77,13 @@ class PaymentService:
         """
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             # Generate batch ID and number
             batch_id = str(uuid.uuid4())
             batch_number = f"PAY-{datetime.now().strftime('%Y%m%d')}-{batch_id[:6].upper()}"
             
-            # Calculate totals from invoices (mock - would query real data)
+            # Calculate totals from invoices
             total_amount = Decimal('0.00')
             transactions = []
             
@@ -92,6 +93,7 @@ class PaymentService:
                 invoice = cursor.fetchone()
                 
                 if invoice:
+                    invoice = dict(invoice)
                     original_amount = Decimal(str(invoice['amount']))
                     discount_amount = Decimal('0.00')
                     
@@ -109,7 +111,7 @@ class PaymentService:
                         'batch_id': batch_id,
                         'invoice_id': inv_id,
                         'vendor_id': invoice.get('supplier_id'),
-                        'vendor_name': invoice.get('supplier_id'),  # Would lookup vendor name
+                        'vendor_name': invoice.get('supplier_id'),
                         'original_amount': float(original_amount),
                         'discount_amount': float(discount_amount),
                         'final_amount': float(final_amount),
@@ -164,7 +166,7 @@ class PaymentService:
         """Get all payment batches, optionally filtered by status."""
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             if status_filter:
                 cursor.execute("""
@@ -175,7 +177,7 @@ class PaymentService:
             else:
                 cursor.execute("SELECT * FROM payment_batches ORDER BY created_at DESC")
             
-            batches = cursor.fetchall()
+            batches = [dict(row) for row in cursor.fetchall()]
             cursor.close()
             conn.close()
             
@@ -188,7 +190,7 @@ class PaymentService:
         """Get batch details including all transactions."""
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             # Get batch
             cursor.execute("SELECT * FROM payment_batches WHERE id = %s", (batch_id,))
@@ -197,13 +199,15 @@ class PaymentService:
             if not batch:
                 return None
             
+            batch = dict(batch)
+            
             # Get transactions
             cursor.execute("""
                 SELECT * FROM payment_transactions 
                 WHERE batch_id = %s 
                 ORDER BY created_at
             """, (batch_id,))
-            transactions = cursor.fetchall()
+            transactions = [dict(row) for row in cursor.fetchall()]
             
             cursor.close()
             conn.close()
@@ -266,8 +270,7 @@ class PaymentService:
             
             conn.commit()
             
-            # Simulate bank processing (in production, this would be async)
-            # Generate mock bank reference
+            # Simulate bank processing
             bank_ref = f"BANK-{datetime.now().strftime('%Y%m%d%H%M%S')}-{batch_id[:6].upper()}"
             
             cursor.close()
@@ -304,12 +307,12 @@ class PaymentService:
                 WHERE batch_id = %s
             """, (bank_reference, batch_id))
             
-            # Update original invoices to PAID
+            # Update original invoices to PAID (PostgreSQL syntax)
             cursor.execute("""
-                UPDATE supplier_invoices si
-                INNER JOIN payment_transactions pt ON si.id = pt.invoice_id
-                SET si.status = 'PAID'
-                WHERE pt.batch_id = %s
+                UPDATE supplier_invoices 
+                SET status = 'PAID'
+                FROM payment_transactions pt
+                WHERE supplier_invoices.id = pt.invoice_id AND pt.batch_id = %s
             """, (batch_id,))
             
             conn.commit()
@@ -329,7 +332,6 @@ class PaymentService:
     def import_bank_statement(self, transactions: List[Dict], statement_id: Optional[str] = None) -> Dict:
         """
         Import bank statement transactions for reconciliation.
-        Accepts list of: {date, reference, description, amount, type}
         """
         try:
             conn = get_db_connection()
@@ -370,7 +372,7 @@ class PaymentService:
         """Get bank transactions that haven't been matched yet."""
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             cursor.execute("""
                 SELECT * FROM bank_reconciliations 
@@ -378,7 +380,7 @@ class PaymentService:
                 ORDER BY transaction_date DESC
             """)
             
-            transactions = cursor.fetchall()
+            transactions = [dict(row) for row in cursor.fetchall()]
             cursor.close()
             conn.close()
             
@@ -416,12 +418,11 @@ class PaymentService:
     
     def auto_reconcile(self) -> Dict:
         """
-        Automatically match bank transactions to payment batches
-        based on amount and reference matching.
+        Automatically match bank transactions to payment batches.
         """
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             # Get unmatched bank transactions
             cursor.execute("SELECT * FROM bank_reconciliations WHERE status = 'UNMATCHED'")
@@ -430,6 +431,7 @@ class PaymentService:
             matched_count = 0
             
             for txn in unmatched:
+                txn = dict(txn)
                 # Try to match by bank reference
                 cursor.execute("""
                     SELECT id FROM payment_batches 
@@ -483,12 +485,10 @@ class PaymentService:
     # =========================================================================
     
     def calculate_early_discount(self, invoice_id: str) -> Optional[Dict]:
-        """
-        Calculate if early payment discount is available for an invoice.
-        """
+        """Calculate if early payment discount is available for an invoice."""
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             # Get invoice details
             cursor.execute("SELECT * FROM supplier_invoices WHERE id = %s", (invoice_id,))
@@ -497,11 +497,13 @@ class PaymentService:
             if not invoice:
                 return None
             
+            invoice = dict(invoice)
+            
             # Get vendor's early payment terms
             cursor.execute("""
                 SELECT * FROM early_payment_terms 
                 WHERE vendor_id = %s AND is_active = TRUE
-                  AND (valid_to IS NULL OR valid_to >= CURDATE())
+                  AND (valid_to IS NULL OR valid_to >= CURRENT_DATE)
                 ORDER BY discount_percent DESC
                 LIMIT 1
             """, (invoice.get('supplier_id'),))
@@ -515,6 +517,8 @@ class PaymentService:
                     'eligible': False,
                     'reason': 'No early payment terms configured for this vendor'
                 }
+            
+            terms = dict(terms)
             
             # Calculate days remaining
             due_date = invoice.get('due_date')
@@ -565,7 +569,7 @@ class PaymentService:
             cursor.execute("""
                 INSERT INTO early_payment_terms
                 (id, vendor_id, vendor_name, discount_percent, days_early, valid_from)
-                VALUES (%s, %s, %s, %s, %s, CURDATE())
+                VALUES (%s, %s, %s, %s, %s, CURRENT_DATE)
             """, (term_id, vendor_id, vendor_name, discount_percent, days_early))
             
             conn.commit()
@@ -586,7 +590,7 @@ class PaymentService:
         """Get all payments for a specific vendor."""
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             cursor.execute("""
                 SELECT pt.*, pb.batch_number, pb.payment_method, pb.paid_at as batch_paid_at
@@ -596,7 +600,7 @@ class PaymentService:
                 ORDER BY pt.created_at DESC
             """, (vendor_id,))
             
-            payments = cursor.fetchall()
+            payments = [dict(row) for row in cursor.fetchall()]
             cursor.close()
             conn.close()
             
@@ -609,7 +613,7 @@ class PaymentService:
         """Get payment summary for vendor dashboard."""
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             # Total paid
             cursor.execute("""
@@ -620,7 +624,7 @@ class PaymentService:
                 FROM payment_transactions
                 WHERE vendor_id = %s AND status = 'PAID'
             """, (vendor_id,))
-            paid_stats = cursor.fetchone()
+            paid_stats = dict(cursor.fetchone())
             
             # Pending
             cursor.execute("""
@@ -630,7 +634,7 @@ class PaymentService:
                 FROM payment_transactions
                 WHERE vendor_id = %s AND status IN ('PENDING', 'INCLUDED', 'PROCESSING')
             """, (vendor_id,))
-            pending_stats = cursor.fetchone()
+            pending_stats = dict(cursor.fetchone())
             
             cursor.close()
             conn.close()
@@ -655,7 +659,7 @@ class PaymentService:
         """Get latest exchange rate between currencies."""
         try:
             conn = get_db_connection()
-            cursor = conn.cursor(dictionary=True)
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
             
             cursor.execute("""
                 SELECT rate FROM currency_rates
@@ -683,11 +687,13 @@ class PaymentService:
             rate_id = str(uuid.uuid4())
             today = datetime.now().strftime('%Y-%m-%d')
             
+            # PostgreSQL UPSERT syntax
             cursor.execute("""
                 INSERT INTO currency_rates (id, from_currency, to_currency, rate, effective_date)
                 VALUES (%s, %s, %s, %s, %s)
-                ON DUPLICATE KEY UPDATE rate = %s
-            """, (rate_id, from_currency, to_currency, rate, today, rate))
+                ON CONFLICT (from_currency, to_currency, effective_date) 
+                DO UPDATE SET rate = EXCLUDED.rate
+            """, (rate_id, from_currency, to_currency, rate, today))
             
             conn.commit()
             cursor.close()
