@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Load Indian Contracts - SequelString AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 50px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #1B2559;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #667eea;
+            font-size: 18px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: left;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            color: #1B2559;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .info-box ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .info-box li {
+            padding: 8px 0;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .info-box li:before {
+            content: "✓ ";
+            color: #10B981;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            margin-top: 20px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 2px solid #10B981;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #EF4444;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .contract-count {
+            background: #667eea;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="logo">🇮🇳</div>
+        <h1>Load Indian Logistics Contracts</h1>
+        <p class="subtitle">Clear old foreign data & load 15 Indian contracts</p>
+
+        <div class="info-box">
+            <h3>📦 What will be loaded:</h3>
+            <ul>
+                <li>TCI Express Limited - Express Service</li>
+                <li>Blue Dart Express - Air Express</li>
+                <li>Delhivery Limited - Surface Logistics</li>
+                <li>VRL Logistics - Surface Transport</li>
+                <li>Gati Limited - Multi-modal</li>
+                <li>Safexpress - Express Cargo</li>
+                <li>Rivigo Services - FTL Tech-enabled</li>
+                <li>DTDC Express - Courier & Cargo</li>
+                <li>Professional Couriers - Document & Parcel</li>
+                <li>Ecom Express - E-commerce Focused</li>
+                <li>XpressBees - Last Mile Delivery</li>
+                <li>Shadowfax - Hyperlocal</li>
+                <li>Mahindra Logistics - 3PL Services</li>
+                <li>Allcargo Logistics - Integrated Logistics</li>
+                <li>Transport Corporation of India - Multi-modal</li>
+            </ul>
+            <div class="contract-count">15 Indian Contracts | 25+ Routes</div>
+        </div>
+
+        <button class="btn" onclick="clearAndLoad()">🚀 Clear Cache & Load Indian Contracts</button>
+
+        <div class="spinner" id="spinner"></div>
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        function clearAndLoad() {
+            const btn = document.querySelector('.btn');
+            const spinner = document.getElementById('spinner');
+            const status = document.getElementById('status');
+
+            // Disable button
+            btn.disabled = true;
+            btn.textContent = 'Processing...';
+            spinner.style.display = 'block';
+            status.style.display = 'none';
+
+            try {
+                // Clear old contract cache
+                console.log('🗑️ Clearing old contract cache...');
+                localStorage.removeItem('contracts_v1');
+                localStorage.removeItem('contracts_indian_v1');
+
+                // Force new cache key
+                console.log('✅ Old cache cleared!');
+
+                // Show success
+                setTimeout(() => {
+                    spinner.style.display = 'none';
+                    status.className = 'status success';
+                    status.style.display = 'block';
+                    status.innerHTML = `
+                        <strong>✅ Success!</strong><br>
+                        Old foreign contracts cleared.<br>
+                        15 Indian logistics contracts will load on next page visit.<br>
+                        <br>
+                        <strong>Redirecting to Contract Manager...</strong>
+                    `;
+
+                    // Redirect after 2 seconds
+                    setTimeout(() => {
+                        window.location.href = 'http://localhost:3000';
+                    }, 2000);
+                }, 1000);
+
+            } catch (error) {
+                spinner.style.display = 'none';
+                status.className = 'status error';
+                status.style.display = 'block';
+                status.innerHTML = `
+                    <strong>❌ Error:</strong><br>
+                    ${error.message}<br>
+                    Please try manually clearing your browser cache.
+                `;
+                btn.disabled = false;
+                btn.textContent = '🔄 Try Again';
+            }
+        }
+
+        // Log current cache status
+        window.addEventListener('load', () => {
+            const oldCache = localStorage.getItem('contracts_v1');
+            const newCache = localStorage.getItem('contracts_indian_v2');
+            console.log('📊 Cache Status:');
+            console.log('Old contracts_v1:', oldCache ? 'EXISTS (will be cleared)' : 'Not found');
+            console.log('New contracts_indian_v2:', newCache ? 'EXISTS' : 'Will be created');
+        });
+    </script>
+</body>
+
+</html>

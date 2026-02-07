@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Force Reset - Indian Invoices</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .btn:hover {
+            background: #c82333;
+        }
+
+        .success {
+            background: #28a745;
+        }
+
+        .success:hover {
+            background: #218838;
+        }
+
+        .info {
+            background: #e7f3ff;
+            border: 2px solid #2196F3;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        pre {
+            background: #f5f5f5;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        .status {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .ok {
+            background: #d4edda;
+            color: #155724;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔧 Force Reset to Indian Invoices</h1>
+
+        <div class="info">
+            <strong>Current Issue:</strong> App is loading old cached invoices (Maersk, FedEx) instead of new Indian
+            invoices (TCI, Blue Dart, Delhivery, Gati).
+        </div>
+
+        <div id="currentData" class="status"></div>
+
+        <button class="btn" onclick="showCurrentData()">1. Check Current Data</button>
+        <button class="btn" onclick="forceReset()">2. FORCE RESET to Indian Invoices</button>
+        <button class="btn success" onclick="goToApp()">3. Open App</button>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function showCurrentData() {
+            const invoices = localStorage.getItem('invoices_v2');
+            const resultDiv = document.getElementById('result');
+            const statusDiv = document.getElementById('currentData');
+
+            if (invoices) {
+                const data = JSON.parse(invoices);
+                const carriers = [...new Set(data.map(inv => inv.carrier))];
+
+                statusDiv.className = 'status error';
+                statusDiv.innerHTML = `
+                    <strong>❌ Found OLD Data:</strong><br>
+                    Count: ${data.length} invoices<br>
+                    Carriers: ${carriers.join(', ')}
+                `;
+
+                resultDiv.innerHTML = `
+                    <h3>Current localStorage Data:</h3>
+                    <pre>${JSON.stringify(data.slice(0, 2), null, 2)}</pre>
+                    <p><em>Showing first 2 of ${data.length} invoices</em></p>
+                `;
+            } else {
+                statusDiv.className = 'status ok';
+                statusDiv.innerHTML = '<strong>✅ No cached data found - will load fresh!</strong>';
+                resultDiv.innerHTML = '';
+            }
+        }
+
+        function forceReset() {
+            const resultDiv = document.getElementById('result');
+            const statusDiv = document.getElementById('currentData');
+
+            // Remove ALL storage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Clear IndexedDB
+            if (window.indexedDB) {
+                indexedDB.databases().then(databases => {
+                    databases.forEach(db => {
+                        indexedDB.deleteDatabase(db.name);
+                    });
+                });
+            }
+
+            // Clear service worker cache
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => caches.delete(name));
+                });
+            }
+
+            statusDiv.className = 'status ok';
+            statusDiv.innerHTML = '<strong>✅ ALL DATA CLEARED!</strong>';
+
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <h3>✅ Reset Complete!</h3>
+                    <p>Cleared:</p>
+                    <ul>
+                        <li>✅ localStorage</li>
+                        <li>✅ sessionStorage</li>
+                        <li>✅ IndexedDB</li>
+                        <li>✅ Cache Storage</li>
+                    </ul>
+                    <p><strong>Now click "Open App" to load fresh Indian invoices!</strong></p>
+                </div>
+            `;
+        }
+
+        function goToApp() {
+            window.location.href = 'http://localhost:3000';
+        }
+
+        // Auto-check on load
+        window.onload = showCurrentData;
+    </script>
+</body>
+
+</html>

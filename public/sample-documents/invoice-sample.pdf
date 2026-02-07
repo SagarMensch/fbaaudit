@@ -1,0 +1,62 @@
+# Sample Invoice Document
+
+**INVOICE**
+
+---
+
+**TCI EXPRESS LIMITED**  
+TCI House, 69 Institutional Area, Sector 32  
+Gurugram, Haryana - 122001  
+GSTIN: 27AABCT1234R1Z5  
+PAN: AABCT1234R  
+
+---
+
+**INVOICE TO:**  
+ABC Manufacturing Pvt Ltd  
+Plot No. 45, Industrial Area  
+Mumbai, Maharashtra - 400001  
+
+---
+
+**Invoice Number:** TCI/2024/001  
+**Invoice Date:** January 5, 2024  
+**LR Number:** LR-TCI-2024-001  
+
+---
+
+**SHIPMENT DETAILS:**
+
+| Description | Origin | Destination | Weight | Rate | Amount |
+|-------------|--------|-------------|--------|------|--------|
+| Freight Charges | Delhi | Mumbai | 500 kg | ₹14.50/kg | ₹7,250.00 |
+
+---
+
+**CHARGES BREAKDOWN:**
+
+| Item | Amount (₹) |
+|------|-----------|
+| Base Freight | 7,250.00 |
+| Fuel Surcharge (15%) | 1,087.50 |
+| **Subtotal** | **8,337.50** |
+| GST @ 18% | 1,500.75 |
+| **TOTAL AMOUNT** | **₹9,838.25** |
+
+---
+
+**Payment Terms:** Net 30 Days  
+**Bank Details:**  
+Account Name: TCI Express Limited  
+Account Number: 1234567890  
+IFSC Code: HDFC0001234  
+Bank: HDFC Bank, Gurugram  
+
+---
+
+**Authorized Signatory**  
+TCI Express Limited
+
+---
+
+*This is a computer-generated invoice and does not require a signature*

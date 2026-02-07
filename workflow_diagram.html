@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>SequelString - Invoice Processing Workflow</title>
+    <link href="https://fonts.googleapis.com/css2?family=GFS+Didot&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'GFS Didot', 'Didot', serif;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .slide {
+            width: 1280px;
+            height: 720px;
+            background: #fff;
+            border: 2px solid #000;
+            position: relative;
+            padding: 25px 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 12px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 10px;
+            color: #000;
+            font-style: italic;
+        }
+
+        .swimlanes {
+            display: flex;
+            height: 560px;
+            border: 2px solid #000;
+        }
+
+        .lane-labels {
+            width: 100px;
+            border-right: 2px solid #000;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lane-label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #000;
+            background: #fff;
+        }
+
+        .lane-label:last-child {
+            border-bottom: none;
+        }
+
+        .lanes-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .lane {
+            flex: 1;
+            border-bottom: 2px solid #000;
+            position: relative;
+        }
+
+        .lane:last-child {
+            border-bottom: none;
+        }
+
+        .node {
+            position: absolute;
+            text-align: center;
+        }
+
+        .box {
+            border: 2px solid #000;
+            background: #fff;
+            padding: 6px 10px;
+            font-size: 9px;
+            font-weight: bold;
+            min-width: 85px;
+        }
+
+        .box-title {
+            margin-bottom: 2px;
+        }
+
+        .box-sub {
+            font-size: 7px;
+            color: #000;
+            font-style: italic;
+            font-weight: normal;
+        }
+
+        .diamond {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #000;
+            background: #fff;
+            transform: rotate(45deg);
+        }
+
+        .diamond-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 7px;
+            font-weight: bold;
+            width: 50px;
+            text-align: center;
+        }
+
+        .terminal {
+            border: 2px solid #000;
+            border-radius: 12px;
+            padding: 5px 12px;
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+        .terminal.dark {
+            background: #000;
+            color: #fff;
+        }
+
+        .ml-box {
+            border: 2px solid #000;
+            background: #fff;
+            padding: 5px 8px;
+            font-size: 8px;
+            font-weight: bold;
+            min-width: 70px;
+        }
+
+        .ml-title {
+            margin-bottom: 2px;
+        }
+
+        .ml-sub {
+            font-size: 6px;
+            color: #000;
+            font-style: italic;
+            font-weight: normal;
+        }
+
+        .role-badge {
+            font-size: 6px;
+            background: #fff;
+            border: 1px solid #000;
+            padding: 2px 5px;
+            margin-top: 3px;
+            display: inline-block;
+            font-weight: normal;
+        }
+
+        svg.connectors {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .line {
+            stroke: #000;
+            stroke-width: 2.5;
+            fill: none;
+        }
+
+        .line-dash {
+            stroke: #000;
+            stroke-width: 2;
+            stroke-dasharray: 6 4;
+            fill: none;
+        }
+
+        .lbl {
+            font-size: 6px;
+            font-weight: bold;
+            color: #000;
+            position: absolute;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 8px;
+            left: 30px;
+            display: flex;
+            gap: 20px;
+            font-size: 7px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .leg-shape {
+            width: 14px;
+            height: 9px;
+            border: 2px solid #000;
+            background: #fff;
+        }
+
+        .leg-shape.dm {
+            width: 9px;
+            height: 9px;
+            transform: rotate(45deg);
+        }
+
+        .leg-shape.tm {
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="slide">
+        <div class="header">
+            <h1>Freight Audit Workflow — End-to-End Process</h1>
+            <p>From supplier invoice submission through ML validation, multi-level approval, and final ERP posting</p>
+        </div>
+
+        <div class="swimlanes">
+            <div class="lane-labels">
+                <div class="lane-label">Supplier</div>
+                <div class="lane-label">AI Engine</div>
+                <div class="lane-label">Operations</div>
+                <div class="lane-label">Finance</div>
+                <div class="lane-label">Director</div>
+            </div>
+
+            <div class="lanes-content">
+                <svg class="connectors" viewBox="0 0 1150 560">
+                    <defs>
+                        <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                            <path d="M0,0 L8,4 L0,8 L2,4 Z" fill="#000" />
+                        </marker>
+                    </defs>
+
+                    <!-- Supplier Lane Connections -->
+                    <path d="M 68 55 L 108 55" class="line" marker-end="url(#arr)" />
+                    <path d="M 193 55 L 238 55" class="line" marker-end="url(#arr)" />
+                    <path d="M 323 55 L 368 55" class="line" marker-end="url(#arr)" />
+
+                    <!-- Supplier to System -->
+                    <path d="M 420 75 L 420 127" class="line" marker-end="url(#arr)" />
+
+                    <!-- System Lane -->
+                    <path d="M 463 165 L 508 165" class="line" marker-end="url(#arr)" />
+                    <path d="M 593 165 L 638 165" class="line" marker-end="url(#arr)" />
+                    <path d="M 723 165 L 768 165" class="line" marker-end="url(#arr)" />
+                    <path d="M 853 165 L 898 165" class="line" marker-end="url(#arr)" />
+
+                    <!-- System to Ops -->
+                    <path d="M 950 185 L 950 237" class="line" marker-end="url(#arr)" />
+
+                    <!-- Ops Lane -->
+                    <path d="M 993 275 L 1038 275" class="line" marker-end="url(#arr)" />
+
+                    <!-- Ops to Finance -->
+                    <path d="M 1090 295 L 1090 347" class="line" marker-end="url(#arr)" />
+
+                    <!-- Finance Approve Path -->
+                    <path d="M 963 385 L 1008 385" class="line" marker-end="url(#arr)" />
+
+                    <!-- Finance to Director (escalation) -->
+                    <path d="M 920 405 L 920 457" class="line-dash" marker-end="url(#arr)" />
+
+                    <!-- Rejection back to Supplier -->
+                    <path d="M 870 385 L 820 385 L 820 340 L 200 340 L 200 75" class="line" marker-end="url(#arr)" />
+
+                    <!-- Director Approve -->
+                    <path d="M 963 495 L 1050 495 L 1050 405" class="line" marker-end="url(#arr)" />
+
+                    <!-- ML Connections -->
+                    <path d="M 555 185 L 555 207" class="line-dash" />
+                    <path d="M 685 185 L 685 207" class="line-dash" />
+                    <path d="M 815 185 L 815 207" class="line-dash" />
+
+                    <!-- Final to END -->
+                    <path d="M 1083 385 L 1118 385" class="line" marker-end="url(#arr)" />
+                </svg>
+
+                <!-- LANE 1: SUPPLIER -->
+                <div class="lane">
+                    <div class="node" style="left: 15px; top: 35px;">
+                        <div class="terminal dark">START</div>
+                    </div>
+
+                    <div class="node" style="left: 108px; top: 25px;">
+                        <div class="box">
+                            <div class="box-title">Upload Invoice</div>
+                            <div class="box-sub">PDF + LR + POD</div>
+                        </div>
+                    </div>
+
+                    <div class="node" style="left: 238px; top: 25px;">
+                        <div class="box">
+                            <div class="box-title">Attach Documents</div>
+                            <div class="box-sub">Lorry Receipt, POD</div>
+                        </div>
+                    </div>
+
+                    <div class="node" style="left: 368px; top: 25px;">
+                        <div class="box">
+                            <div class="box-title">Submit Invoice</div>
+                            <div class="box-sub">Portal Submission</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LANE 2: SYSTEM -->
+                <div class="lane">
+                    <div class="node" style="left: 368px; top: 15px;">
+                        <div class="box">
+                            <div class="box-title">AI Extraction</div>
+                            <div class="box-sub">Neural OCR</div>
+                        </div>
+                    </div>
+
+                    <div class="node" style="left: 508px; top: 15px;">
+                        <div class="box">
+                            <div class="box-title">Ring 1: Contract</div>
+                            <div class="box-sub">Rate Lookup</div>
+                        </div>
+                    </div>
+
+                    <div class="node" style="left: 638px; top: 15px;">
+                        <div class="box">
+                            <div class="box-title">Ring 2: Rate</div>
+                            <div class="box-sub">±5% Tolerance</div>
+                        </div>
+                    </div>
+
+                    <div class="node" style="left: 768px; top: 15px;">
+                        <div class="box">
+                            <div class="box-title">Ring 3: Duplicate</div>
+                            <div class="box-sub">Hash Check</div>
+                        </div>
+                    </div>
+
+                    <div class="node" style="left: 908px; top: 20px;">
+                        <div class="diamond"></div>
+                        <div class="diamond-text">Ring 4<br />Anomaly?</div>
+                    </div>
+
+                    <!-- ML Boxes -->
+                    <div class="node" style="left: 520px; top: 75px;">
+                        <div class="ml-box">
+                            <div class="ml-title">s-ETS</div>
+                            <div class="ml-sub">Rate Forecast</div>
+                        </div>
+                    </div>
+
+                    <div class="node" style="left: 650px; top: 75px;">
+                        <div class="ml-box">
+                            <div class="ml-title">LSTM</div>
+                            <div class="ml-sub">Pattern ML</div>
+                        </div>
+                    </div>
+
+                    <div class="node" style="left: 780px; top: 75px;">
+                        <div class="ml-box">
+                            <div class="ml-title">R Analytics</div>
+                            <div class="ml-sub">Z-score/IQR</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LANE 3: OPERATIONS -->
+                <div class="lane">
+                    <div class="node" style="left: 898px; top: 20px;">
+                        <div class="box">
+                            <div class="box-title">Ops Review</div>
+                            <div class="box-sub">Verify Details</div>
+                            <div class="role-badge">Logistics Ops</div>
+                        </div>
+                    </div>
+
+                    <div class="node" style="left: 1048px; top: 25px;">
+                        <div class="diamond"></div>
+                        <div class="diamond-text">Verified?</div>
+                        <span class="lbl" style="top: -8px; right: -12px;">Yes</span>
+                    </div>
+                </div>
+
+                <!-- LANE 4: FINANCE -->
+                <div class="lane">
+                    <div class="node" style="left: 868px; top: 15px;">
+                        <div class="diamond"></div>
+                        <div class="diamond-text">Approve?</div>
+                        <span class="lbl" style="top: -8px; right: -18px;">Approve</span>
+                        <span class="lbl" style="bottom: -8px; left: -8px;">Reject</span>
+                        <span class="lbl" style="bottom: -8px; right: -25px;">Escalate</span>
+                    </div>
+
+                    <div class="node" style="left: 1008px; top: 15px;">
+                        <div class="box">
+                            <div class="box-title">GL Coding</div>
+                            <div class="box-sub">Cost Center</div>
+                            <div class="role-badge">Kaai Bansal</div>
+                        </div>
+                    </div>
+
+                    <div class="node" style="left: 1118px; top: 28px;">
+                        <div class="terminal">POSTED</div>
+                    </div>
+                </div>
+
+                <!-- LANE 5: DIRECTOR -->
+                <div class="lane">
+                    <div class="node" style="left: 868px; top: 15px;">
+                        <div class="diamond"></div>
+                        <div class="diamond-text">Final<br />Approve?</div>
+                        <span class="lbl" style="top: -8px; right: -18px;">Approve</span>
+                    </div>
+
+                    <div class="node" style="left: 720px; top: 20px;">
+                        <div class="box" style="border-style: dashed;">
+                            <div class="box-title">Director Review</div>
+                            <div class="box-sub">Amount > ₹1L</div>
+                            <div class="role-badge">Director</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="leg-shape"></div> Process
+            </div>
+            <div class="legend-item">
+                <div class="leg-shape dm"></div> Decision
+            </div>
+            <div class="legend-item">
+                <div class="leg-shape tm"></div> Terminal
+            </div>
+            <div style="margin-left: auto; font-style: italic;">Rejection returns to Supplier</div>
+        </div>
+    </div>
+</body>
+
+</html>

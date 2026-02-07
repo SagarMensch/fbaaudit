@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🇮🇳 Load Indian Invoices Only</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);
+        }
+
+        .container {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 2.5rem;
+        }
+
+        .flag {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            background: #FF9933;
+            color: white;
+            border: none;
+            padding: 1.5rem 3rem;
+            font-size: 1.3rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 1rem;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #E68A2E;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 153, 51, 0.4);
+        }
+
+        .info {
+            background: #E7F3FF;
+            border: 2px solid #2196F3;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            text-align: left;
+        }
+
+        .success {
+            background: #D4EDDA;
+            border: 2px solid #28A745;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 2rem 0;
+            display: none;
+        }
+
+        ul {
+            text-align: left;
+            margin: 1rem 0;
+        }
+
+        li {
+            margin: 0.8rem 0;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .highlight {
+            background: #FFF3CD;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="flag">🇮🇳</div>
+        <h1>Indian Pharma Demo</h1>
+        <p style="font-size: 1.2rem; color: #666;">Load ONLY Indian Logistics Invoices</p>
+
+        <div class="info">
+            <h3>🎯 What This Will Do:</h3>
+            <ul>
+                <li>✅ Clear ALL cached data (localStorage, sessionStorage)</li>
+                <li>✅ Force load <span class="highlight">8 Indian invoices ONLY</span></li>
+                <li>✅ Remove Kuehne+Nagel, Flexport, DHL, Maersk, etc.</li>
+                <li>✅ Show TCI Express, Blue Dart, Delhivery, Gati</li>
+            </ul>
+        </div>
+
+        <button class="btn" onclick="loadIndianInvoices()">
+            🚀 Load Indian Invoices Now
+        </button>
+
+        <div id="success" class="success">
+            <h3>✅ Success!</h3>
+            <p>All old data cleared. Opening app with Indian invoices...</p>
+        </div>
+
+        <div style="margin-top: 2rem; text-align: left;">
+            <h3>📦 You Will See:</h3>
+            <ul>
+                <li><strong>TCI Express Limited</strong> - 2 invoices (Delhi-Bangalore, Mumbai-Chennai)</li>
+                <li><strong>Blue Dart Express Limited</strong> - 2 invoices (Mumbai-Bangalore, Hyderabad-Pune)</li>
+                <li><strong>Delhivery Limited</strong> - 2 invoices (Bangalore-Chennai, Pune-Ahmedabad)</li>
+                <li><strong>Gati Limited</strong> - 2 invoices (Hyderabad-Mumbai, Chennai-Kolkata)</li>
+            </ul>
+            <p style="color: #E74C3C; font-weight: bold; margin-top: 1rem;">
+                ❌ NO MORE: Kuehne+Nagel, Flexport, DHL Express, Maersk, Chilean Line, K Line America
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function loadIndianInvoices() {
+            // STEP 1: Explicitly remove invoice/role/workflow cache keys
+            console.log('🗑️ Removing specific cache keys...');
+            localStorage.removeItem('app_invoices_v2');  // CORRECT KEY
+            localStorage.removeItem('app_roles_v2');     // CORRECT KEY
+            localStorage.removeItem('app_workflow_v3');  // CORRECT KEY
+            localStorage.removeItem('invoices_v2');      // Legacy key (just in case)
+            localStorage.removeItem('roles_v2');         // Legacy key (just in case)
+            localStorage.removeItem('workflow_v3');      // Legacy key (just in case)
+            console.log('✅ Cleared app_invoices_v2, app_roles_v2, app_workflow_v3');
+
+            // STEP 2: Nuclear option - clear EVERYTHING else
+            console.log('🗑️ Clearing all storage...');
+            localStorage.clear();
+            sessionStorage.clear();
+            console.log('✅ localStorage and sessionStorage cleared');
+
+            // Clear IndexedDB
+            if (window.indexedDB) {
+                indexedDB.databases().then(databases => {
+                    databases.forEach(db => {
+                        console.log('🗑️ Deleting IndexedDB:', db.name);
+                        indexedDB.deleteDatabase(db.name);
+                    });
+                });
+            }
+
+            // Clear service worker cache
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        console.log('🗑️ Deleting cache:', name);
+                        caches.delete(name);
+                    });
+                });
+            }
+
+            // Clear cookies
+            document.cookie.split(";").forEach(function (c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+            });
+            console.log('✅ All cookies cleared');
+
+            // Verify localStorage is empty
+            console.log('📊 localStorage length after clear:', localStorage.length);
+            console.log('✅ Cache clearing complete! Redirecting to app...');
+
+            // Show success message
+            document.getElementById('success').style.display = 'block';
+
+            // Redirect with cache-busting parameter
+            setTimeout(() => {
+                window.location.href = 'http://localhost:3000/?fresh=' + Date.now();
+            }, 2000);
+        }
+    </script>
+</body>
+
+</html>

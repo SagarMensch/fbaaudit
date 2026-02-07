@@ -1,0 +1,234 @@
+@import url('https://fonts.cdnfonts.com/css/junicode');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display+SC:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+/* ARNHEM FONT - For body text on landing page */
+/* Place Arnhem font files in /public/fonts/ folder */
+@font-face {
+    font-family: 'Arnhem';
+    src: local('Arnhem'), local('Arnhem-Regular'),
+        url('/fonts/Arnhem-Regular.woff2') format('woff2'),
+        url('/fonts/Arnhem-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Arnhem';
+    src: local('Arnhem Bold'), local('Arnhem-Bold'),
+        url('/fonts/Arnhem-Bold.woff2') format('woff2'),
+        url('/fonts/Arnhem-Bold.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* SÖHNE FONT FAMILY - Premium Typography */
+/* If you have local Söhne font files, place them in /public/fonts/ */
+@font-face {
+    font-family: 'Söhne';
+    src: local('Söhne Buch'), local('Sohne-Buch'), local('Söhne');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Söhne';
+    src: local('Söhne Leicht'), local('Sohne-Leicht');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Söhne';
+    src: local('Söhne Kraftig'), local('Sohne-Kraftig');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Söhne';
+    src: local('Söhne Halbfett'), local('Sohne-Halbfett');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@theme {
+    /* SÖHNE FONT STACK */
+    --font-sohne: 'Söhne', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+    --color-slate-850: #1e293b;
+    --color-slate-900: #0f172a;
+    --color-primary: #3b82f6;
+
+    /* Glass Effects */
+    --backdrop-blur-md: 12px;
+}
+
+:root {
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}
+
+html {
+    background-color: #f8fafc;
+    /* slate-50 */
+    /* Match SupplierPortalView background */
+    height: 100%;
+}
+
+body {
+    /* Zoom removed from body to prevent Landing Page alignment issues. Applied to Main App wrapper instead. */
+    background-color: #f8fafc;
+    /* slate-50 - matches landing page */
+    margin: 0;
+
+    /* FIGTREE - Primary Font for entire product */
+    font-family: 'Figtree', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.5;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide all scrollbars globally */
+*::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background: transparent;
+}
+
+*::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+/* HEADINGS: Kraftig / Halbfett aesthetic */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+    /* Semibold/Bold */
+    letter-spacing: -0.04em;
+    /* Tighter tracking for headings */
+}
+
+.font-cursive {
+    font-family: 'Great Vibes', cursive;
+}
+
+/* --- CUSTOM SCROLLBAR --- */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+}
+
+/* --- UTILITIES --- */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+}
+
+.glass-card {
+    background: white;
+    border: 1px solid theme('colors.slate.100');
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    /* Premium soft shadow */
+    @apply rounded-xl transition-all duration-300;
+}
+
+.glass-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+    /* Lift effect */
+}
+
+.sap-card {
+    /* glass-card styles inlined */
+    background: white;
+    border: 1px solid theme('colors.slate.100');
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+    @apply rounded-xl transition-all duration-300 overflow-hidden flex flex-col;
+}
+
+.sap-header {
+    @apply px-5 py-3 border-b border-slate-100/80 font-semibold text-slate-800 text-sm flex justify-between items-center bg-white/50 backdrop-blur-sm;
+}
+
+.sap-btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium shadow-md shadow-blue-500/20 transition-all duration-200 active:scale-95;
+}
+
+.sap-btn-secondary {
+    @apply bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900 px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-all duration-200;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* 3D ORB ROTATION - Subtle Tilt & Rotate */
+@keyframes orb-rotate {
+
+    0%,
+    100% {
+        transform: rotateX(5deg) rotateY(0deg) rotateZ(0deg);
+    }
+
+    25% {
+        transform: rotateX(8deg) rotateY(5deg) rotateZ(2deg);
+    }
+
+    50% {
+        transform: rotateX(3deg) rotateY(10deg) rotateZ(0deg);
+    }
+
+    75% {
+        transform: rotateX(6deg) rotateY(5deg) rotateZ(-2deg);
+    }
+}

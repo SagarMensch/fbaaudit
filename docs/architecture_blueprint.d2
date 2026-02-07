@@ -1,0 +1,169 @@
+# Freight Audit Platform | End-to-End Product Workflow Architecture
+# Palette: Deep Black (#000000), IBM Blue (#0F62FE), Robinhood Neon (#00FFC8), Alert Red (#FF0055)
+# Focus: Unified Technical & Functional Process Flow
+
+direction: right
+
+vars: {
+  d2-config: {
+    layout-engine: elk
+    theme: 200
+  }
+}
+
+classes: {
+  # Layout Containers
+  layer_container: {
+    style: {
+      stroke: "#0F62FE"
+      stroke-width: 3
+      fill: "#050A14" # Very dark blue/black
+      font-color: "#0F62FE"
+      double-border: false
+      border-radius: 8
+    }
+  }
+  
+  # Functional Components (Business Logic)
+  functional_node: {
+    style: {
+      stroke: "#FFFFFF"
+      stroke-width: 2
+      fill: "#1A1A1A"
+      font-color: "#FFFFFF"
+      font-size: 14
+    }
+  }
+  
+  # Technical Engines (Backend Services)
+  tech_engine: {
+    style: {
+      stroke: "#00FFC8" # Neon
+      stroke-width: 2
+      fill: "#001A14" # Dark Green tinted black
+      font-color: "#00FFC8"
+      shadow: true
+    }
+  }
+  
+  # External Systems
+  external_sys: {
+    style: {
+      stroke: "#555555"
+      stroke-dash: 3
+      fill: "transparent"
+      font-color: "#AAAAAA"
+    }
+  }
+}
+
+# --- 1. EXTERNAL ECOSYSTEM (INPUTS/OUTPUTS) ---
+ExternalEcosystem: {
+  label: "EXTERNAL INTEGRATIONS"
+  class: external_sys
+  
+  Carriers: "Carriers & 3PLs\n(EDI / Email)" { shape: person }
+  ERP: "Enterprise ERP\n(SAP / Oracle / D365)" { shape: cylinder }
+}
+
+# --- 2. THE PRODUCT: FREIGHT AUDIT PLATFORM ---
+ProductCore: {
+  style: { fill: "transparent"; stroke: "none" }
+  
+  # --- UI INTERACTION LAYER (Front-End) ---
+  UILayer: {
+    label: "UI INTERACTION LAYER (Next.js/React)"
+    class: layer_container
+    
+    VendorPortal: "Vendor Portal\n(Upload & Dispute)" { 
+      class: functional_node 
+      tooltip: "Carriers upload PDFs and check status"
+    }
+    
+    ControlTower: "Control Tower\n(Ops Dashboard)" { 
+      class: functional_node 
+      tooltip: "Ops Managers review exceptions"
+    }
+    
+    FinanceConsole: "Finance Terminal\n(Settlement)" { 
+      class: functional_node 
+      tooltip: "Treasurer releases payments"
+    }
+  }
+
+  # --- PROCESS ORCHESTRATION LAYER (Backend Flow) ---
+  ProcessFlow: {
+    label: "INTELLIGENT PROCESS FLOW (Python/Go Backend)"
+    class: layer_container
+    
+    # Step 1: Ingestion
+    IngestEngine: {
+      label: "1. Multi-Channel Ingestion"
+      class: tech_engine
+      
+      OCR: "Simultaneous OCR\n(LayoutLMv3)"
+      EDI: "EDI Parsing\n(X12/Edifact)"
+    }
+    
+    # Step 2: Audit Core
+    AuditCore: {
+      label: "2. The Audit Brain"
+      class: tech_engine
+      
+      ContractStore: "Contract Rate Cards\n(Postgres)"
+      MatchLogic: "3-Way Match Algorithm\n(Invoice vs Tender vs POD)"
+      Validation: "Business Rule Validator"
+    }
+    
+    # Step 3: Resolution
+    ResolutionManager: {
+      label: "3. Exception Management"
+      class: tech_engine
+      
+      DisputeWorkflow: "Dispute State Machine\n(Redis/Celery)"
+      AutoApprove: "Auto-Approval Thresholds"
+    }
+    
+    # Step 4: Settlement
+    SettlementEngine: {
+      label: "4. Financial Settlement"
+      class: tech_engine
+      
+      GlCoding: "GL Coding Automation"
+      PaymentBatch: "Payment Batch Gen"
+    }
+  }
+}
+
+# --- PROCESS STORY: THE LIFE OF AN INVOICE ---
+
+# 1. Ingestion Flow
+ExternalEcosystem.Carriers -> ProductCore.UILayer.VendorPortal: "Upload PDF Inv"
+ExternalEcosystem.Carriers -> ProductCore.ProcessFlow.IngestEngine.EDI: "Send EDI 210"
+ProductCore.UILayer.VendorPortal -> ProductCore.ProcessFlow.IngestEngine.OCR: "Trigger Extraction"
+
+# 2. Audit & Validation (The Brain)
+ProductCore.ProcessFlow.IngestEngine -> ProductCore.ProcessFlow.AuditCore.MatchLogic: "Normalized Data"
+ProductCore.ProcessFlow.AuditCore.ContractStore -> ProductCore.ProcessFlow.AuditCore.MatchLogic: "Apply Rates"
+ProductCore.ProcessFlow.AuditCore.MatchLogic -> ProductCore.ProcessFlow.AuditCore.Validation: "Proposed Amount"
+
+# 3. Exception Handling (Human Loop)
+ProductCore.ProcessFlow.AuditCore.Validation -> ProductCore.ProcessFlow.ResolutionManager.DisputeWorkflow: "Flag Exception"
+ProductCore.ProcessFlow.ResolutionManager.DisputeWorkflow -> ProductCore.UILayer.ControlTower: "Alert Ops Team"
+ProductCore.ProcessFlow.ResolutionManager.DisputeWorkflow -> ProductCore.UILayer.VendorPortal: "Request Credit Note"
+
+# 4. Success Path (Settlement)
+ProductCore.ProcessFlow.AuditCore.Validation -> ProductCore.ProcessFlow.ResolutionManager.AutoApprove: "Clean Match"
+ProductCore.ProcessFlow.ResolutionManager.AutoApprove -> ProductCore.ProcessFlow.SettlementEngine.GlCoding: "Approved"
+ProductCore.UILayer.FinanceConsole -> ProductCore.ProcessFlow.SettlementEngine.PaymentBatch: "Final Release"
+ProductCore.ProcessFlow.SettlementEngine.PaymentBatch -> ExternalEcosystem.ERP: "Post AP Voucher"
+
+# Global Styles
+global: {
+  style: {
+    background: "#000000"
+    font-color: "#FFFFFF"
+    stroke: "#FFFFFF"
+    font-size: 16
+  }
+}

@@ -1,0 +1,198 @@
+# -------------------------------------------------------------------------------------
+# LEDGER-ONE: ENTERPRISE FREIGHT AUDIT ARCHITECTURE
+# AESTHETIC: BLUEPRINT ENGINEERING MODEL (DEEP NAVY + CYAN)
+# -------------------------------------------------------------------------------------
+
+direction: down
+
+# -------------------------------------------------------------------------------------
+# GLOBAL STYLING (THEME)
+# -------------------------------------------------------------------------------------
+style: {
+  fill: "#0A192F"              # Deep Navy Background
+  stroke: "#64FFDA"            # Cyan Lines
+  stroke-width: 2
+  font-size: 16
+  font-family: "JetBrains Mono", monospace
+  font-color: "#CCD6F6"        # Off-white Text
+  shadow: false
+  border-radius: 4
+}
+
+# -------------------------------------------------------------------------------------
+# COMPONENT CLASSES
+# -------------------------------------------------------------------------------------
+classes: {
+  # Layers / Boundaries
+  layer: {
+    style: {
+      stroke-dash: 3
+      fill: "#112240"
+      font-color: "#8892B0"
+      stroke: "#E6F1FF"
+    }
+  }
+
+  # Standard Components (Services, UIs)
+  component: {
+    style: {
+      fill: "#172A45"
+      stroke: "#64FFDA" 
+      font-color: "#FFFFFF"
+      font-size: 14
+    }
+  }
+
+  # Security Components (WAF, Auth)
+  security: {
+    style: {
+      fill: "#1E0000"
+      stroke: "#FF5555"
+      font-color: "#FF5555"
+    }
+  }
+
+  # Database Components
+  database: {
+    shape: cylinder
+    style: {
+      fill: "#0F3460"
+      stroke: "#E94560"
+      font-color: "#E94560"
+    }
+  }
+}
+
+# -------------------------------------------------------------------------------------
+# LEVEL 1: CLIENT ACCESS (ZERO TRUST)
+# -------------------------------------------------------------------------------------
+Client_Access: {
+  label: "LAYER 01: ZERO TRUST ENTRY"
+  class: layer
+  
+  Command_Center: "COMMAND CENTER" {
+    class: component
+    icon: material/monitor
+    tooltip: "React 18 | TypeScript"
+  }
+
+  Vendor_Portal: "VENDOR PORTAL" {
+    class: component
+    icon: material/public
+    style.stroke-dash: 3
+    tooltip: "Restricted External Access"
+  }
+}
+
+# -------------------------------------------------------------------------------------
+# LEVEL 2: SECURITY PERIMETER
+# -------------------------------------------------------------------------------------
+Security_Perimeter: {
+  label: "LAYER 02: DEFENSE ZONE"
+  class: layer
+
+  WAF_Gateway: "ENTERPRISE WAF" {
+    class: security
+    icon: material/security
+    tooltip: "SSL Offload | DDOS Guard"
+  }
+
+  Identity_Provider: "IAM / SSO" {
+    class: security
+    icon: material/badge
+    tooltip: "OAuth2 | OIDC | RBAC"
+  }
+
+  # Connections
+  Client_Access.Command_Center -> WAF_Gateway: "TLS 1.3"
+  Client_Access.Vendor_Portal -> WAF_Gateway: "RESTRICTED"
+  WAF_Gateway -> Identity_Provider: "AUTH REQUEST"
+}
+
+# -------------------------------------------------------------------------------------
+# LEVEL 3: INTELLIGENT CORE
+# -------------------------------------------------------------------------------------
+Core_Engine: {
+  label: "LAYER 03: PROCESSING CORE"
+  class: layer
+
+  API_Orchestrator: "API MESH" {
+    class: component
+    icon: material/hub
+    tooltip: "FastAPI Middleware"
+  }
+
+  # Micro-Modules
+  Ingestion_Engine: "OCR INGESTION" {
+    class: component
+    icon: material/document_scanner
+  }
+  
+  Audit_Logic: "AUDIT ENGINE" {
+    class: component
+    icon: material/gavel
+  }
+  
+  Workflow_State: "WORKFLOW" {
+    class: component
+    icon: material/schema
+  }
+  
+  AI_Analytics: "PREDICTIVE AI" {
+    class: component
+    icon: material/psychology
+  }
+
+  # Core Flows
+  Security_Perimeter.WAF_Gateway -> API_Orchestrator: "SECURE PIPE"
+  
+  API_Orchestrator -> Ingestion_Engine
+  Ingestion_Engine -> Audit_Logic: "EXTRACT"
+  Audit_Logic -> Workflow_State: "VERIFY"
+  Workflow_State -> AI_Analytics: "ANALYZE"
+}
+
+# -------------------------------------------------------------------------------------
+# LEVEL 4: DATA VAULT
+# -------------------------------------------------------------------------------------
+Data_Vault: {
+  label: "LAYER 04: PERSISTENCE (AES-256)"
+  class: layer
+  style.fill: "#020C1B"
+
+  Primary_DB: "POSTGRESQL" {
+    class: database
+    tooltip: "Transactional Truth"
+  }
+
+  Object_Store: "S3 / MINIO" {
+    class: database
+    tooltip: "Immutable Documents"
+  }
+
+  Redis_Cache: "REDIS" {
+    class: database
+    style.stroke: "#F7DF1E"
+    style.font-color: "#F7DF1E"
+    icon: material/bolt
+  }
+
+  # Data Flows
+  Core_Engine.Ingestion_Engine -> Object_Store: "ARCHIVE"
+  Core_Engine.Audit_Logic -> Primary_DB: "ACID WRITE"
+  Core_Engine.Workflow_State -> Redis_Cache: "STATE CACHE"
+}
+
+# -------------------------------------------------------------------------------------
+# INFRASTRUCTURE WRAPPER
+# -------------------------------------------------------------------------------------
+Audit_Log: "IMMUTABLE AUDIT TRAIL" {
+  icon: material/history_edu
+  style: {
+    stroke: "#F7DF1E"
+    stroke-dash: 5
+    fill: "transparent"
+  }
+}
+
+Core_Engine.API_Orchestrator -> Audit_Log: "LOG STREAM"

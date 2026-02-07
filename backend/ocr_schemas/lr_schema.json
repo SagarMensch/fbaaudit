@@ -1,0 +1,133 @@
+{
+    "schema_version": "1.0",
+    "document_type": "LR",
+    "description": "Lorry Receipt (LR) / Consignment Note schema",
+    "fields": {
+        "lr_number": {
+            "type": "string",
+            "required": true,
+            "label": "LR/Docket Number",
+            "extraction_patterns": [
+                "LR\\s*(?:No|Number)?[:\\s]*([A-Z0-9\\-]+)",
+                "Docket\\s*(?:No)?[:\\s]*([A-Z0-9\\-]+)",
+                "CN\\s*(?:No)?[:\\s]*([A-Z0-9\\-]+)"
+            ],
+            "validation": {
+                "min_length": 5,
+                "max_length": 30
+            }
+        },
+        "lr_date": {
+            "type": "date",
+            "required": true,
+            "label": "LR Date",
+            "formats": [
+                "DD-MM-YYYY",
+                "DD/MM/YYYY",
+                "YYYY-MM-DD"
+            ],
+            "extraction_patterns": [
+                "LR\\s*Date[:\\s]*(\\d{1,2}[-\\/]\\d{1,2}[-\\/]\\d{2,4})",
+                "Date[:\\s]*(\\d{1,2}[-\\/]\\d{1,2}[-\\/]\\d{2,4})"
+            ]
+        },
+        "consignor": {
+            "type": "object",
+            "required": true,
+            "fields": {
+                "name": {
+                    "type": "string",
+                    "required": true
+                },
+                "address": {
+                    "type": "string"
+                },
+                "gstin": {
+                    "type": "string",
+                    "pattern": "^\\d{2}[A-Z]{5}\\d{4}[A-Z]{1}[A-Z\\d]{1}[Z]{1}[A-Z\\d]{1}$"
+                }
+            }
+        },
+        "consignee": {
+            "type": "object",
+            "required": true,
+            "fields": {
+                "name": {
+                    "type": "string",
+                    "required": true
+                },
+                "address": {
+                    "type": "string"
+                },
+                "gstin": {
+                    "type": "string"
+                }
+            }
+        },
+        "origin": {
+            "type": "string",
+            "required": true,
+            "extraction_patterns": [
+                "From[:\\s]+([A-Za-z\\s]+)",
+                "Origin[:\\s]+([A-Za-z\\s]+)"
+            ]
+        },
+        "destination": {
+            "type": "string",
+            "required": true,
+            "extraction_patterns": [
+                "To[:\\s]+([A-Za-z\\s]+)",
+                "Destination[:\\s]+([A-Za-z\\s]+)"
+            ]
+        },
+        "vehicle_number": {
+            "type": "string",
+            "required": false,
+            "extraction_patterns": [
+                "Vehicle\\s*(?:No)?[:\\s]*([A-Z]{2}\\d{1,2}[A-Z]{1,2}\\d{4})"
+            ],
+            "validation": {
+                "pattern": "^[A-Z]{2}\\d{1,2}[A-Z]{1,2}\\d{4}$"
+            }
+        },
+        "weight_kg": {
+            "type": "number",
+            "required": true,
+            "extraction_patterns": [
+                "Weight[:\\s]*(\\d+(?:\\.\\d+)?)\\s*(?:kg|KG)?"
+            ],
+            "validation": {
+                "min": 0,
+                "max": 50000
+            }
+        },
+        "packages": {
+            "type": "number",
+            "required": false,
+            "extraction_patterns": [
+                "(?:No\\.|Number)\\s*of\\s*(?:Packages|Pkgs)[:\\s]*(\\d+)"
+            ]
+        },
+        "freight_charges": {
+            "type": "number",
+            "required": true,
+            "extraction_patterns": [
+                "Freight[:\\s]*(?:Rs\\.?|₹)?\\s*([\\d,]+\\.?\\d*)"
+            ],
+            "validation": {
+                "min": 0
+            }
+        },
+        "payment_mode": {
+            "type": "enum",
+            "values": [
+                "TO_PAY",
+                "PAID",
+                "TO_BE_BILLED"
+            ],
+            "extraction_patterns": [
+                "(?:Payment|Pay)\\s*(?:Mode)?[:\\s]*(To\\s*Pay|Paid|TBB|To\\s*Be\\s*Billed)"
+            ]
+        }
+    }
+}

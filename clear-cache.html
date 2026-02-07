@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Cache & Reload</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            background: white;
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+
+        .status {
+            font-size: 1.2rem;
+            margin: 2rem 0;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 2px solid #bee5eb;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .countdown {
+            font-size: 3rem;
+            color: #667eea;
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        ul {
+            text-align: left;
+            margin: 1rem 0;
+        }
+
+        li {
+            margin: 0.5rem 0;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧹 Cache Cleaner</h1>
+        <div id="status" class="status info">
+            Preparing to clear cache...
+        </div>
+        <div id="countdown" class="countdown"></div>
+        <button id="manualBtn" class="btn" onclick="clearAndReload()">Clear Cache Now</button>
+
+        <div style="margin-top: 2rem; text-align: left;">
+            <h3>What will be cleared:</h3>
+            <ul>
+                <li>✅ localStorage (old invoices)</li>
+                <li>✅ sessionStorage (session data)</li>
+                <li>✅ IndexedDB (if any)</li>
+            </ul>
+            <h3>What you'll see after:</h3>
+            <ul>
+                <li>🇮🇳 8 Indian invoices (TCI, Blue Dart, Delhivery, Gati)</li>
+                <li>📦 Document bundles for each invoice</li>
+                <li>🎯 Role-based analytics</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let countdown = 3;
+        const statusDiv = document.getElementById('status');
+        const countdownDiv = document.getElementById('countdown');
+        const manualBtn = document.getElementById('manualBtn');
+
+        function clearAndReload() {
+            statusDiv.className = 'status success';
+            statusDiv.textContent = '✅ Cache cleared! Redirecting to app...';
+
+            // Clear all storage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Clear IndexedDB if exists
+            if (window.indexedDB) {
+                indexedDB.databases().then(databases => {
+                    databases.forEach(db => {
+                        indexedDB.deleteDatabase(db.name);
+                    });
+                });
+            }
+
+            // Redirect to app
+            setTimeout(() => {
+                window.location.href = 'http://localhost:3000';
+            }, 1500);
+        }
+
+        // Auto countdown
+        const timer = setInterval(() => {
+            if (countdown > 0) {
+                countdownDiv.textContent = countdown;
+                countdown--;
+            } else {
+                clearInterval(timer);
+                clearAndReload();
+            }
+        }, 1000);
+
+        // Show initial countdown
+        countdownDiv.textContent = countdown;
+        statusDiv.textContent = `Auto-clearing in ${countdown} seconds...`;
+    </script>
+</body>
+
+</html>

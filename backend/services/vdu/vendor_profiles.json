@@ -1,0 +1,12 @@
+{
+  "tci-express": {
+    "vendor_id": "tci-express",
+    "vendor_name": "tci-express",
+    "total_invoices_processed": 9,
+    "successful_extractions": 9,
+    "average_confidence": 0.7080000000000001,
+    "learned_patterns": 9,
+    "accuracy_rate": "100.0%",
+    "last_invoice_date": "2026-01-05T10:49:45.830971"
+  }
+}

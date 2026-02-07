@@ -1,0 +1,208 @@
+# -------------------------------------------------------------------------------------
+# FREIGHT AUDIT PLATFORM - ENGINEERING BLUEPRINT V2.0
+# -------------------------------------------------------------------------------------
+
+direction: right
+
+# BLUEPRINT ENGINEERING THEME
+style: {
+    fill: "#0A192F"              # Deep Engineering Navy
+    stroke: "#64FFDA"            # Cyan / Blueprint Line
+    stroke-width: 2
+    font-size: 16
+    font-family: "JetBrains Mono", monospace
+    font-color: "#CCD6F6"        # Off-white Text
+    shadow: false
+    border-radius: 4
+}
+
+classes: {
+    # System Boundaries
+    boundary: {
+        style: {
+           stroke-dash: 3
+           fill: "#112240"
+           font-color: "#8892B0"
+        }
+    }
+    
+    # Core Components
+    component: {
+        style: {
+            fill: "#112240"
+            stroke: "#64FFDA"
+            font-size: 14
+        }
+    }
+    
+    # Database
+    database: {
+        shape: cylinder
+        style: {
+            fill: "#0F3460"
+            stroke: "#E94560" 
+            font-color: "#E94560"
+        }
+    }
+    
+    # Infrastructure
+    infra: {
+        style: {
+            stroke: "#F7DF1E"
+            stroke-width: 1
+            stroke-dash: 5
+            fill: "transparent"
+        }
+    }
+}
+
+# -------------------------------------------------------------------------------------
+# LAYER 1: CLIENT PRESENTATION (ZERO TRUST ENTRY)
+# -------------------------------------------------------------------------------------
+Client_Layer: {
+    label: "LAYER 01: SECURE CLIENT ACCESS"
+    class: boundary
+    style: {
+        fill: "transparent"
+        stroke: "#E6F1FF"
+    }
+
+    Enterprise_User: "COMMAND CENTER UI" {
+        tooltip: "React 18 | TypeScript | Secure Headers"
+        class: component
+        icon: "monitor"
+    }
+
+    Vendor_Portal: "VENDOR INTERFACE" {
+        tooltip: "Limited Access Scope"
+        class: component
+        style.stroke-dash: 3
+    }
+}
+
+# -------------------------------------------------------------------------------------
+# LAYER 2: PERIMETER SECURITY (DMZ)
+# -------------------------------------------------------------------------------------
+Security_Zone: {
+    label: "LAYER 02: DEFENSE PERIMETER"
+    class: boundary
+    
+    WAF: "WAF / GATEWAY" {
+        tooltip: "NGINX Enterprise | SSL Offload | DDOS Protection"
+        class: infra
+    }
+    
+    IDP: "IDENTITY PROVIDER" {
+        tooltip: "OAuth2 / SAML / RBAC Enforcer"
+        class: component
+        shape: parallelogram
+    }
+    
+    Client_Layer.Enterprise_User -> WAF: "HTTPS / TLS 1.3"
+    Client_Layer.Vendor_Portal -> WAF: "RESTRICTED"
+    WAF -> IDP: "AUTH CHECK"
+}
+
+# -------------------------------------------------------------------------------------
+# LAYER 3: APPLICATION CORE (THE BRAIN)
+# -------------------------------------------------------------------------------------
+Core_System: {
+    label: "LAYER 03: INTELLIGENT CORE"
+    class: boundary
+    
+    API_Mesh: "API ORCHESTRATOR" {
+        tooltip: "FastAPI Middleware | Request Validation"
+        class: component
+    }
+    
+    Engines: {
+        style.stroke: none
+        style.fill: none
+        
+        OCR: "INGESTION ENGINE" {
+            tooltip: "PaddleOCR (Local) | EDI Parser"
+            class: component
+        }
+        
+        Audit: "AUDIT LOGIC" {
+            tooltip: "Contract Match | Tax Rules"
+            class: component
+        }
+        
+        Workflow: "WORKFLOW STATE" {
+            tooltip: "Approval Chain Management"
+            class: component
+        }
+        
+        AI: "PREDICTIVE AI" {
+            tooltip: "Trend Analysis | Anomaly Detection"
+            class: component
+        }
+        
+        OCR -> Audit: "EXTRACT"
+        Audit -> Workflow: "VALIDATE"
+        Workflow -> AI: "ANALYZE"
+    }
+    
+    Security_Zone.WAF -> API_Mesh: "SECURE CHANNEL"
+    API_Mesh -> Engines.OCR
+}
+
+# -------------------------------------------------------------------------------------
+# LAYER 4: DATA VAULT (ENCRYPTED STORAGE)
+# -------------------------------------------------------------------------------------
+Data_Vault: {
+    label: "LAYER 04: PERSISTENCE VAULT (AES-256)"
+    class: boundary
+    style.fill: "#020C1B"
+    
+    SQL_Primary: "POSTGRESQL 16" {
+        class: database
+        tooltip: "Transactional Record of Truth"
+    }
+    
+    Doc_Store: "OBJECT STORAGE" {
+        class: database
+        tooltip: "S3 / MinIO (Immutable Documents)"
+    }
+    
+    Cache_Layer: "REDIS CACHE" {
+        class: database
+        style.stroke: "#F7DF1E"
+        style.font-color: "#F7DF1E"
+    }
+    
+    Core_System.Engines -> SQL_Primary: "WRITE (ACID)"
+    Core_System.Engines -> Doc_Store: "ARCHIVE"
+    Core_System.Engines -> Cache_Layer: "FAST READ"
+}
+
+# -------------------------------------------------------------------------------------
+# CROSS-CUTTING CONCERNS
+# -------------------------------------------------------------------------------------
+Audit_Trail: "IMMUTABLE AUDIT LOG" {
+    class: infra
+    shape: page
+}
+
+Core_System.API_Mesh -> Audit_Trail: "TRACE EVERY ACTION"
+
+# -------------------------------------------------------------------------------------
+# DEPLOYMENT SCENARIOS
+# -------------------------------------------------------------------------------------
+Scenarios: {
+    label: "SUPPORTED DEPLOYMENT MODELS"
+    style.stroke: none
+    style.fill: none
+    style.font-size: 12
+    
+    Cloud: "MODEL A: SECURE CLOUD" {
+        shape: text
+        icon: "cloud"
+    }
+    
+    OnPrem: "MODEL B: AIR-GAPPED ON-PREM" {
+        shape: text
+        icon: "server"
+    }
+}
