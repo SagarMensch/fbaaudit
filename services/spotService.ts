@@ -139,7 +139,7 @@ class SpotService {
 
         // Save
         this.saveIndents();
-        console.log(`[Supplier Portal] Bid submitted: ${vendor?.name} bid ₹${amount} on ${indentId}`);
+        console.log(`[Supplier Portal] Bid submitted: ${vendor?.name} bid $${amount} on ${indentId}`);
         return { success: true, message: 'Bid submitted successfully' };
     }
 

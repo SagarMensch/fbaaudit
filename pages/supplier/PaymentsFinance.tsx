@@ -97,7 +97,7 @@ export const PaymentsFinance: React.FC<PaymentsFinanceProps> = ({ supplier }) =>
                         <Geo3DWallet size={80} color="#3B82F6" /> {/* Blue Wallet Tint */}
                     </div>
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Total Outstanding</p>
-                    <h3 className="text-4xl font-black tracking-tight">₹{stats.pendingAmount.toLocaleString()}</h3>
+                    <h3 className="text-4xl font-black tracking-tight">${stats.pendingAmount.toLocaleString()}</h3>
                     <div className="mt-4 flex items-center gap-3">
                         <span className="bg-slate-800 px-2 py-1 rounded text-xs font-bold text-slate-300">
                             {stats.byStatus.pending + stats.byStatus.approved} Invoices
@@ -114,7 +114,7 @@ export const PaymentsFinance: React.FC<PaymentsFinanceProps> = ({ supplier }) =>
                         <Geo3DBank size={80} color="#00C805" /> {/* Green Bank Tint */}
                     </div>
                     <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">Received (Total)</p>
-                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">₹{stats.paidAmount.toLocaleString()}</h3>
+                    <h3 className="text-3xl font-black text-slate-900 tracking-tight">${stats.paidAmount.toLocaleString()}</h3>
                     <div className="mt-4 w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                         <div className="bg-[#00C805] h-full rounded-full" style={{ width: '75%' }}></div>
                     </div>
@@ -127,7 +127,7 @@ export const PaymentsFinance: React.FC<PaymentsFinanceProps> = ({ supplier }) =>
                         <Geo3DPieChart size={32} color="#00C805" />
                     </div>
                     <p className="text-sm font-bold text-green-800 uppercase tracking-wider mb-2">Early Pay Limit</p>
-                    <h3 className="text-3xl font-black text-green-700 tracking-tight">₹{earlyPayLimit.toLocaleString()}</h3>
+                    <h3 className="text-3xl font-black text-green-700 tracking-tight">${earlyPayLimit.toLocaleString()}</h3>
                     <p className="text-xs text-green-800/70 font-medium mt-1 mb-4">Available for instant withdrawal @ 1.2% discount</p>
                     <button
                         onClick={handleEarlyPay}
@@ -184,7 +184,7 @@ export const PaymentsFinance: React.FC<PaymentsFinanceProps> = ({ supplier }) =>
                                         </td>
                                         <td className="px-6 py-4 text-slate-600 font-medium">{txn.date}</td>
                                         <td className={`px-6 py-4 text-right font-bold ${txn.type === 'CREDIT' ? 'text-green-600' : 'text-slate-900'} `}>
-                                            {txn.type === 'CREDIT' ? '+' : '-'} ₹{txn.amount.toLocaleString()}
+                                            {txn.type === 'CREDIT' ? '+' : '-'} ${txn.amount.toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 uppercase border border-slate-200">

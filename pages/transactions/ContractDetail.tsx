@@ -207,7 +207,7 @@ export const ContractDetail: React.FC<ContractDetailProps> = ({ contract, onBack
                         <div className="text-[10px] text-black/40 font-bold uppercase tracking-wider mb-2">PVC Base</div>
                         <div className="font-bold text-black flex items-center text-lg">
                             <Geo3DFuel size={18} />
-                            <span className="ml-2">₹{contract.pvcConfig?.baseDieselPrice || (contract as any).pvc_base_diesel_price || '—'}</span>
+                            <span className="ml-2">${contract.pvcConfig?.baseDieselPrice || (contract as any).pvc_base_diesel_price || '—'}</span>
                             <span className="text-xs text-black/40 ml-1 font-normal">@ {contract.pvcConfig?.referenceCity || (contract as any).pvc_reference_city || 'N/A'}</span>
                         </div>
                     </div>
@@ -262,7 +262,7 @@ export const ContractDetail: React.FC<ContractDetailProps> = ({ contract, onBack
                                             </td>
                                             <td className="px-6 py-4 text-center text-black/60">{rate.transitTimeHrs || 72} hrs</td>
                                             <td className="px-6 py-4 text-right font-mono font-bold text-black text-base">
-                                                ₹{rate.baseRate?.toLocaleString() || rate.minCharge?.toLocaleString()}
+                                                ${rate.baseRate?.toLocaleString() || rate.minCharge?.toLocaleString()}
                                             </td>
                                         </tr>
                                     ))}
@@ -292,7 +292,7 @@ export const ContractDetail: React.FC<ContractDetailProps> = ({ contract, onBack
                                 <div className="flex justify-between items-center p-4 bg-black/[0.02] rounded-lg border border-black/5">
                                     <span className="text-sm font-medium text-black/70">Loading / Unloading</span>
                                     <span className="text-sm font-bold text-[#00C805]">
-                                        ₹{acc.loading_charges || 500} each
+                                        ${acc.loading_charges || 500} each
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center p-4 bg-black/[0.02] rounded-lg border border-black/5">
@@ -304,13 +304,13 @@ export const ContractDetail: React.FC<ContractDetailProps> = ({ contract, onBack
                                 <div className="flex justify-between items-center p-4 bg-black/[0.02] rounded-lg border border-black/5">
                                     <span className="text-sm font-medium text-black/70">Detention Rate</span>
                                     <span className="text-sm font-bold text-black">
-                                        ₹{acc.detention_per_hour || 1500} / day
+                                        ${acc.detention_per_hour || 1500} / day
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center p-4 bg-black/[0.02] rounded-lg border border-black/5">
                                     <span className="text-sm font-medium text-black/70">ODA Surcharge</span>
                                     <span className="text-sm font-bold text-black">
-                                        ₹{acc.multi_point_delivery || 2000} (&gt;50km)
+                                        ${acc.multi_point_delivery || 2000} (&gt;50km)
                                     </span>
                                 </div>
                             </div>

@@ -67,7 +67,7 @@ export const GuestBid: React.FC = () => {
                 <p className="text-gray-600 mb-6">Thank you, <b>{data?.vendor.name}</b>. Your quote has been sent to Atlas Manufacturing.</p>
                 <div className="bg-gray-50 rounded p-4 text-left">
                     <p className="text-xs text-gray-500 uppercase font-bold mb-1">Your Quote</p>
-                    <p className="text-2xl font-bold text-gray-900">₹{Number(amount || data?.request.bid?.amount).toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-gray-900">${Number(amount || data?.request.bid?.amount).toLocaleString()}</p>
                 </div>
             </div>
             <p className="text-gray-400 text-xs mt-8">Powered by SequelString AI Control Tower</p>
@@ -107,7 +107,7 @@ export const GuestBid: React.FC = () => {
                     <div>
                         <p className="text-sm text-gray-500 mb-4">Hello <b>{data?.vendor.name}</b>, please verify availability and quote your best rate immediately.</p>
 
-                        <label className="block text-sm font-bold text-gray-700 mb-1">Your Rate (₹)</label>
+                        <label className="block text-sm font-bold text-gray-700 mb-1">Your Rate ($)</label>
                         <div className="relative">
                             <input
                                 type="number"
@@ -117,7 +117,7 @@ export const GuestBid: React.FC = () => {
                                 onChange={e => setAmount(Number(e.target.value))}
                                 placeholder="0"
                             />
-                            <span className="absolute left-4 top-4 text-gray-400 font-bold">₹</span>
+                            <span className="absolute left-4 top-4 text-gray-400 font-bold">$</span>
                         </div>
                     </div>
 

@@ -117,8 +117,8 @@ export const AIIntelligenceHub: React.FC = () => {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex-1 px-6 py-4 flex items-center justify-center gap-3 text-sm font-bold uppercase tracking-wider transition-all border-r border-black last:border-r-0 ${activeTab === tab.id
-                                ? 'bg-white text-black'
-                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                            ? 'bg-white text-black'
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                             }`}
                         style={{
                             borderBottom: activeTab === tab.id ? `4px solid ${tab.color}` : '4px solid transparent'
@@ -143,14 +143,14 @@ export const AIIntelligenceHub: React.FC = () => {
                                 💡 The Pain Point
                             </h2>
                             <p className="text-black">
-                                A manager needs to book a spot truck. Vendor quotes <strong>₹50,000</strong>.
+                                A manager needs to book a spot truck. Vendor quotes <strong>$50,000</strong>.
                                 Is that fair? Or is it a rip-off?
                             </p>
                             <div className="mt-4 bg-[#00C805] p-4 text-white">
                                 <p className="font-bold">The AI Solution:</p>
-                                <p className="text-2xl font-bold">Recommended Fair Price: ₹44,500</p>
+                                <p className="text-2xl font-bold">Recommended Fair Price: $44,500</p>
                                 <p className="text-sm opacity-80 mt-1">
-                                    "Your competitor did this for ₹44k last week, why are you charging ₹50k?"
+                                    "Your competitor did this for $44k last week, why are you charging $50k?"
                                 </p>
                             </div>
                         </div>
@@ -162,8 +162,8 @@ export const AIIntelligenceHub: React.FC = () => {
                                     key={idx}
                                     onClick={() => setSpotScenario(idx)}
                                     className={`flex-1 py-3 text-sm font-bold uppercase border-2 ${spotScenario === idx
-                                            ? 'bg-black text-white border-black'
-                                            : 'bg-white text-black border-black hover:bg-gray-100'
+                                        ? 'bg-black text-white border-black'
+                                        : 'bg-white text-black border-black hover:bg-gray-100'
                                         }`}
                                 >
                                     {s.label}
@@ -208,8 +208,8 @@ export const AIIntelligenceHub: React.FC = () => {
                                     key={idx}
                                     onClick={() => setPlacementScenario(idx)}
                                     className={`flex-1 py-3 text-sm font-bold uppercase border-2 ${placementScenario === idx
-                                            ? 'bg-black text-white border-black'
-                                            : 'bg-white text-black border-black hover:bg-gray-100'
+                                        ? 'bg-black text-white border-black'
+                                        : 'bg-white text-black border-black hover:bg-gray-100'
                                         }`}
                                 >
                                     {s.vendorName}
@@ -240,7 +240,7 @@ export const AIIntelligenceHub: React.FC = () => {
                             </p>
                             <div className="mt-4 bg-[#0066FF] p-4 text-white">
                                 <p className="font-bold">The AI Solution:</p>
-                                <p className="text-2xl font-bold">Combine into 1 Milk Run. Save ₹33,300 (39%)</p>
+                                <p className="text-2xl font-bold">Combine into 1 Milk Run. Save $33,300 (39%)</p>
                                 <p className="text-sm opacity-80 mt-1">
                                     K-Means clustering groups nearby deliveries and optimizes capacity utilization.
                                 </p>

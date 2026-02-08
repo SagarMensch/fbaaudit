@@ -463,7 +463,7 @@ export interface Contract {
     penalties: {
       metric: string; // e.g. "On-Time Delivery"
       threshold: string; // e.g. "< 90%"
-      penalty: string; // e.g. "₹5,000 per shipment or 2% of freight, whichever is higher"
+      penalty: string; // e.g. "$5,000 per shipment or 2% of freight, whichever is higher"
     }[];
     incentives?: {
       metric: string;
@@ -474,8 +474,8 @@ export interface Contract {
 
   // Insurance & Liability
   insurance?: {
-    cargoInsuranceCoverage: number; // e.g. 500000 (₹)
-    liabilityLimitPerShipment: number; // e.g. 100000 (₹)
+    cargoInsuranceCoverage: number; // e.g. 500000 ($)
+    liabilityLimitPerShipment: number; // e.g. 100000 ($)
     claimsProcess: string; // e.g. "Claims to be filed within 7 days with POD and damage report"
     forceMajeure: string; // e.g. "Carrier not liable for delays due to natural disasters, strikes, govt. actions"
   };
@@ -496,7 +496,7 @@ export interface Contract {
     gstRate: number; // e.g. 5 or 12 or 18 (%)
     rcmSplitRatio?: string; // e.g. "50:50" or "Shipper pays full GST"
     placeOfSupply: string; // e.g. "As per delivery location"
-    invoicingRequirements: string; // e.g. "E-way bill mandatory for shipments > ₹50,000"
+    invoicingRequirements: string; // e.g. "E-way bill mandatory for shipments > $50,000"
   };
 
   // Cross-Linking

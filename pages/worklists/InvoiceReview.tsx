@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import InvoiceStorageService from '../../services/invoiceStorageService';
 import InvoiceMatchingService, { SupplierInvoice, MatchingResult } from '../../services/invoiceMatchingService';
-import { IndianSupplierService } from '../../services/supplierService';
+import { GlobalSupplierService } from '../../services/supplierService';
 import {
     FileText, CheckCircle, XCircle, AlertTriangle, Eye, Download,
     TrendingUp, TrendingDown, Minus, Check, X
@@ -24,7 +24,7 @@ export const InvoiceReview: React.FC = () => {
         setSelectedInvoice(invoice);
 
         // Get supplier and run matching
-        const supplier = IndianSupplierService.getSupplierById(invoice.supplierId);
+        const supplier = GlobalSupplierService.getSupplierById(invoice.supplierId);
         if (supplier) {
             const result = InvoiceMatchingService.matchInvoice(invoice, supplier);
             setMatchingResult(result);
@@ -154,7 +154,7 @@ export const InvoiceReview: React.FC = () => {
                                 <td className="px-6 py-4 text-sm text-gray-700">{inv.supplierName}</td>
                                 <td className="px-6 py-4 text-sm font-mono text-gray-900">{inv.lrNumber}</td>
                                 <td className="px-6 py-4 text-sm text-gray-700">{inv.invoiceDate}</td>
-                                <td className="px-6 py-4 text-sm font-bold text-gray-900">₹{inv.totalAmount.toLocaleString()}</td>
+                                <td className="px-6 py-4 text-sm font-bold text-gray-900">${inv.totalAmount.toLocaleString()}</td>
                                 <td className="px-6 py-4">
                                     {inv.podStatus === 'uploaded' ? (
                                         <span className="px-2 py-0.5 text-xs font-bold bg-green-50 text-green-700 border border-green-200 rounded">UPLOADED</span>
@@ -222,11 +222,11 @@ export const InvoiceReview: React.FC = () => {
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-gray-50 p-4 border border-gray-200">
                                         <p className="text-xs text-gray-600">Expected Amount</p>
-                                        <p className="text-xl font-bold text-gray-900 mt-1">₹{matchingResult.expectedAmount.toLocaleString()}</p>
+                                        <p className="text-xl font-bold text-gray-900 mt-1">${matchingResult.expectedAmount.toLocaleString()}</p>
                                     </div>
                                     <div className="bg-gray-50 p-4 border border-gray-200">
                                         <p className="text-xs text-gray-600">Actual Amount</p>
-                                        <p className="text-xl font-bold text-gray-900 mt-1">₹{matchingResult.actualAmount.toLocaleString()}</p>
+                                        <p className="text-xl font-bold text-gray-900 mt-1">${matchingResult.actualAmount.toLocaleString()}</p>
                                     </div>
                                     <div className={`p-4 border ${Math.abs(matchingResult.variancePercent) < 2 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
                                         }`}>
@@ -262,7 +262,7 @@ export const InvoiceReview: React.FC = () => {
                                                             </div>
                                                             {disc.impact !== 0 && (
                                                                 <p className="text-xs text-gray-600 mt-2">
-                                                                    Impact: ₹{disc.impact.toLocaleString()}
+                                                                    Impact: ${disc.impact.toLocaleString()}
                                                                 </p>
                                                             )}
                                                         </div>
@@ -303,7 +303,7 @@ export const InvoiceReview: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="text-gray-600">Rate</p>
-                                                <p className="text-gray-900">₹{selectedInvoice.lineItems[0].rate}/kg</p>
+                                                <p className="text-gray-900">${selectedInvoice.lineItems[0].rate}/kg</p>
                                             </div>
                                             <div>
                                                 <p className="text-gray-600">POD Status</p>

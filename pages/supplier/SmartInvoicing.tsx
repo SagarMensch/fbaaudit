@@ -825,7 +825,7 @@ export const SmartInvoicing: React.FC<SmartInvoicingProps> = ({ supplier }) => {
                                             {extractedData.line_items.map((item, idx) => (
                                                 <div key={idx} className="flex justify-between text-sm">
                                                     <span className="text-slate-700">{item.description}</span>
-                                                    <span className="font-bold text-slate-900">₹{item.amount.toLocaleString()}</span>
+                                                    <span className="font-bold text-slate-900">${item.amount.toLocaleString()}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -836,17 +836,17 @@ export const SmartInvoicing: React.FC<SmartInvoicingProps> = ({ supplier }) => {
                                 <div className="p-4 bg-slate-900 rounded-xl text-white">
                                     <div className="flex justify-between text-sm mb-2">
                                         <span className="text-slate-400">Subtotal</span>
-                                        <span>₹{extractedData.subtotal.toLocaleString()}</span>
+                                        <span>${extractedData.subtotal.toLocaleString()}</span>
                                     </div>
                                     {extractedData.tax_details?.total_tax && extractedData.tax_details.total_tax > 0 && (
                                         <div className="flex justify-between text-sm mb-2">
                                             <span className="text-slate-400">Tax</span>
-                                            <span>₹{extractedData.tax_details.total_tax.toLocaleString()}</span>
+                                            <span>${extractedData.tax_details.total_tax.toLocaleString()}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between text-lg font-bold border-t border-slate-700 pt-2 mt-2">
                                         <span>Total</span>
-                                        <span className="text-[#00C805]">₹{extractedData.total_amount.toLocaleString()}</span>
+                                        <span className="text-[#00C805]">${extractedData.total_amount.toLocaleString()}</span>
                                     </div>
                                 </div>
 

@@ -1,39 +1,39 @@
 import React, { useState } from 'react';
-import { IndianSupplier, IndianSupplierService } from '../../services/supplierService';
+import { GlobalSupplier, GlobalSupplierService } from '../../services/supplierService';
 import { SupplierProfile } from './SupplierProfile';
 import { crossLinkService } from '../../services/crossLinkService';
 import {
     Search, Filter, TrendingUp, TrendingDown, MapPin, Phone, Mail,
-    Building2, IndianRupee, Package, Truck, Award, Clock, Bell,
+    Building2, DollarSign, Package, Truck, Award, Clock, Bell,
     ChevronRight, Grid, List, Download, Plus, FileText, BarChart3
 } from 'lucide-react';
 
 export const SupplierDirectory: React.FC = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterType, setFilterType] = useState<'all' | 'surface' | 'express' | 'air' | 'multimodal'>('all');
+    const [filterType, setFilterType] = useState<'all' | 'ground' | 'express' | 'air' | 'multimodal' | 'ocean'>('all');
     const [filterRegion, setFilterRegion] = useState<string>('all');
     const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<'name' | 'onTime' | 'credit'>('name');
 
-    const [suppliers, setSuppliers] = useState<IndianSupplier[]>([]);
+    const [suppliers, setSuppliers] = useState<GlobalSupplier[]>([]);
     const [loading, setLoading] = useState(true);
 
     React.useEffect(() => {
         const fetchSuppliers = async () => {
             try {
                 // Try to fetch from API first
-                const data = await IndianSupplierService.fetchAllVendorsAsync();
+                const data = await GlobalSupplierService.fetchAllVendorsAsync();
                 if (data && data.length > 0) {
                     setSuppliers(data);
                 } else {
                     // Fallback to static data if API fails or is empty (for resilience)
                     console.log('Using fallback static data');
-                    setSuppliers(IndianSupplierService.getAllSuppliers());
+                    setSuppliers(GlobalSupplierService.getAllSuppliers());
                 }
             } catch (error) {
                 console.error('Failed to fetch suppliers:', error);
-                setSuppliers(IndianSupplierService.getAllSuppliers());
+                setSuppliers(GlobalSupplierService.getAllSuppliers());
             } finally {
                 setLoading(false);
             }
@@ -62,7 +62,7 @@ export const SupplierDirectory: React.FC = () => {
     });
 
     // Get all notifications
-    const allNotifications = IndianSupplierService.getAllNotifications(true);
+    const allNotifications = GlobalSupplierService.getAllNotifications(true);
 
     return (
         <div className="min-h-screen bg-slate-50 p-8">
@@ -106,10 +106,10 @@ export const SupplierDirectory: React.FC = () => {
                     <div className="bg-white border border-slate-200 rounded-lg p-4">
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm text-slate-600">Total Credit Limit</span>
-                            <IndianRupee className="text-purple-600" size={20} />
+                            <DollarSign className="text-purple-600" size={20} />
                         </div>
                         <div className="text-2xl font-bold text-slate-900">
-                            ₹{(suppliers.reduce((sum, s) => sum + s.financial.creditLimit, 0) / 10000000).toFixed(1)}Cr
+                            ${(suppliers.reduce((sum, s) => sum + s.financial.creditLimit, 0) / 10000000).toFixed(1)}Cr
                         </div>
                     </div>
                     <div className="bg-white border border-slate-200 rounded-lg p-4">
@@ -146,9 +146,10 @@ export const SupplierDirectory: React.FC = () => {
                                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="all">All Types</option>
-                                <option value="surface">Surface</option>
+                                <option value="ground">Ground</option>
                                 <option value="express">Express</option>
                                 <option value="air">Air</option>
+                                <option value="ocean">Ocean</option>
                                 <option value="multimodal">Multimodal</option>
                             </select>
                         </div>
@@ -161,10 +162,10 @@ export const SupplierDirectory: React.FC = () => {
                                 className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                             >
                                 <option value="all">All Regions</option>
-                                <option value="north">North India</option>
-                                <option value="south">South India</option>
-                                <option value="east">East India</option>
-                                <option value="west">West India</option>
+                                <option value="americas">Americas</option>
+                                <option value="emea">EMEA</option>
+                                <option value="apac">APAC</option>
+                                <option value="global">Global</option>
                             </select>
                         </div>
 
@@ -222,10 +223,11 @@ export const SupplierDirectory: React.FC = () => {
                                             <h3 className="text-lg font-bold text-slate-900">{supplier.name}</h3>
                                             <p className="text-sm text-slate-600">{supplier.fullName}</p>
                                             <div className="flex gap-2 mt-1">
-                                                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${supplier.type === 'surface' ? 'bg-blue-100 text-blue-800' :
+                                                <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${supplier.type === 'ground' ? 'bg-blue-100 text-blue-800' :
                                                     supplier.type === 'express' ? 'bg-green-100 text-green-800' :
                                                         supplier.type === 'air' ? 'bg-purple-100 text-purple-800' :
-                                                            'bg-orange-100 text-orange-800'
+                                                            supplier.type === 'ocean' ? 'bg-cyan-100 text-cyan-800' :
+                                                                'bg-orange-100 text-orange-800'
                                                     }`}>
                                                     {supplier.type.toUpperCase()}
                                                 </span>
@@ -253,7 +255,7 @@ export const SupplierDirectory: React.FC = () => {
                                     </div>
                                     <div className="bg-blue-50 rounded-lg p-3">
                                         <div className="text-xs text-blue-700 mb-1">Credit</div>
-                                        <div className="text-lg font-bold text-blue-900">₹{(supplier.financial.creditLimit / 100000).toFixed(0)}L</div>
+                                        <div className="text-lg font-bold text-blue-900">${(supplier.financial.creditLimit / 100000).toFixed(0)}L</div>
                                     </div>
                                     <div className="bg-purple-50 rounded-lg p-3">
                                         <div className="text-xs text-purple-700 mb-1">Rating</div>
@@ -358,17 +360,18 @@ export const SupplierDirectory: React.FC = () => {
                                             </div>
                                         </td>
                                         <td className="p-4">
-                                            <span className={`text-xs px-2 py-1 rounded-full font-bold ${supplier.type === 'surface' ? 'bg-blue-100 text-blue-800' :
+                                            <span className={`text-xs px-2 py-1 rounded-full font-bold ${supplier.type === 'ground' ? 'bg-blue-100 text-blue-800' :
                                                 supplier.type === 'express' ? 'bg-green-100 text-green-800' :
                                                     supplier.type === 'air' ? 'bg-purple-100 text-purple-800' :
-                                                        'bg-orange-100 text-orange-800'
+                                                        supplier.type === 'ocean' ? 'bg-cyan-100 text-cyan-800' :
+                                                            'bg-orange-100 text-orange-800'
                                                 }`}>
                                                 {supplier.type.toUpperCase()}
                                             </span>
                                         </td>
                                         <td className="p-4">
-                                            <div className="text-sm text-slate-700">{supplier.coverage.pinCodes} PINs</div>
-                                            <div className="text-xs text-slate-500">{supplier.coverage.branches}+ branches</div>
+                                            <div className="text-sm text-slate-700">{supplier.coverage.countries}</div>
+                                            <div className="text-xs text-slate-500">{supplier.coverage.facilities}+ facilities</div>
                                         </td>
                                         <td className="p-4">
                                             <div className="flex items-center gap-2">
@@ -378,7 +381,7 @@ export const SupplierDirectory: React.FC = () => {
                                         </td>
                                         <td className="p-4">
                                             <div className="text-sm font-bold text-slate-900">
-                                                ₹{(supplier.financial.creditLimit / 100000).toFixed(1)}L
+                                                ${(supplier.financial.creditLimit / 100000).toFixed(1)}L
                                             </div>
                                             <div className="text-xs text-slate-500">{supplier.financial.paymentTerms}</div>
                                         </td>

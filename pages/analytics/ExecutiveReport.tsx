@@ -236,7 +236,7 @@ export const ExecutiveReport: React.FC<ExecutiveReportProps> = ({ onNavigate }) 
                 <div className="grid grid-cols-5 gap-4">
                     <KPICard
                         title="Total Freight Spend"
-                        value="₹164.8M"
+                        value="$164.8M"
                         subValue="YTD Actual"
                         change="+12.4% vs LY"
                         changeType="negative"
@@ -245,9 +245,9 @@ export const ExecutiveReport: React.FC<ExecutiveReportProps> = ({ onNavigate }) 
                     />
                     <KPICard
                         title="Cost Savings"
-                        value="₹8.2M"
+                        value="$8.2M"
                         subValue="5.2% of Spend"
-                        change="+₹1.8M vs Target"
+                        change="+$1.8M vs Target"
                         changeType="positive"
                         icon={TrendingUp}
                         color="bg-green-600"
@@ -265,7 +265,7 @@ export const ExecutiveReport: React.FC<ExecutiveReportProps> = ({ onNavigate }) 
                         title="Anomalies Detected"
                         value="108"
                         subValue="Resolved: 97"
-                        change="₹2.4M Prevented"
+                        change="$2.4M Prevented"
                         changeType="positive"
                         icon={Shield}
                         color="bg-orange-500"
@@ -292,10 +292,10 @@ export const ExecutiveReport: React.FC<ExecutiveReportProps> = ({ onNavigate }) 
                                 <ComposedChart data={monthlySpendData}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
                                     <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#374151', fontSize: 12, fontWeight: 500 }} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#374151', fontSize: 12, fontWeight: 500 }} tickFormatter={(v) => `₹${v}M`} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#374151', fontSize: 12, fontWeight: 500 }} tickFormatter={(v) => `$${v}M`} />
                                     <Tooltip
                                         contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '4px', color: '#fff' }}
-                                        formatter={(value: any, name: string) => [`₹${value}M`, name.charAt(0).toUpperCase() + name.slice(1)]}
+                                        formatter={(value: any, name: string) => [`$${value}M`, name.charAt(0).toUpperCase() + name.slice(1)]}
                                     />
                                     <Legend />
                                     <Bar dataKey="actual" name="Actual Spend" fill={COLORS.primary} radius={[4, 4, 0, 0]} />
@@ -307,15 +307,15 @@ export const ExecutiveReport: React.FC<ExecutiveReportProps> = ({ onNavigate }) 
                         <div className="mt-4 grid grid-cols-3 gap-4 border-t border-gray-200 pt-4">
                             <div className="text-center">
                                 <p className="text-xs text-gray-500 uppercase">Total Budget</p>
-                                <p className="text-xl font-bold text-gray-900">₹261.5M</p>
+                                <p className="text-xl font-bold text-gray-900">$261.5M</p>
                             </div>
                             <div className="text-center border-l border-r border-gray-200">
                                 <p className="text-xs text-gray-500 uppercase">YTD Actual</p>
-                                <p className="text-xl font-bold text-gray-900">₹164.8M</p>
+                                <p className="text-xl font-bold text-gray-900">$164.8M</p>
                             </div>
                             <div className="text-center">
                                 <p className="text-xs text-gray-500 uppercase">Forecast EOY</p>
-                                <p className="text-xl font-bold text-green-600">₹258.2M</p>
+                                <p className="text-xl font-bold text-green-600">$258.2M</p>
                             </div>
                         </div>
                     </div>
@@ -491,11 +491,11 @@ export const ExecutiveReport: React.FC<ExecutiveReportProps> = ({ onNavigate }) 
                                     </div>
                                     <div className="grid grid-cols-3 gap-2 text-center">
                                         <div>
-                                            <p className="text-lg font-bold text-gray-900">₹{region.spend}M</p>
+                                            <p className="text-lg font-bold text-gray-900">${region.spend}M</p>
                                             <p className="text-xs text-gray-500">Spend</p>
                                         </div>
                                         <div>
-                                            <p className="text-lg font-bold text-green-600">₹{region.savings}M</p>
+                                            <p className="text-lg font-bold text-green-600">${region.savings}M</p>
                                             <p className="text-xs text-gray-500">Savings</p>
                                         </div>
                                         <div>

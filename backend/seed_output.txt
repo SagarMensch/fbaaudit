@@ -1,0 +1,109 @@
+﻿python : Traceback 
+(most recent call 
+last):
+At line:1 char:1
++ python run_seed.py 
+2>&1 | Out-File 
+-FilePath 
+seed_output.txt 
+-Encodin ...
++ ~~~~~~~~~~~~~~~~~~~
+~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (Traceba   
+ ck (most recent     
+call last)::Stri    
+ng) [], RemoteEx    
+ception
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+  File "C:\Users\saga
+r\Downloads\fbaaudit-
+main\fbaaudit-main\ba
+ckend\run_seed.py", 
+line 7, in <module>
+    seed_all()
+    ~~~~~~~~^^
+  File "C:\Users\saga
+r\Downloads\fbaaudit-
+main\fbaaudit-main\ba
+ckend\seed_global_dat
+a.py", line 469, in 
+seed_all
+    seed_freight_rate
+s(cursor)
+    ~~~~~~~~~~~~~~~~~
+~^^^^^^^^
+  File "C:\Users\saga
+r\Downloads\fbaaudit-
+main\fbaaudit-main\ba
+ckend\seed_global_dat
+a.py", line 334, in 
+seed_freight_rates
+    
+cursor.execute("""
+    
+~~~~~~~~~~~~~~^^^^
+        INSERT INTO 
+freight_rates 
+(contract_id, 
+origin, destination, 
+vehicle_type, 
+rate_basis, 
+base_rate, 
+transit_time_days)
+        ^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^
+    ...<5 lines>...
+            
+updated_at = NOW()
+            
+^^^^^^^^^^^^^^^^^^
+    """, rate)
+    ^^^^^^^^^^
+psycopg2.errors.NotNu
+llViolation: null 
+value in column "id" 
+of relation 
+"freight_rates" 
+violates not-null 
+constraint
+DETAIL:  Failing row 
+contains (null, 
+CON-DHL-2026, Los 
+Angeles, New York, 
+Air Express, null, 
+Per Kg, 12.50, null, 
+null, null, 2, null, 
+t, null, null, 
+2026-02-08 
+06:10:41.150008, 
+2026-02-08 
+06:10:41.150008).
+
+
+============================================================
+FBA AUDIT - GLOBAL DATA SEEDER
+============================================================
+
+[CONFIG] Creating system_config table...
+  [OK] Seeded 10 config entries
+[VENDORS] Seeding global vendors/carriers...
+  [OK] Seeded 7 global vendors
+[CONTRACTS] Seeding contracts...
+  [OK] Seeded 5 contracts
+[RATES] Seeding freight rates (USD)...
+
+[ERROR]: null value in column "id" of relation "freight_rates" violates not-null constraint
+DETAIL:  Failing row contains (null, CON-DHL-2026, Los Angeles, New York, Air Express, null, Per Kg, 12.50, null, null, null, 2, null, t, null, null, 2026-02-08 06:10:41.150008, 2026-02-08 06:10:41.150008).
+
+ERROR: null value in column "id" of relation "freight_rates" violates not-null constraint
+DETAIL:  Failing row contains (null, CON-DHL-2026, Los Angeles, New York, Air Express, null, Per Kg, 12.50, null, null, null, 2, null, t, null, null, 2026-02-08 06:10:41.150008, 2026-02-08 06:10:41.150008).
+

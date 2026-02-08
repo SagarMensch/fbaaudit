@@ -310,7 +310,7 @@ export const ContractManager: React.FC = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Base Diesel (₹)</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Base Diesel ($)</label>
                                     <input
                                         type="number"
                                         className="w-full border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-[#00C805] outline-none"
@@ -339,7 +339,7 @@ export const ContractManager: React.FC = () => {
                                     <select className="border p-1.5 text-xs rounded" value={matrixRow.vehicle} onChange={e => setMatrixRow({ ...matrixRow, vehicle: e.target.value })}>
                                         <option>32ft MXL</option><option>32ft SXL</option><option>10-Tyre</option>
                                     </select>
-                                    <input type="number" placeholder="Rate (₹)" className="border p-1.5 text-xs rounded" value={matrixRow.rate} onChange={e => setMatrixRow({ ...matrixRow, rate: Number(e.target.value) })} />
+                                    <input type="number" placeholder="Rate ($)" className="border p-1.5 text-xs rounded" value={matrixRow.rate} onChange={e => setMatrixRow({ ...matrixRow, rate: Number(e.target.value) })} />
                                     <button onClick={handleAddMatrixRow} className="bg-[#00C805] text-white rounded text-xs font-bold hover:bg-blue-700">Add</button>
                                 </div>
 
@@ -353,7 +353,7 @@ export const ContractManager: React.FC = () => {
                                                 <tr key={row.id} className="border-b border-gray-100 last:border-0">
                                                     <td className="py-1">{row.origin} - {row.destination}</td>
                                                     <td className="py-1">{row.vehicleType}</td>
-                                                    <td className="py-1 text-right font-mono font-bold">₹{row.baseRate.toLocaleString()}</td>
+                                                    <td className="py-1 text-right font-mono font-bold">${row.baseRate.toLocaleString()}</td>
                                                 </tr>
                                             ))}
                                             {(!newContract.freightMatrix || newContract.freightMatrix.length === 0) && (
@@ -437,7 +437,7 @@ export const ContractManager: React.FC = () => {
                     <div className="bg-[#0052FF] p-5 rounded-xl border border-gray-800 shadow-md flex flex-col justify-between h-32 relative overflow-hidden">
                         <div className="z-10">
                             <p className="text-sm font-medium text-white">National Diesel (Ref)</p>
-                            <h3 className="text-3xl font-bold text-white mt-2">₹91.25</h3>
+                            <h3 className="text-3xl font-bold text-white mt-2">$91.25</h3>
                             <p className="text-xs text-green-400 font-medium mt-1">+1.2% vs Last Month</p>
                         </div>
                         <div className="absolute -right-4 -bottom-4 text-blue-900 opacity-20">
@@ -520,7 +520,7 @@ export const ContractManager: React.FC = () => {
                                                     </button>
                                                 </td>
                                                 <td className="px-3 py-2 border-r border-gray-200 text-right">
-                                                    <div className="font-mono font-bold text-gray-900">₹{(Math.random() * 500000 + 200000).toFixed(0)}</div>
+                                                    <div className="font-mono font-bold text-gray-900">${(Math.random() * 500000 + 200000).toFixed(0)}</div>
                                                     <div className="text-[10px] text-gray-500">MTD</div>
                                                 </td>
                                                 <td className="px-3 py-2 border-r border-gray-200 text-right">
@@ -536,7 +536,7 @@ export const ContractManager: React.FC = () => {
                                                         className="font-mono font-bold text-orange-600 hover:text-orange-800 hover:underline text-left flex items-center gap-1"
                                                     >
                                                         <GeoFuel size={12} />
-                                                        ₹{c.pvcConfig.baseDieselPrice}
+                                                        ${c.pvcConfig.baseDieselPrice}
                                                     </button>
                                                     <div className="text-[10px] text-gray-500">{c.pvcConfig.referenceCity}</div>
                                                 </td>
@@ -640,7 +640,7 @@ export const ContractManager: React.FC = () => {
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Diesel (₹)</label>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Diesel ($)</label>
                                             <input
                                                 type="number"
                                                 className="w-full text-sm border-gray-300 rounded-md p-2 border focus:ring-2 focus:ring-[#00C805] outline-none"
@@ -679,7 +679,7 @@ export const ContractManager: React.FC = () => {
                                             <div className="animate-fade-in-up">
                                                 <div className="flex justify-between items-baseline mb-4 border-b border-gray-200 pb-2">
                                                     <span className="text-gray-500 text-xs font-bold uppercase">Total Cost</span>
-                                                    <span className="text-2xl font-extrabold text-black">₹{simResult.totalCost.toLocaleString()}</span>
+                                                    <span className="text-2xl font-extrabold text-black">${simResult.totalCost.toLocaleString()}</span>
                                                 </div>
                                                 <div className="space-y-2">
                                                     {simResult.breakdown.map((line: string, idx: number) => (

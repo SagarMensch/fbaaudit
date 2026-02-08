@@ -454,20 +454,20 @@ export const BulkInvoiceUpload: React.FC<BulkInvoiceUploadProps> = ({ supplier }
                         <div className="bg-white rounded-lg p-4">
                             <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Excel Total</p>
                             <p className="text-2xl font-bold text-slate-900 mt-1">
-                                ₹{reconciliation.excel_total.toLocaleString()}
+                                ${reconciliation.excel_total.toLocaleString()}
                             </p>
                         </div>
                         <div className="bg-white rounded-lg p-4">
                             <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">PDF Total</p>
                             <p className="text-2xl font-bold text-slate-900 mt-1">
-                                ₹{reconciliation.pdf_total.toLocaleString()}
+                                ${reconciliation.pdf_total.toLocaleString()}
                             </p>
                         </div>
                         <div className="bg-white rounded-lg p-4">
                             <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Difference</p>
                             <p className={`text-2xl font-bold mt-1 ${reconciliation.difference === 0 ? 'text-green-600' : 'text-red-600'
                                 }`}>
-                                ₹{reconciliation.difference.toLocaleString()}
+                                ${reconciliation.difference.toLocaleString()}
                             </p>
                         </div>
                     </div>
@@ -516,7 +516,7 @@ export const BulkInvoiceUpload: React.FC<BulkInvoiceUploadProps> = ({ supplier }
                                 <div>
                                     <p className="text-black/60 text-xs font-bold uppercase tracking-wider mb-1">Detected Total</p>
                                     <p className="text-3xl font-bold font-mono text-[#00C805]">
-                                        ₹{reconciliation.pdf_total.toLocaleString()}
+                                        ${reconciliation.pdf_total.toLocaleString()}
                                     </p>
                                 </div>
                                 <div className="border-l border-black/20 pl-8">
@@ -564,7 +564,7 @@ export const BulkInvoiceUpload: React.FC<BulkInvoiceUploadProps> = ({ supplier }
                             <div>
                                 <p className="text-sm text-black/60">Excel Total</p>
                                 <p className="text-xl font-bold text-black">
-                                    ₹{reconciliation.excel_total.toLocaleString()}
+                                    ${reconciliation.excel_total.toLocaleString()}
                                 </p>
                             </div>
                             <div className="text-[#00C805]">
@@ -573,7 +573,7 @@ export const BulkInvoiceUpload: React.FC<BulkInvoiceUploadProps> = ({ supplier }
                             <div>
                                 <p className="text-sm text-black/60">PDF Total</p>
                                 <p className="text-xl font-bold text-black">
-                                    ₹{reconciliation.pdf_total.toLocaleString()}
+                                    ${reconciliation.pdf_total.toLocaleString()}
                                 </p>
                             </div>
                         </div>
@@ -772,10 +772,10 @@ export const BulkInvoiceUpload: React.FC<BulkInvoiceUploadProps> = ({ supplier }
 
                         <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/20">
                             <p className="text-sm text-white/80">
-                                <span className="font-bold text-[#00C805]">Current Approver:</span> {workflowInfo.current_approver || 'Kaai Bansal'}
+                                <span className="font-bold text-[#00C805]">Current Approver:</span> {workflowInfo.current_approver || 'Lan Banh'}
                             </p>
                             <p className="text-xs text-white/60 mt-1">
-                                Invoice is now visible in Kaai's Approver Queue. Once approved, it moves to Finance.
+                                Invoice is now visible in Lan's Approver Queue. Once approved, it moves to Finance.
                             </p>
                         </div>
                     </div>
@@ -863,7 +863,7 @@ export const BulkInvoiceUpload: React.FC<BulkInvoiceUploadProps> = ({ supplier }
                         <div className="mb-6">
                             <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Invoice Grand Total</label>
                             <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
                                 <input
                                     type="text"
                                     value={manualTotal}

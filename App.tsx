@@ -57,8 +57,8 @@ import './services/masterDataInit'; // Initialize master data on app load
 // Persona Definition for Demo Switching
 const DEMO_PERSONAS = [
   { id: 'atlas', name: 'Atlas', role: 'Enterprise Director', roleId: 'ENTERPRISE_ADMIN', userRole: '3SC' as UserRole, avatar: 'https://i.pravatar.cc/150?u=atlas' },
-  { id: 'lan', name: 'Kaai Bansal', role: 'Logistics Ops', roleId: 'OPS_MANAGER', userRole: '3SC' as UserRole, avatar: 'https://i.pravatar.cc/150?u=lan' },
-  { id: 'william', name: 'Zeya Kapoor', role: 'Finance Manager', roleId: 'FINANCE_MANAGER', userRole: '3SC' as UserRole, avatar: 'https://i.pravatar.cc/150?u=william' },
+  { id: 'lan', name: 'Lan Banh', role: 'Logistics Ops', roleId: 'OPS_MANAGER', userRole: '3SC' as UserRole, avatar: 'https://i.pravatar.cc/150?u=lan' },
+  { id: 'william', name: 'William Chen', role: 'Finance Manager', roleId: 'FINANCE_MANAGER', userRole: '3SC' as UserRole, avatar: 'https://i.pravatar.cc/150?u=william' },
   { id: 'admin', name: 'System Admin', role: 'Super User', initials: 'AD', roleId: 'ENTERPRISE_ADMIN', userRole: '3SC' as UserRole, color: 'purple' }
 ];
 

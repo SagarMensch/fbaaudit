@@ -145,11 +145,11 @@ const GeoZap = ({ className = "w-3 h-3" }: { className?: string }) => (
     </svg>
 );
 
-const GeoRupee = ({ className = "w-5 h-5" }: { className?: string }) => (
+const GeoDollar = ({ className = "w-5 h-5" }: { className?: string }) => (
     <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5" className={className}>
-        <path d="M12 12h20M12 20h20" />
-        <path d="M16 12c0 6 4 8 8 8L12 36" strokeWidth="2" />
-        <circle cx="24" cy="12" r="2" fill="currentColor" />
+        <line x1="24" y1="4" x2="24" y2="44" strokeWidth="2" />
+        <path d="M30 16c0-6-4-8-8-8s-8 2-8 8 3 8 8 8 8 2 8 8-4 8-8 8-8-2-8-8" strokeWidth="2" />
+        <circle cx="24" cy="24" r="20" strokeWidth="1.5" className="opacity-30" />
     </svg>
 );
 
@@ -242,7 +242,7 @@ const DrillDownModal: React.FC<{
                                             </div>
                                             <div className="border border-gray-300 p-4">
                                                 <p className="text-xs text-gray-600 font-bold mb-1">ESTIMATED SAVINGS</p>
-                                                <p className="text-3xl font-bold text-green-600">₹{(cluster.totalVolume * 0.12).toFixed(0)}</p>
+                                                <p className="text-3xl font-bold text-green-600">${(cluster.totalVolume * 0.12).toFixed(0)}</p>
                                                 <p className="text-xs text-gray-500 mt-1">per month</p>
                                             </div>
                                             <div className="border border-gray-300 p-4">
@@ -340,15 +340,15 @@ const DrillDownModal: React.FC<{
                                     <div className="grid grid-cols-3 gap-4">
                                         <div>
                                             <p className="text-xs text-gray-600 font-bold">AVERAGE RATE</p>
-                                            <p className="text-2xl font-bold font-mono">₹{data.stats.mean.toFixed(0)}</p>
+                                            <p className="text-2xl font-bold font-mono">${data.stats.mean.toFixed(0)}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-600 font-bold">MEDIAN RATE</p>
-                                            <p className="text-2xl font-bold font-mono">₹{data.stats.median.toFixed(0)}</p>
+                                            <p className="text-2xl font-bold font-mono">${data.stats.median.toFixed(0)}</p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-gray-600 font-bold">95TH PERCENTILE</p>
-                                            <p className="text-2xl font-bold font-mono">₹{data.stats.p95.toFixed(0)}</p>
+                                            <p className="text-2xl font-bold font-mono">${data.stats.p95.toFixed(0)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -380,11 +380,11 @@ const DrillDownModal: React.FC<{
                                                 <div className="grid grid-cols-4 gap-4 mb-4">
                                                     <div className="border border-gray-200 p-3">
                                                         <p className="text-xs text-gray-600 font-bold">CURRENT RATE</p>
-                                                        <p className="text-xl font-bold font-mono">₹{anomaly.value.toFixed(0)}</p>
+                                                        <p className="text-xl font-bold font-mono">${anomaly.value.toFixed(0)}</p>
                                                     </div>
                                                     <div className="border border-gray-200 p-3">
                                                         <p className="text-xs text-gray-600 font-bold">MARKET AVG</p>
-                                                        <p className="text-xl font-bold font-mono">₹{data.stats.mean.toFixed(0)}</p>
+                                                        <p className="text-xl font-bold font-mono">${data.stats.mean.toFixed(0)}</p>
                                                     </div>
                                                     <div className="border border-gray-200 p-3">
                                                         <p className="text-xs text-gray-600 font-bold">VARIANCE</p>
@@ -488,7 +488,7 @@ export const MasterDataHub: React.FC = () => {
                 {/* KPI Cards */}
                 <div className="grid grid-cols-6 gap-2 mt-2">
                     <KPICard title="ZONES" value={locationStats.totalZones} subtitle={`${locationStats.aiSuggestedClusters} Optimized`} color="bg-blue-600" />
-                    <KPICard title="FUEL" value={fuelStats.activeRules} subtitle={`₹${fuelStats.avgDieselPrice}/L`} color="bg-orange-600" />
+                    <KPICard title="FUEL" value={fuelStats.activeRules} subtitle={`$${fuelStats.avgDieselPrice}/L`} color="bg-orange-600" />
                     <KPICard title="LANES" value={laneStats.activeLanes} subtitle={`${laneStats.avgOnTimePercent}% OT`} color="bg-green-600" />
                     <KPICard title="VEHICLES" value={8} subtitle="FTL/LTL/EXP" color="bg-purple-600" />
                     <KPICard title="ACCS" value={accessorialStats.active} subtitle={`${accessorialStats.total} Total`} color="bg-teal-600" />
@@ -732,11 +732,11 @@ const IntelligenceCenter: React.FC = () => {
                         className="bg-white border-2 border-gray-300 rounded p-3 hover:border-black transition-all text-left group"
                     >
                         <div className="flex items-center justify-between mb-2">
-                            <GeoRupee className="h-5 w-5 text-green-600" />
+                            <GeoDollar className="h-5 w-5 text-green-600" />
                             <ChevronRight className="h-3 w-3 text-gray-400 group-hover:text-black" />
                         </div>
                         <p className="text-[9px] text-gray-600 font-bold mb-1 uppercase tracking-wider">Cost Optimization</p>
-                        <p className="text-2xl font-black text-green-600 font-mono">₹{(insights.businessMetrics.savingsOpportunity / 1000).toFixed(0)}K</p>
+                        <p className="text-2xl font-black text-green-600 font-mono">${(insights.businessMetrics.savingsOpportunity / 1000).toFixed(0)}K</p>
                         <p className="text-[9px] text-gray-500 mt-1">Route consolidation</p>
                     </button>
 
@@ -895,7 +895,7 @@ const FuelTab: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
                             <tr key={p.id} className="hover:bg-gray-50">
                                 <td className="px-4 py-2 text-xs font-bold text-black">{p.city}</td>
                                 <td className="px-4 py-2 text-xs font-mono text-gray-600">{p.date}</td>
-                                <td className="px-4 py-2 text-xs text-right font-mono font-bold text-green-600">₹{p.dieselPrice}</td>
+                                <td className="px-4 py-2 text-xs text-right font-mono font-bold text-green-600">${p.dieselPrice}</td>
                                 <td className="px-4 py-2 text-right">
                                     <button onClick={() => handleDelete(p.id)} className="text-red-600 hover:text-red-800 font-medium text-xs">DELETE</button>
                                 </td>
@@ -914,7 +914,7 @@ const LanesTab: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
     const [lanes, setLanes] = useState(laneMasterService.getActiveLanes());
 
     const handleEdit = (lane: any) => {
-        const rate = prompt('Enter new rate (₹):', lane.currentRate);
+        const rate = prompt('Enter new rate ($):', lane.currentRate);
         if (rate && !isNaN(parseFloat(rate))) {
             laneMasterService.updateLane(lane.id, { currentRate: parseFloat(rate) });
             setLanes(laneMasterService.getActiveLanes());
@@ -940,7 +940,7 @@ const LanesTab: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => {
                             <tr key={l.id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 text-sm font-mono font-bold text-blue-600">{l.laneCode}</td>
                                 <td className="px-6 py-4 text-sm font-medium">{l.origin} to {l.destination}</td>
-                                <td className="px-6 py-4 text-sm text-right font-bold font-mono">₹{l.currentRate?.toLocaleString()}</td>
+                                <td className="px-6 py-4 text-sm text-right font-bold font-mono">${l.currentRate?.toLocaleString()}</td>
                                 <td className="px-6 py-4 text-right">
                                     <button onClick={() => handleEdit(l)} className="text-blue-600 font-bold text-sm hover:underline">Edit</button>
                                 </td>
@@ -1078,7 +1078,7 @@ const AccessorialsTab: React.FC<{ onRefresh: () => void }> = ({ onRefresh }) => 
                                 <td className="px-6 py-4 text-sm font-mono font-bold">{acc.code}</td>
                                 <td className="px-6 py-4 text-sm font-medium">{acc.description}</td>
                                 <td className="px-6 py-4 text-sm text-right font-bold text-blue-600 font-mono">
-                                    {acc.logic === '% of Freight' ? `${acc.amount}%` : `₹${acc.amount}`}
+                                    {acc.logic === '% of Freight' ? `${acc.amount}%` : `$${acc.amount}`}
                                 </td>
                                 <td className="px-6 py-4 text-right">
                                     <button onClick={() => handleDelete(acc.id)} className="text-red-600 font-bold text-sm hover:underline">Delete</button>

@@ -26,6 +26,10 @@ docling-core>=0.1.0
 # AI/ML
 google-generativeai>=0.3.0
 openai>=1.0.0
+groq>=0.4.0
+langgraph>=0.0.10
+langchain>=0.1.0
+langchain-core>=0.1.0
 sentence-transformers>=2.2.0
 numpy>=1.24.0
 pandas>=2.0.0

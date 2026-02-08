@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
    Search, Download, Upload, Filter, Edit2, Clock, X, Cloud,
    CheckCircle, PlayCircle, Trash2, ArrowLeft, FileText, Truck,
-   Globe, Shield, IndianRupee, ChevronRight, AlertCircle, Calendar,
+   Globe, Shield, DollarSign, ChevronRight, AlertCircle, Calendar,
    Calculator, MapPin, TrendingUp, Layers, ArrowUpRight, ArrowDownRight,
    MoreHorizontal, Ship, Plane, Box, Lock
 } from 'lucide-react';
@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import { exportToCSV } from '../../utils/exportUtils';
 import { crossLinkService } from '../../services/crossLinkService';
+import { ConfigAPI } from '../../services/apiClient';
 
 // --- 3D SOLID GEOMETRIC ICONS ---
 
@@ -216,19 +217,19 @@ const MOCK_CONTRACTS: Contract[] = [
 ];
 
 const MOCK_RATE_LINES: RateLine[] = [
-   { origin: 'Delhi', destination: 'Mumbai', equipment: '32 FT MXL', currency: 'INR', baseRate: 45000.00, marketRate: 48000.00, transitTime: '36 Hrs', validity: '2025' },
-   { origin: 'Mumbai', destination: 'Bangalore', equipment: '32 FT MXL', currency: 'INR', baseRate: 38000.00, marketRate: 41000.00, transitTime: '24 Hrs', validity: '2025' },
-   { origin: 'Chennai', destination: 'Kolkata', equipment: '19 FT SXL', currency: 'INR', baseRate: 52000.00, marketRate: 55000.00, transitTime: '48 Hrs', validity: '2025' },
-   { origin: 'Pune', destination: 'Ahmedabad', equipment: '32 FT MXL', currency: 'INR', baseRate: 28000.00, marketRate: 30000.00, transitTime: '18 Hrs', validity: '2025' },
-   { origin: 'Delhi', destination: 'Bangalore', equipment: '32 FT MXL', currency: 'INR', baseRate: 58000.00, marketRate: 62000.00, transitTime: '48 Hrs', validity: '2025' },
+   { origin: 'Delhi', destination: 'Mumbai', equipment: '32 FT MXL', currency: 'USD', baseRate: 450.00, marketRate: 480.00, transitTime: '36 Hrs', validity: '2025' },
+   { origin: 'Mumbai', destination: 'Bangalore', equipment: '32 FT MXL', currency: 'USD', baseRate: 680.00, marketRate: 710.00, transitTime: '24 Hrs', validity: '2025' },
+   { origin: 'Chennai', destination: 'Kolkata', equipment: '19 FT SXL', currency: 'USD', baseRate: 520.00, marketRate: 550.00, transitTime: '48 Hrs', validity: '2025' },
+   { origin: 'Pune', destination: 'Ahmedabad', equipment: '32 FT MXL', currency: 'USD', baseRate: 280.00, marketRate: 300.00, transitTime: '18 Hrs', validity: '2025' },
+   { origin: 'Delhi', destination: 'Bangalore', equipment: '32 FT MXL', currency: 'USD', baseRate: 580.00, marketRate: 620.00, transitTime: '48 Hrs', validity: '2025' },
 ];
 
 const MOCK_ACCESSORIALS: Accessorial[] = [
-   { code: 'FSC', description: 'Fuel Surcharge', chargeType: 'Per Trip', amount: 2500.00, currency: 'INR', category: 'Fuel', logic: 'Pass-through' },
-   { code: 'DET', description: 'Detention Charges', chargeType: 'Per Day', amount: 1500.00, currency: 'INR', category: 'Delay', logic: 'Fixed' },
-   { code: 'ODA', description: 'Out of Delivery Area', chargeType: 'Per Shipment', amount: 2000.00, currency: 'INR', category: 'Location', logic: 'Fixed' },
-   { code: 'L/U', description: 'Loading/Unloading Charges', chargeType: 'Per Ton', amount: 200.00, currency: 'INR', category: 'Handling', logic: 'Pass-through' },
-   { code: 'TOLL', description: 'Toll Charges', chargeType: 'Actual', amount: 0.00, currency: 'INR', category: 'Route', logic: 'Pass-through' },
+   { code: 'FSC', description: 'Fuel Surcharge', chargeType: 'Per Trip', amount: 25.00, currency: 'USD', category: 'Fuel', logic: 'Pass-through' },
+   { code: 'DET', description: 'Detention Charges', chargeType: 'Per Day', amount: 150.00, currency: 'USD', category: 'Delay', logic: 'Fixed' },
+   { code: 'ODA', description: 'Out of Delivery Area', chargeType: 'Per Shipment', amount: 200.00, currency: 'USD', category: 'Location', logic: 'Fixed' },
+   { code: 'L/U', description: 'Loading/Unloading Charges', chargeType: 'Per Ton', amount: 20.00, currency: 'USD', category: 'Handling', logic: 'Pass-through' },
+   { code: 'TOLL', description: 'Toll Charges', chargeType: 'Actual', amount: 0.00, currency: 'USD', category: 'Route', logic: 'Pass-through' },
 ];
 
 const BENCHMARK_DATA = [
@@ -248,43 +249,70 @@ export const RateCards: React.FC<RateCardsProps> = ({ onViewContract }) => {
    const [contracts, setContracts] = useState<Contract[]>([]);
    const [selectedContract, setSelectedContract] = useState<Contract | null>(null);
    const [loading, setLoading] = useState(true);
+   const [currencyConfig, setCurrencyConfig] = useState({ symbol: '$', code: 'USD' });
+
+   // Helper for formatting
+   const formatCurrency = (value: number) => {
+      return new Intl.NumberFormat('en-US', {
+         style: 'currency',
+         currency: currencyConfig.code,
+         minimumFractionDigits: 0,
+         maximumFractionDigits: 0,
+      }).format(value);
+   };
 
    // Fetch contracts from PostgreSQL on mount
    useEffect(() => {
       const fetchContracts = async () => {
          try {
             // Fetch from new database-backed API endpoint
-            const res = await fetch('http://localhost:8000/api/rate-cards');
+            const res = await fetch('http://localhost:8000/api/contracts');
             if (res.ok) {
-               const data = await res.json();
+               const json = await res.json();
+               // Router returns { success: true, data: [...] }
+               const data = json.data || [];
+
                // Map API response to local Contract type
-               const mapped = data.rateCards?.map((c: any) => ({
+               const mapped = data.map((c: any) => ({
                   id: c.id,
-                  carrier: c.carrier,
-                  refId: c.contractRef || c.id,
-                  mode: c.containerType?.includes('Air') ? 'Air' : c.containerType?.includes('Sea') ? 'Sea' : 'Road',
-                  laneDescription: `${c.origin} to ${c.destination}`,
+                  carrier: c.vendor_name || 'Unknown Carrier',
+                  refId: c.contract_number || c.id,
+                  mode: c.service_type === 'AIR' ? 'Air' : c.service_type === 'OCEAN' ? 'Sea' : 'Road',
+                  laneDescription: c.description || 'Global Network',
                   contractType: 'Fixed' as const,
-                  validFrom: c.validFrom,
-                  validTo: c.validTo,
+                  validFrom: c.valid_from,
+                  validTo: c.valid_to,
                   status: (c.status || 'ACTIVE').toUpperCase() as any,
-                  allocationTarget: 50,
+                  allocationTarget: c.allocation_target || 50,
                   allocationActual: Math.floor(Math.random() * 30) + 40,
-                  spendYTD: Math.floor(Math.random() * 5000000) + 500000,
-                  paymentTerms: 'Net 30',
-                  expiryDays: c.validTo ? Math.ceil((new Date(c.validTo).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 365
-               })) || [];
+                  spendYTD: Math.floor(Math.random() * 500000) + 50000,
+                  paymentTerms: c.payment_terms || 'Net 30',
+                  expiryDays: c.valid_to ? Math.ceil((new Date(c.valid_to).getTime() - Date.now()) / (1000 * 60 * 60 * 24)) : 365
+               }));
                setContracts(mapped);
             }
          } catch (e) {
-            console.error('Failed to fetch rate cards from API:', e);
-            // No mock fallback - just show empty state
+            console.error('Failed to fetch contracts from API:', e);
             setContracts([]);
          } finally {
             setLoading(false);
          }
       };
+
+      const fetchConfig = async () => {
+         try {
+            const config = await ConfigAPI.getCurrency();
+            setCurrencyConfig({
+               symbol: config.currency_symbol === 'USD' ? '$' : config.currency_symbol,
+               code: config.currency_code
+            });
+         } catch (e) {
+            console.error('Failed to fetch currency config:', e);
+         }
+      };
+
       fetchContracts();
+      fetchConfig();
    }, []);
 
    // Rate Calculator State
@@ -474,7 +502,7 @@ export const RateCards: React.FC<RateCardsProps> = ({ onViewContract }) => {
                   <div className="flex justify-between items-start relative z-10 mb-4">
                      <div>
                         <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Annual Spend</p>
-                        <h3 className="text-3xl font-bold text-gray-900 mt-1">₹8.9Cr</h3>
+                        <h3 className="text-3xl font-bold text-gray-900 mt-1">$8.9Cr</h3>
                      </div>
                      <div className="w-12 h-12 text-emerald-600 opacity-90">
                         <GeoCoin className="w-full h-full" />
@@ -601,7 +629,7 @@ export const RateCards: React.FC<RateCardsProps> = ({ onViewContract }) => {
                            <div className="grid grid-cols-2 gap-4 mt-6">
                               <div className="p-3 bg-gray-50 rounded-lg">
                                  <p className="text-xs text-gray-500 uppercase mb-1">Spend YTD</p>
-                                 <p className="text-lg font-bold text-gray-900">₹{(selectedContract.spendYTD / 100000).toFixed(2)}L</p>
+                                 <p className="text-lg font-bold text-gray-900">{formatCurrency(selectedContract.spendYTD)}</p>
                               </div>
                               <div className="p-3 bg-gray-50 rounded-lg">
                                  <p className="text-xs text-gray-500 uppercase mb-1">Commitment</p>
@@ -652,7 +680,7 @@ export const RateCards: React.FC<RateCardsProps> = ({ onViewContract }) => {
                                        }}
                                        labelStyle={{ fontSize: '11px', fontWeight: 'bold', color: '#161616' }}
                                        itemStyle={{ fontSize: '11px', color: '#161616' }}
-                                       formatter={(value: number) => [`₹${value.toLocaleString()}`, '']}
+                                       formatter={(value: number) => [`$${value.toLocaleString()}`, '']}
                                     />
                                     <Legend
                                        wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }}
@@ -770,7 +798,7 @@ export const RateCards: React.FC<RateCardsProps> = ({ onViewContract }) => {
                            <div className="flex items-center gap-2 mb-2 text-green-800 font-bold">
                               <CheckCircle size={18} /> Rate Found
                            </div>
-                           <div className="text-3xl font-bold text-gray-900 mb-1">₹{calcResult.baseRate.toLocaleString()}</div>
+                           <div className="text-3xl font-bold text-gray-900 mb-1">{formatCurrency(calcResult.baseRate)}</div>
                            <p className="text-xs text-gray-500 mb-3">Base Freight • {calcResult.equipment}</p>
 
                            <div className="text-sm space-y-1 text-gray-700">

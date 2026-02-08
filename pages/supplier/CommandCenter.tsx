@@ -106,7 +106,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ supplier, onNaviga
                     <p style={{ color: '#666', fontSize: '13px', margin: 0 }}>AI-powered insights for {supplier.name}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                    <p style={{ color: '#FFFFFF', fontSize: '36px', fontWeight: 700, margin: 0 }}>₹{pendingAmount.toLocaleString('en-IN')}</p>
+                    <p style={{ color: '#FFFFFF', fontSize: '36px', fontWeight: 700, margin: 0 }}>${pendingAmount.toLocaleString('en-IN')}</p>
                     <p style={{ color: '#00C805', fontSize: '10px', margin: '4px 0 0', letterSpacing: '1px' }}>PIPELINE VALUE</p>
                 </div>
             </div>
@@ -148,7 +148,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ supplier, onNaviga
                             justifyContent: 'center',
                             minWidth: '120px'
                         }}>
-                            <span style={{ color: '#000', fontSize: '36px', fontWeight: 700, letterSpacing: '-1px' }}>₹45K</span>
+                            <span style={{ color: '#000', fontSize: '36px', fontWeight: 700, letterSpacing: '-1px' }}>$45K</span>
                         </div>
                     </div>
 
@@ -243,7 +243,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ supplier, onNaviga
                         {[0, 1, 2, 3, 4].map(i => {
                             const val = maxForecast - (i * (maxForecast / 4));
                             const y = 40 + i * 50;
-                            return <text key={i} x="50" y={y + 4} fill="#555" fontSize="10" textAnchor="end">₹{(val / 1000).toFixed(0)}K</text>;
+                            return <text key={i} x="50" y={y + 4} fill="#555" fontSize="10" textAnchor="end">${(val / 1000).toFixed(0)}K</text>;
                         })}
 
                         {/* Confidence band (shaded area) */}
@@ -331,17 +331,17 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ supplier, onNaviga
                                     <span style={{ fontSize: '12px', color: '#333', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#00C805' }} /> Actual
                                     </span>
-                                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#000' }}>₹{(forecastData[hoveredWeek].actual! / 1000).toFixed(0)}K</span>
+                                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#000' }}>${(forecastData[hoveredWeek].actual! / 1000).toFixed(0)}K</span>
                                 </div>
                             )}
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                                 <span style={{ fontSize: '12px', color: '#333', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <span style={{ width: '8px', height: '3px', backgroundColor: '#0052FF' }} /> Predicted
                                 </span>
-                                <span style={{ fontSize: '13px', fontWeight: 700, color: '#000' }}>₹{(forecastData[hoveredWeek].predicted / 1000).toFixed(0)}K</span>
+                                <span style={{ fontSize: '13px', fontWeight: 700, color: '#000' }}>${(forecastData[hoveredWeek].predicted / 1000).toFixed(0)}K</span>
                             </div>
                             <div style={{ borderTop: '1px solid #EEE', paddingTop: '8px', marginTop: '8px' }}>
-                                <span style={{ fontSize: '10px', color: '#888' }}>95% Confidence: ₹{(forecastData[hoveredWeek].lower / 1000).toFixed(0)}K - ₹{(forecastData[hoveredWeek].upper / 1000).toFixed(0)}K</span>
+                                <span style={{ fontSize: '10px', color: '#888' }}>95% Confidence: ${(forecastData[hoveredWeek].lower / 1000).toFixed(0)}K - ${(forecastData[hoveredWeek].upper / 1000).toFixed(0)}K</span>
                             </div>
                         </div>
                     )}
@@ -351,7 +351,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ supplier, onNaviga
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #1A1A1A' }}>
                     <div>
                         <span style={{ color: '#666', fontSize: '11px' }}>Next 3 Weeks</span>
-                        <p style={{ color: '#FFF', fontSize: '20px', fontWeight: 700, margin: '4px 0 0' }}>₹5.15L</p>
+                        <p style={{ color: '#FFF', fontSize: '20px', fontWeight: 700, margin: '4px 0 0' }}>$5.15L</p>
                     </div>
                     <div>
                         <span style={{ color: '#666', fontSize: '11px' }}>Model Accuracy</span>
@@ -363,7 +363,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ supplier, onNaviga
                     </div>
                     <div>
                         <span style={{ color: '#666', fontSize: '11px' }}>Avg Weekly</span>
-                        <p style={{ color: '#FFF', fontSize: '20px', fontWeight: 700, margin: '4px 0 0' }}>₹1.48L</p>
+                        <p style={{ color: '#FFF', fontSize: '20px', fontWeight: 700, margin: '4px 0 0' }}>$1.48L</p>
                     </div>
                 </div>
             </div>
@@ -393,7 +393,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ supplier, onNaviga
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                             <span style={{ color: '#888', fontSize: '11px' }}>{stage.count} invoices</span>
-                                            <span style={{ color: '#FFF', fontSize: '12px', fontWeight: 600 }}>₹{(stage.amount / 1000).toFixed(0)}K</span>
+                                            <span style={{ color: '#FFF', fontSize: '12px', fontWeight: 600 }}>${(stage.amount / 1000).toFixed(0)}K</span>
                                         </div>
                                     </div>
                                     {/* Bar */}
@@ -408,11 +408,11 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ supplier, onNaviga
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #1A1A1A' }}>
                         <div>
                             <span style={{ color: '#666', fontSize: '10px' }}>Pending Amount</span>
-                            <p style={{ color: '#FFB800', fontSize: '16px', fontWeight: 600, margin: '2px 0 0' }}>₹5.63L</p>
+                            <p style={{ color: '#FFB800', fontSize: '16px', fontWeight: 600, margin: '2px 0 0' }}>$5.63L</p>
                         </div>
                         <div style={{ textAlign: 'right' }}>
                             <span style={{ color: '#666', fontSize: '10px' }}>Already Paid</span>
-                            <p style={{ color: '#00C805', fontSize: '16px', fontWeight: 600, margin: '2px 0 0' }}>₹8.92L</p>
+                            <p style={{ color: '#00C805', fontSize: '16px', fontWeight: 600, margin: '2px 0 0' }}>$8.92L</p>
                         </div>
                     </div>
                 </div>
@@ -460,7 +460,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ supplier, onNaviga
                                     <span style={{ color: '#666', fontSize: '10px', display: 'block' }}>{route.trips} trips</span>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <span style={{ color: '#FFF', fontSize: '12px', fontWeight: 600 }}>₹{(route.revenue / 1000).toFixed(0)}K</span>
+                                    <span style={{ color: '#FFF', fontSize: '12px', fontWeight: 600 }}>${(route.revenue / 1000).toFixed(0)}K</span>
                                     <span style={{
                                         color: route.trend === 'up' ? '#00C805' : route.trend === 'down' ? '#FF4444' : '#666',
                                         fontSize: '10px', display: 'block'

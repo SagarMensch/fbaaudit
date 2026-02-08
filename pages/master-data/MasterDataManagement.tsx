@@ -270,7 +270,7 @@ export const MasterDataManagement: React.FC = () => {
                                     <td className="px-6 py-4 text-sm text-gray-700">{rate.vendorCode}</td>
                                     <td className="px-6 py-4 text-sm text-gray-700">{rate.source} → {rate.destination}</td>
                                     <td className="px-6 py-4 text-sm text-gray-700">{rate.deliveryType}</td>
-                                    <td className="px-6 py-4 text-sm font-bold text-gray-900">₹{rate.baseRate}/{rate.rateType.replace('per_', '')}</td>
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-900">${rate.baseRate}/{rate.rateType.replace('per_', '')}</td>
                                     <td className="px-6 py-4 text-sm text-gray-700">{rate.validFrom} to {rate.validTo}</td>
                                     <td className="px-6 py-4 text-right">
                                         <button
@@ -300,7 +300,7 @@ export const MasterDataManagement: React.FC = () => {
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Contract ID</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">City</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Fuel Rate (₹/L)</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Fuel Rate ($/L)</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Effective From</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Effective To</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase">Status</th>
@@ -312,7 +312,7 @@ export const MasterDataManagement: React.FC = () => {
                                 <tr key={fuel.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 text-sm font-mono text-gray-900">{fuel.contractId}</td>
                                     <td className="px-6 py-4 text-sm text-gray-700">{fuel.contractId.replace('FUEL-', '')}</td>
-                                    <td className="px-6 py-4 text-sm font-bold text-gray-900">₹{fuel.fuelRate.toFixed(2)}</td>
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-900">${fuel.fuelRate.toFixed(2)}</td>
                                     <td className="px-6 py-4 text-sm text-gray-700">{fuel.effectiveFrom}</td>
                                     <td className="px-6 py-4 text-sm text-gray-700">{fuel.effectiveTo}</td>
                                     <td className="px-6 py-4">
@@ -653,7 +653,7 @@ export const MasterDataManagement: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Base Rate (₹) *</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Base Rate ($) *</label>
                                     <input
                                         type="number"
                                         value={rateForm.baseRate}

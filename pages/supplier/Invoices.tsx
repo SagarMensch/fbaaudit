@@ -216,7 +216,7 @@ export const Invoices: React.FC<InvoicesProps> = ({ supplier }) => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
                 {[
                     { label: 'Total Invoices', value: stats.totalInvoices, color: '#FFFFFF' },
-                    { label: 'Pending Amount', value: `₹${(stats.pendingAmount / 1000).toFixed(0)}K`, color: '#00C805' },
+                    { label: 'Pending Amount', value: `$${(stats.pendingAmount / 1000).toFixed(0)}K`, color: '#00C805' },
                     { label: 'Approved', value: stats.byStatus.approved, color: '#0052FF' },
                     { label: 'Disputed', value: stats.byStatus.disputed, color: '#FF0000' },
                 ].map((stat, i) => (
@@ -317,9 +317,9 @@ export const Invoices: React.FC<InvoicesProps> = ({ supplier }) => {
                     }}
                 >
                     <option value="all">All Amounts</option>
-                    <option value="under10k">Under ₹10K</option>
-                    <option value="10k-50k">₹10K - ₹50K</option>
-                    <option value="over50k">Over ₹50K</option>
+                    <option value="under10k">Under $10K</option>
+                    <option value="10k-50k">$10K - $50K</option>
+                    <option value="over50k">Over $50K</option>
                 </select>
 
                 <span style={{ color: '#666', fontSize: '12px', marginLeft: 'auto' }}>
@@ -371,7 +371,7 @@ export const Invoices: React.FC<InvoicesProps> = ({ supplier }) => {
                                     </div>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <p style={{ color: '#FFFFFF', fontSize: '22px', fontWeight: 700, margin: 0 }}>₹{invoice.totalAmount.toLocaleString()}</p>
+                                    <p style={{ color: '#FFFFFF', fontSize: '22px', fontWeight: 700, margin: 0 }}>${invoice.totalAmount.toLocaleString()}</p>
                                     <p style={{ color: invoice.paymentStatus === 'PAID' ? '#00C805' : invoice.paymentStatus === 'OVERDUE' ? '#FF0000' : '#666', fontSize: '11px', fontWeight: 600, margin: '4px 0 0' }}>
                                         {invoice.paymentStatus.replace('_', ' ')}
                                     </p>
@@ -508,7 +508,7 @@ export const Invoices: React.FC<InvoicesProps> = ({ supplier }) => {
                                     </span>
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
-                                    <p style={{ color: '#FFFFFF', fontSize: '32px', fontWeight: 700, margin: 0 }}>₹{selectedInvoice.totalAmount.toLocaleString()}</p>
+                                    <p style={{ color: '#FFFFFF', fontSize: '32px', fontWeight: 700, margin: 0 }}>${selectedInvoice.totalAmount.toLocaleString()}</p>
                                     <p style={{ color: '#666', fontSize: '12px', margin: '4px 0 0' }}>Total Amount</p>
                                 </div>
                             </div>

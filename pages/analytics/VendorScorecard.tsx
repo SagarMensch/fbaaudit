@@ -169,7 +169,7 @@ export const VendorScorecard: React.FC = () => {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <div className="text-3xl font-black text-red-600 font-mono">₹{(scorecard.costOfFailure || 0).toLocaleString()}</div>
+                                <div className="text-3xl font-black text-red-600 font-mono">${(scorecard.costOfFailure || 0).toLocaleString()}</div>
                                 <p className="text-xs text-gray-600 font-bold mt-1">Q1 2025</p>
                             </div>
                         </div>
@@ -279,7 +279,7 @@ export const VendorScorecard: React.FC = () => {
                                         </span>
                                     </td>
                                     <td className="px-6 py-3 text-sm text-gray-700">{inc.remarks}</td>
-                                    <td className="px-6 py-3 text-right text-sm font-bold font-mono text-red-600">₹{(inc.costImpact || 0).toLocaleString()}</td>
+                                    <td className="px-6 py-3 text-right text-sm font-bold font-mono text-red-600">${(inc.costImpact || 0).toLocaleString()}</td>
                                 </tr>
                             ))}
                         </tbody>

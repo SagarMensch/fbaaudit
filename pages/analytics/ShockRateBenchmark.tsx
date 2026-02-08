@@ -238,7 +238,7 @@ export const ShockRateBenchmark: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="text-xs text-gray-400 block mb-1">Submitted Rate (₹)</label>
+                                <label className="text-xs text-gray-400 block mb-1">Submitted Rate ($)</label>
                                 <input
                                     type="number"
                                     value={inputRate}
@@ -280,21 +280,21 @@ export const ShockRateBenchmark: React.FC = () => {
                             <div className="space-y-3 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Submitted:</span>
-                                    <span className="font-bold">₹{validationResult.submitted_rate.toLocaleString()}</span>
+                                    <span className="font-bold">${validationResult.submitted_rate.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Base Level:</span>
-                                    <span className="font-mono">₹{validationResult.base_level.toLocaleString()}</span>
+                                    <span className="font-mono">${validationResult.base_level.toLocaleString()}</span>
                                 </div>
                                 {validationResult.is_disruption && (
                                     <div className="flex justify-between text-[#FFB800]">
                                         <span>+ Shock Premium:</span>
-                                        <span className="font-mono">₹{validationResult.shock_premium.toLocaleString()}</span>
+                                        <span className="font-mono">${validationResult.shock_premium.toLocaleString()}</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between border-t border-gray-300 pt-2">
                                     <span className="font-bold">Benchmark:</span>
-                                    <span className="font-bold">₹{validationResult.benchmark.toLocaleString()}</span>
+                                    <span className="font-bold">${validationResult.benchmark.toLocaleString()}</span>
                                 </div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Variance:</span>
@@ -349,12 +349,12 @@ export const ShockRateBenchmark: React.FC = () => {
                                 {benchmarks.map((b, i) => (
                                     <tr key={i} className={`hover:bg-gray-50 ${b.is_disruption ? 'bg-amber-50' : ''}`}>
                                         <td className="px-4 py-3 font-medium">{b.lane}</td>
-                                        <td className="px-4 py-3 text-right font-mono">₹{b.base_level.toLocaleString()}</td>
+                                        <td className="px-4 py-3 text-right font-mono">${b.base_level.toLocaleString()}</td>
                                         <td className="px-4 py-3 text-right font-mono text-[#FFB800]">
-                                            {b.shock_component > 0 ? `+₹${b.shock_component.toLocaleString()}` : '-'}
+                                            {b.shock_component > 0 ? `+$${b.shock_component.toLocaleString()}` : '-'}
                                         </td>
                                         <td className="px-4 py-3 text-right font-bold font-mono">
-                                            ₹{b.total_benchmark.toLocaleString()}
+                                            ${b.total_benchmark.toLocaleString()}
                                         </td>
                                         <td className="px-4 py-3 text-center">
                                             {b.is_disruption ? (
@@ -394,17 +394,17 @@ export const ShockRateBenchmark: React.FC = () => {
                             <div className="bg-white p-4 rounded-lg border">
                                 <div className="text-xs text-gray-500 uppercase mb-1">Normal Day</div>
                                 <div className="font-mono font-bold">Benchmark = Base Level</div>
-                                <div className="text-xs text-gray-600 mt-2">₹40,000 rate → Approved</div>
+                                <div className="text-xs text-gray-600 mt-2">$40,000 rate → Approved</div>
                             </div>
                             <div className="bg-white p-4 rounded-lg border border-[#FFB800]">
                                 <div className="text-xs text-[#FFB800] uppercase mb-1">During Strike</div>
                                 <div className="font-mono font-bold">Benchmark = Base + Shock</div>
-                                <div className="text-xs text-gray-600 mt-2">₹80,000 rate → Approved (₹40K + ₹40K shock)</div>
+                                <div className="text-xs text-gray-600 mt-2">$80,000 rate → Approved ($40K + $40K shock)</div>
                             </div>
                             <div className="bg-white p-4 rounded-lg border border-[#00C805]">
                                 <div className="text-xs text-[#00C805] uppercase mb-1">Strike Ends</div>
                                 <div className="font-mono font-bold">Shock → 0 Instantly</div>
-                                <div className="text-xs text-gray-600 mt-2">₹80,000 rate → Flagged (100% over)</div>
+                                <div className="text-xs text-gray-600 mt-2">$80,000 rate → Flagged (100% over)</div>
                             </div>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-   Download, Calendar, IndianRupee, ShieldCheck,
+   Download, Calendar, DollarSign, ShieldCheck,
    TrendingUp, TrendingDown, Filter, PieChart as PieIcon,
    Layers, ArrowUpRight, ArrowDownRight, Printer, Share2,
    Lightbulb, AlertCircle, Target, Activity, X, CheckCircle,
@@ -358,7 +358,7 @@ export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> 
       <div className="grid grid-cols-4 gap-6 mb-8 animate-fade-in-up">
          <KPICard
             label="Total Freight Spend"
-            value={timeRange === 'YTD' ? "₹12.91M" : timeRange === 'QTD' ? "₹3.45M" : "₹1.12M"}
+            value={timeRange === 'YTD' ? "$12.91M" : timeRange === 'QTD' ? "$3.45M" : "$1.12M"}
             subtext={timeRange === 'YTD' ? "2.1% Under Budget" : "1.5% Under Budget"}
             trend="down" // Good trend (under budget)
             color="bg-teal-500"
@@ -367,7 +367,7 @@ export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> 
          />
          <KPICard
             label="Audit Savings"
-            value={timeRange === 'YTD' ? "₹90,025" : timeRange === 'QTD' ? "₹28,500" : "₹9,200"}
+            value={timeRange === 'YTD' ? "$90,025" : timeRange === 'QTD' ? "$28,500" : "$9,200"}
             subtext="From 15 Auto-Rejections"
             trend="up" // Good trend (more savings)
             color="bg-green-500"
@@ -507,7 +507,7 @@ export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> 
          <div className="grid grid-cols-4 gap-6">
             <KPICard
                label="Audit Recovery (MTD)"
-               value="₹452.1k"
+               value="$452.1k"
                subtext="12% Recovery Rate"
                trend="up"
                color="bg-green-500"
@@ -600,7 +600,7 @@ export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> 
                   <Activity size={20} className="text-orange-500 mr-2" />
                   <h4 className="font-bold text-gray-800">Duplicate Prevention</h4>
                </div>
-               <p className="text-3xl font-bold text-gray-900">₹89,000</p>
+               <p className="text-3xl font-bold text-gray-900">$89,000</p>
                <p className="text-xs text-gray-500 mt-1">Saved from 12 duplicate invoices blocked.</p>
             </div>
 
@@ -622,7 +622,7 @@ export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> 
          <div className="grid grid-cols-4 gap-6">
             <KPICard
                label="Cost Per Shipment"
-               value="₹124.50"
+               value="$124.50"
                subtext="1.8% vs LY"
                trend="down" // Good trend (lower cost)
                color="bg-green-500"
@@ -631,7 +631,7 @@ export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> 
             />
             <KPICard
                label="Cost Per Kg"
-               value="₹8.50"
+               value="$8.50"
                subtext="Trending Down"
                trend="down" // Good trend
                color="bg-blue-500"
@@ -640,7 +640,7 @@ export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> 
             />
             <KPICard
                label="Accessorial Charges"
-               value="₹2.1M"
+               value="$2.1M"
                subtext="18% of Total"
                trend="up" // Bad trend (increasing)
                color="bg-orange-500"
@@ -649,7 +649,7 @@ export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> 
             />
             <KPICard
                label="Fuel Surcharge Impact"
-               value="₹1.8M"
+               value="$1.8M"
                subtext="15% of Base"
                trend="up" // Bad trend
                color="bg-red-500"
@@ -683,7 +683,7 @@ export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> 
                <div>
                   <h4 className="text-sm font-bold text-red-800">High Cost Alert: IN-US West</h4>
                   <p className="text-xs text-red-700 mt-1">
-                     Current CPU (₹2,100) is 13.5% above market benchmark (₹1,850). Recommended action: Renegotiate detention terms or switch to Maersk Spot.
+                     Current CPU ($2,100) is 13.5% above market benchmark ($1,850). Recommended action: Renegotiate detention terms or switch to Maersk Spot.
                   </p>
                </div>
             </div>
@@ -908,7 +908,7 @@ export const IntelligenceHub: React.FC<{ onNavigate?: (page: string) => void }> 
             {/* Navigation Tabs */}
             <div className="flex space-x-8 mt-6 -mb-5 overflow-x-auto">
                {[
-                  { id: 'spend', label: 'Global Freight Spend', icon: IndianRupee },
+                  { id: 'spend', label: 'Global Freight Spend', icon: DollarSign },
                   { id: 'audit', label: 'Audit & Recovery', icon: ShieldCheck },
                   { id: 'cts', label: 'Cost-to-Serve', icon: Layers },
                   { id: 'carrier', label: 'Carrier Scorecard', icon: Activity }

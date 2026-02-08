@@ -65,7 +65,7 @@ const ANOMALIES: AnomalyRecord[] = [
     { id: 'A2', shipmentId: 'SHP-2025-DEL-142', type: 'POD_MISMATCH', severity: 'MEDIUM', score: 82, detectedAt: '2025-12-19 15:30', status: 'OPEN', description: 'POD signature does not match consignee records.', value: 12450, expectedValue: 12450, carrierName: 'Delhivery Limited' },
     { id: 'A3', shipmentId: 'SHP-2025-BD-067', type: 'GST_RATE_VARIANCE', severity: 'LOW', score: 68, detectedAt: '2025-12-18 09:20', status: 'RESOLVED', description: 'GST rate applied 18% instead of expected 12% for specific goods.', value: 2484, expectedValue: 1656, carrierName: 'Blue Dart Express' },
     // INVOICE AMOUNT PATTERN FRAUD DETECTION (Formerly Benford's Law)
-    { id: 'A4', shipmentId: 'QHL-BENFORD-001', type: 'BENFORD_FRAUD', severity: 'HIGH', score: 94, detectedAt: '2025-12-22 14:20', status: 'OPEN', description: 'APPROVAL LIMIT BYPASS: 73% of vendor invoices are between ₹47K-₹50K. This is abnormal - looks like intentional avoidance of ₹50K manager approval limit.', value: 49200, expectedValue: 35000, carrierName: 'Quick Haul Logistics' },
+    { id: 'A4', shipmentId: 'QHL-BENFORD-001', type: 'BENFORD_FRAUD', severity: 'HIGH', score: 94, detectedAt: '2025-12-22 14:20', status: 'OPEN', description: 'APPROVAL LIMIT BYPASS: 73% of vendor invoices are between $47K-$50K. This is abnormal - looks like intentional avoidance of $50K manager approval limit.', value: 49200, expectedValue: 35000, carrierName: 'Quick Haul Logistics' },
     { id: 'A5', shipmentId: 'QHL-BENFORD-002', type: 'BENFORD_FRAUD', severity: 'HIGH', score: 91, detectedAt: '2025-12-23 09:15', status: 'OPEN', description: 'FABRICATED INVOICE PATTERN: AI detected unusual number patterns. Real invoices have natural variation. This vendor\'s amounts look manually created. Review recommended.', value: 48700, expectedValue: 34000, carrierName: 'Quick Haul Logistics' },
 ];
 
@@ -259,7 +259,7 @@ export const AnomalyDetection: React.FC<AnomalyDetectionProps> = ({ onNavigate }
                 />
                 <KpiCard
                     title="Fiscal Leakage Blocked"
-                    value="₹12.4k"
+                    value="$12.4k"
                     subtext="Prevented over-payments"
                     icon={GeoCube}
                     accentColor="text-[#00C805]"
@@ -337,8 +337,8 @@ export const AnomalyDetection: React.FC<AnomalyDetectionProps> = ({ onNavigate }
                                     <ResponsiveContainer width="100%" height="100%">
                                         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                                            <XAxis type="number" dataKey="x" name="Value" unit="₹" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
-                                            <YAxis type="number" dataKey="y" name="Expected" unit="₹" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                                            <XAxis type="number" dataKey="x" name="Value" unit="$" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
+                                            <YAxis type="number" dataKey="y" name="Expected" unit="$" tick={{ fontSize: 9, fill: '#94a3b8', fontWeight: 'bold' }} axisLine={false} tickLine={false} />
                                             <ZAxis type="number" dataKey="z" range={[100, 800]} />
                                             <Tooltip
                                                 cursor={{ strokeDasharray: '3 3' }}
@@ -358,7 +358,7 @@ export const AnomalyDetection: React.FC<AnomalyDetectionProps> = ({ onNavigate }
                                 <div className="mt-6 flex items-center p-4 bg-red-50 border border-red-100">
                                     <Info size={16} className="text-red-600 mr-3 shrink-0" />
                                     <p className="text-[11px] text-red-950 font-medium">
-                                        Detected Variance: <span className="font-bold underline">₹{(selectedAnomaly.value - selectedAnomaly.expectedValue).toLocaleString()} Over-spend</span>.
+                                        Detected Variance: <span className="font-bold underline">${(selectedAnomaly.value - selectedAnomaly.expectedValue).toLocaleString()} Over-spend</span>.
                                         This value represents a significant deviation from the historic mean of {selectedAnomaly.carrierName}.
                                     </p>
                                 </div>

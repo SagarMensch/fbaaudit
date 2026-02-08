@@ -23,8 +23,8 @@ groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 # Persona mapping for ticket routing
 PERSONA_MAPPING = {
-    "finance": {"name": "Zeya Kapoor", "role": "Finance Manager"},
-    "logistics": {"name": "Kaai Bansal", "role": "Logistics Ops"},
+    "finance": {"name": "William Chen", "role": "Finance Manager"},
+    "logistics": {"name": "Lan Banh", "role": "Logistics Ops"},
     "contracts": {"name": "Atlas", "role": "Enterprise Director"},
     "technical": {"name": "System Admin", "role": "Super User"}
 }

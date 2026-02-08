@@ -182,7 +182,7 @@ const SEED_ACCESSORIALS: Accessorial[] = [
         currency: 'INR',
         applicableFor: ['LTL', 'FTL', 'Express'],
         logic: 'Pass-through',
-        conditions: 'Applied when diesel price exceeds ₹94.50/L',
+        conditions: 'Applied when diesel price exceeds $94.50/L',
         status: 'active',
         createdBy: 'System',
         createdDate: '2024-01-01'

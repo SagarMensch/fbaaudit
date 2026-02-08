@@ -6,7 +6,7 @@ import { exportToCSV } from '../../utils/exportUtils';
 import { MOCK_UNBILLED_SHIPMENTS, generateSelfBillingAdvice } from '../../services/selfBillingService';
 import DocumentChecklist from '../../components/DocumentChecklist';
 import { Geo3DCube, Geo3DPyramid, Geo3DCylinder, Geo3DSphere, Geo3DHexagon, Geo3DBar } from '../../components/GeoIcons';
-import { IndianSupplierService } from '../../services/supplierService';
+import { GlobalSupplierService } from '../../services/supplierService';
 
 // Premium Geometric Icons
 // Premium 3D Geometric Icons
@@ -134,7 +134,7 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
         let notificationToSend = null;
 
         // Workflow Logic
-        if (currentUser.name === 'Kaai Bansal') {
+        if (currentUser.name === 'Lan Banh') {
           // Step 1: Logistics -> Finance
           triggerToast(`Logistics Approval Complete. Moved to Finance.`);
           newStatus = InvoiceStatus.OPS_APPROVED;
@@ -142,19 +142,19 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
           // Updates
           const step1Index = newHistory.findIndex(w => w.stepId === 'step-1');
           if (step1Index !== -1) {
-            newHistory[step1Index] = { ...newHistory[step1Index], status: 'APPROVED', timestamp: new Date().toISOString(), approverName: 'Kaai Bansal' };
+            newHistory[step1Index] = { ...newHistory[step1Index], status: 'APPROVED', timestamp: new Date().toISOString(), approverName: 'Lan Banh' };
           }
           // Add Step 2
           newHistory.push({ stepId: 'step-2', status: 'PENDING', approverRole: 'Finance Head', timestamp: '' });
 
-        } else if (currentUser.name === 'Zeya Kapoor') {
+        } else if (currentUser.name === 'William Chen') {
           // Step 2: Finance -> Admin
           triggerToast(`Finance Approval Complete. Moved to Admin.`);
           newStatus = InvoiceStatus.FINANCE_APPROVED;
 
           const step2Index = newHistory.findIndex(w => w.stepId === 'step-2');
           if (step2Index !== -1) {
-            newHistory[step2Index] = { ...newHistory[step2Index], status: 'APPROVED', timestamp: new Date().toISOString(), approverName: 'Zeya Kapoor' };
+            newHistory[step2Index] = { ...newHistory[step2Index], status: 'APPROVED', timestamp: new Date().toISOString(), approverName: 'William Chen' };
           }
           // Add Step 3
           newHistory.push({ stepId: 'step-3', status: 'PENDING', approverRole: 'System Admin', timestamp: '' });
@@ -200,28 +200,28 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
         };
 
         // Dispatch notifications based on who approved
-        if (currentUser.name === 'Kaai Bansal') {
-          // Notify Zeya (Finance)
-          sendNotification('zeya.kapoor',
+        if (currentUser.name === 'Lan Banh') {
+          // Notify William Chen (Finance)
+          sendNotification('william.chen',
             `Invoice Ready for Finance Review`,
-            `Invoice #${invoice.invoiceNumber} from ${invoice.carrier} (₹${invoice.amount.toLocaleString()}) has passed Logistics review.`
+            `Invoice #${invoice.invoiceNumber} from ${invoice.carrier} ($${invoice.amount.toLocaleString()}) has passed Logistics review.`
           );
-        } else if (currentUser.name === 'Zeya Kapoor') {
+        } else if (currentUser.name === 'William Chen') {
           // Notify System Admin
           sendNotification('system.admin',
             `Invoice Ready for Final Approval`,
-            `Invoice #${invoice.invoiceNumber} from ${invoice.carrier} (₹${invoice.amount.toLocaleString()}) has passed Finance review.`
+            `Invoice #${invoice.invoiceNumber} from ${invoice.carrier} ($${invoice.amount.toLocaleString()}) has passed Finance review.`
           );
         } else if (currentUser.name === 'System Admin' || currentUser.name === 'Atlas') {
           // Notify Supplier and Enterprise Director
           const supplierId = invoice.carrier.toLowerCase().replace(/\s+/g, '.');
           sendNotification(supplierId,
             `Invoice Approved - Payment Scheduled`,
-            `Your invoice #${invoice.invoiceNumber} for ₹${invoice.amount.toLocaleString()} has been approved and scheduled for payment.`
+            `Your invoice #${invoice.invoiceNumber} for $${invoice.amount.toLocaleString()} has been approved and scheduled for payment.`
           );
           sendNotification('enterprise.director',
             `Invoice Final Approval Complete`,
-            `Invoice #${invoice.invoiceNumber} from ${invoice.carrier} (₹${invoice.amount.toLocaleString()}) has been fully approved.`
+            `Invoice #${invoice.invoiceNumber} from ${invoice.carrier} ($${invoice.amount.toLocaleString()}) has been fully approved.`
           );
         }
       }
@@ -238,10 +238,10 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
         onUpdateInvoices({ ...invoice, status: InvoiceStatus.EXCEPTION, reason: 'Flagged for Review' });
 
         // Trigger Supplier Notification
-        const supplier = IndianSupplierService.getAllSuppliers().find(s => s.name === invoice.carrier || s.name.includes(invoice.carrier) || invoice.carrier.includes(s.name));
+        const supplier = GlobalSupplierService.getAllSuppliers().find(s => s.name === invoice.carrier || s.name.includes(invoice.carrier) || invoice.carrier.includes(s.name));
         if (supplier) {
           // 1. Local UI Update
-          IndianSupplierService.sendNotification(
+          GlobalSupplierService.sendNotification(
             supplier.id,
             'organization',
             'invoice',
@@ -289,10 +289,10 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
         onUpdateInvoices({ ...invoice, status: InvoiceStatus.REJECTED, reason: 'Rejected by Auditor', workflowHistory: newHistory });
 
         // Trigger Supplier Notification
-        const supplier = IndianSupplierService.getAllSuppliers().find(s => s.name === invoice.carrier || s.name.includes(invoice.carrier) || invoice.carrier.includes(s.name));
+        const supplier = GlobalSupplierService.getAllSuppliers().find(s => s.name === invoice.carrier || s.name.includes(invoice.carrier) || invoice.carrier.includes(s.name));
         if (supplier) {
           // 1. Local UI Update
-          IndianSupplierService.sendNotification(
+          GlobalSupplierService.sendNotification(
             supplier.id,
             'organization',
             'invoice',
@@ -358,8 +358,8 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
         // Show only invoices pending current user's approval
         const isAssignedToMe = inv.assignedTo === currentUser.name;
         const isPendingMyApproval = currentStage && (
-          (currentStage.stepId === 'step-1' && currentUser.name === 'Kaai Bansal') ||
-          (currentStage.stepId === 'step-2' && currentUser.name === 'Zeya Kapoor') ||
+          (currentStage.stepId === 'step-1' && currentUser.name === 'Lan Banh') ||
+          (currentStage.stepId === 'step-2' && currentUser.name === 'William Chen') ||
           (currentStage.stepId === 'step-3' && (currentUser.name === 'System Admin' || currentUser.name === 'Atlas'))
         );
 
@@ -486,7 +486,7 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
                     <td className="p-4 text-gray-500">{shipment.activityDate}</td>
                     <td className="p-4 font-mono text-xs bg-gray-50 rounded text-gray-600 px-2 py-1 w-fit">{shipment.rateCardId}</td>
                     <td className="p-4 text-right font-bold text-gray-800">
-                      ₹{(shipment.contractedRate * 1.05).toFixed(2)}
+                      ${(shipment.contractedRate * 1.05).toFixed(2)}
                       <span className="block text-[10px] text-gray-400 font-normal">incl. 5% fuel</span>
                     </td>
                     <td className="p-4 text-center">
@@ -531,8 +531,8 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
               <div className="relative z-10 flex justify-between items-start">
                 <div>
                   <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-1">TOTAL VALUE</span>
-                  <div className="text-xl font-mono font-bold text-white tracking-tighter truncate" title={`₹${totalAllInvoicesValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}>
-                    ₹{(totalAllInvoicesValue / 100000).toFixed(2)}L
+                  <div className="text-xl font-mono font-bold text-white tracking-tighter truncate" title={`$${totalAllInvoicesValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}>
+                    ${(totalAllInvoicesValue / 100000).toFixed(2)}L
                   </div>
                 </div>
                 <div className="bg-white/5 p-2 rounded-lg border border-white/5 group-hover:bg-blue-400/10 transition-colors">
@@ -635,8 +635,8 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
                     const currentStage = inv.workflowHistory?.find(w => w.status === 'PENDING' || w.status === 'ACTIVE');
                     const isAssignedToMe = inv.assignedTo === currentUser.name;
                     const isPendingMyApproval = currentStage && (
-                      (currentStage.stepId === 'step-1' && currentUser.name === 'Kaai Bansal') ||
-                      (currentStage.stepId === 'step-2' && currentUser.name === 'Zeya Kapoor') ||
+                      (currentStage.stepId === 'step-1' && currentUser.name === 'Lan Banh') ||
+                      (currentStage.stepId === 'step-2' && currentUser.name === 'William Chen') ||
                       (currentStage.stepId === 'step-3' && (currentUser.name === 'System Admin' || currentUser.name === 'Atlas'))
                     );
                     return isAssignedToMe || isPendingMyApproval;
@@ -767,7 +767,7 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
                 <div className="flex items-center space-x-2">
                   <span className="text-[10px] font-bold text-gray-400 uppercase">Total Value</span>
                   <span className="text-lg font-bold text-teal-700 font-mono">
-                    ₹{totalListValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    ${totalListValue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
@@ -841,16 +841,16 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
                         </td>
 
                         <td className="py-1.5 px-3 text-right font-mono text-[11px] text-gray-500 border-r border-slate-300">
-                          {inv.tmsEstimatedAmount ? `₹${inv.tmsEstimatedAmount.toLocaleString()}` : <span className="text-[9px] italic">--</span>}
+                          {inv.tmsEstimatedAmount ? `$${inv.tmsEstimatedAmount.toLocaleString()}` : <span className="text-[9px] italic">--</span>}
                         </td>
                         <td className="py-1.5 px-3 text-right font-mono text-[11px] font-bold text-slate-800 border-r border-slate-300">
-                          ₹{(inv.auditAmount || 0).toLocaleString()}
+                          ${(inv.auditAmount || 0).toLocaleString()}
                         </td>
                         <td className="py-1.5 px-3 text-right font-mono text-[11px] text-slate-600 border-r border-slate-300">
-                          ₹{inv.amount.toLocaleString()}
+                          ${inv.amount.toLocaleString()}
                         </td>
                         <td className={`py-1.5 px-3 text-right font-bold font-mono text-[11px] border-r border-slate-300 ${inv.variance > 0 ? 'text-red-600' : 'text-teal-600'}`}>
-                          {inv.variance > 0 ? '+' : ''}₹{inv.variance.toFixed(2)}
+                          {inv.variance > 0 ? '+' : ''}${inv.variance.toFixed(2)}
                         </td>
 
                         <td className="py-1.5 px-3 text-[10px] font-medium text-slate-500 border-r border-slate-300">
@@ -1016,7 +1016,7 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
                 <div className="flex items-center space-x-3 text-sm text-white/80">
                   <span className="font-bold">{filteredInvoices.length} Invoices</span>
                   <span>•</span>
-                  <span>₹{totalListValue.toLocaleString()}</span>
+                  <span>${totalListValue.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -1081,12 +1081,12 @@ export const InvoiceWorkbench: React.FC<InvoiceWorkbenchProps> = ({ invoices, on
                       <td className="py-3 px-4 font-medium text-gray-800">{inv.carrier}</td>
                       <td className="py-3 px-4 text-gray-600 text-xs">{inv.origin} → {inv.destination}</td>
                       <td className="py-3 px-4 text-right font-mono text-gray-500">
-                        {inv.tmsEstimatedAmount ? `₹${inv.tmsEstimatedAmount.toLocaleString()}` : '--'}
+                        {inv.tmsEstimatedAmount ? `$${inv.tmsEstimatedAmount.toLocaleString()}` : '--'}
                       </td>
-                      <td className="py-3 px-4 text-right font-mono font-bold text-gray-900">₹{(inv.auditAmount || 0).toLocaleString()}</td>
-                      <td className="py-3 px-4 text-right font-mono text-gray-700">₹{inv.amount.toLocaleString()}</td>
+                      <td className="py-3 px-4 text-right font-mono font-bold text-gray-900">${(inv.auditAmount || 0).toLocaleString()}</td>
+                      <td className="py-3 px-4 text-right font-mono text-gray-700">${inv.amount.toLocaleString()}</td>
                       <td className={`py-3 px-4 text-right font-mono font-bold ${inv.variance > 0 ? 'text-red-600' : inv.variance < 0 ? 'text-emerald-600' : 'text-gray-500'}`}>
-                        {inv.variance > 0 ? '+' : ''}{inv.variance !== 0 ? `₹${inv.variance.toFixed(2)}` : '₹0.00'}
+                        {inv.variance > 0 ? '+' : ''}{inv.variance !== 0 ? `$${inv.variance.toFixed(2)}` : '$0.00'}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center text-xs">

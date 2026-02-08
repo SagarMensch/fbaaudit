@@ -285,7 +285,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({ userRole }) => {
                               <ActivityItem
                                  title="Approved Payment Batch"
                                  time="2 hours ago"
-                                 desc="Batch #2025-11-24 (₹1.2M) sent to SAP."
+                                 desc="Batch #2025-11-24 ($1.2M) sent to SAP."
                                  icon={<CheckCircle size={14} className="text-white" />}
                                  color="bg-green-500"
                               />

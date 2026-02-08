@@ -31,7 +31,7 @@ export const CashFlowTrend = () => {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B', fontWeight: 600 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B', fontWeight: 600 }} tickFormatter={(value) => `₹${value / 1000}k`} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#64748B', fontWeight: 600 }} tickFormatter={(value) => `$${value / 1000}k`} />
                     <Tooltip
                         content={(props) => {
                             if (!props.active || !props.payload) return null;
@@ -48,14 +48,14 @@ export const CashFlowTrend = () => {
                                         <div className="flex items-center gap-2 mb-1">
                                             <div className="w-2 h-2 rounded-full bg-[#00C805]"></div>
                                             <span className="text-slate-300">Realized:</span>
-                                            <span className="font-bold">₹{realized.toLocaleString()}</span>
+                                            <span className="font-bold">${realized.toLocaleString()}</span>
                                         </div>
                                     )}
                                     {projected > 0 && (
                                         <div className="flex items-center gap-2">
                                             <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                             <span className="text-slate-300">Projected:</span>
-                                            <span className="font-bold">₹{projected.toLocaleString()}</span>
+                                            <span className="font-bold">${projected.toLocaleString()}</span>
                                         </div>
                                     )}
                                 </div>

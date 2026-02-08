@@ -159,7 +159,7 @@ export const VendorPortal: React.FC<VendorPortalProps> = ({ invoices, onNavigate
                      <CheckCircle size={18} className="text-teal-500" />
                   </div>
                   <div className="z-10">
-                     <h3 className="text-2xl font-bold text-gray-900">₹452,100.00</h3>
+                     <h3 className="text-2xl font-bold text-gray-900">$452,100.00</h3>
                      <p className="text-[10px] text-teal-600 font-bold mt-1">Scheduled: Nov 28, 2025</p>
                   </div>
                   <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-teal-50 rounded-full opacity-50 z-0"></div>
@@ -170,7 +170,7 @@ export const VendorPortal: React.FC<VendorPortalProps> = ({ invoices, onNavigate
                      <Activity size={18} className="text-blue-500" />
                   </div>
                   <div className="z-10">
-                     <h3 className="text-2xl font-bold text-gray-900">₹128,450.00</h3>
+                     <h3 className="text-2xl font-bold text-gray-900">$128,450.00</h3>
                      <p className="text-[10px] text-gray-400 font-bold mt-1">12 Invoices in Audit</p>
                   </div>
                   <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-blue-50 rounded-full opacity-50 z-0"></div>
@@ -181,7 +181,7 @@ export const VendorPortal: React.FC<VendorPortalProps> = ({ invoices, onNavigate
                      <AlertCircle size={18} className="text-amber-500" />
                   </div>
                   <div className="z-10">
-                     <h3 className="text-2xl font-bold text-amber-600">₹14,200.00</h3>
+                     <h3 className="text-2xl font-bold text-amber-600">$14,200.00</h3>
                      <p className="text-[10px] text-amber-700 font-bold mt-1 bg-amber-50 inline-block px-1.5 rounded">3 Disputes Open</p>
                   </div>
                   <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-amber-50 rounded-full opacity-50 z-0 group-hover:bg-amber-100 transition-colors"></div>
@@ -233,7 +233,7 @@ export const VendorPortal: React.FC<VendorPortalProps> = ({ invoices, onNavigate
                                        <p className="text-[10px] text-gray-400 mt-1">Submitted: {inv.date}</p>
                                     </div>
                                     <div className="text-right">
-                                       <p className="text-sm font-bold text-gray-900">₹{inv.amount.toLocaleString()}</p>
+                                       <p className="text-sm font-bold text-gray-900">${inv.amount.toLocaleString()}</p>
                                        <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold border mt-1 uppercase ${getStatusColor(inv.status)}`}>
                                           {inv.status.replace('_', ' ')}
                                        </span>
@@ -308,7 +308,7 @@ export const VendorPortal: React.FC<VendorPortalProps> = ({ invoices, onNavigate
                               <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
                               <div>
                                  <p className="text-xs font-bold text-gray-800">Payment Processed</p>
-                                 <p className="text-[10px] text-gray-500 mt-0.5">Batch #PAY-NOV-20 sent to bank (₹22,500).</p>
+                                 <p className="text-[10px] text-gray-500 mt-0.5">Batch #PAY-NOV-20 sent to bank ($22,500).</p>
                                  <p className="text-[9px] text-gray-400 mt-1">2 hours ago</p>
                               </div>
                            </div>
@@ -368,9 +368,9 @@ export const VendorPortal: React.FC<VendorPortalProps> = ({ invoices, onNavigate
                         <p className="text-xs text-gray-500 font-bold uppercase">Invoice #{selectedDisputeInvoice.invoiceNumber}</p>
                         <p className="text-sm font-bold text-gray-800 mb-2">Reason: <span className="text-amber-700">{selectedDisputeInvoice.reason}</span></p>
                         <p className="text-sm bg-gray-50 p-3 border border-gray-200 rounded-sm">
-                           Billed Amount: <span className="font-bold">₹{selectedDisputeInvoice.amount.toLocaleString()}</span><br />
-                           Expected Amount: <span className="font-bold">₹{(selectedDisputeInvoice.amount - selectedDisputeInvoice.variance).toLocaleString()}</span><br />
-                           Variance: <span className="font-bold text-red-600">₹{selectedDisputeInvoice.variance.toLocaleString()}</span>
+                           Billed Amount: <span className="font-bold">${selectedDisputeInvoice.amount.toLocaleString()}</span><br />
+                           Expected Amount: <span className="font-bold">${(selectedDisputeInvoice.amount - selectedDisputeInvoice.variance).toLocaleString()}</span><br />
+                           Variance: <span className="font-bold text-red-600">${selectedDisputeInvoice.variance.toLocaleString()}</span>
                         </p>
 
                         <div className="mt-6">
@@ -467,7 +467,7 @@ export const VendorPortal: React.FC<VendorPortalProps> = ({ invoices, onNavigate
                               {inv.origin} <span className="mx-1">&rarr;</span> {inv.destination}
                            </td>
                            <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">
-                              ₹{inv.amount.toLocaleString()}
+                              ${inv.amount.toLocaleString()}
                            </td>
                            <td className="px-6 py-4 text-center">
                               {inv.status === InvoiceStatus.EXCEPTION ? (

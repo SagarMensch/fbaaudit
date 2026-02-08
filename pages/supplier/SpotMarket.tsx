@@ -85,7 +85,7 @@ export const SpotMarket: React.FC<SpotMarketProps> = ({ supplier }) => {
         );
 
         if (result.success) {
-            setSuccessMessage(`Bid of ₹${bidModal.bidAmount.toLocaleString()} submitted successfully!`);
+            setSuccessMessage(`Bid of $${bidModal.bidAmount.toLocaleString()} submitted successfully!`);
             closeBidModal();
             loadData(); // Refresh data
 
@@ -172,7 +172,7 @@ export const SpotMarket: React.FC<SpotMarketProps> = ({ supplier }) => {
                         </div>
 
                         <div className="mb-4">
-                            <label className="block text-sm font-bold text-slate-700 mb-2">Bid Amount (₹)</label>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Bid Amount ($)</label>
                             <input
                                 type="number"
                                 value={bidModal.bidAmount}
@@ -180,8 +180,8 @@ export const SpotMarket: React.FC<SpotMarketProps> = ({ supplier }) => {
                                 className="w-full px-4 py-3 border border-slate-200 rounded-lg text-lg font-bold focus:ring-2 focus:ring-green-500 focus:outline-none"
                             />
                             <p className="text-xs text-slate-500 mt-1">
-                                Benchmark: ₹{bidModal.indent.benchmarkPrice.toLocaleString()} •
-                                Current L1: ₹{getCurrentL1(bidModal.indent).toLocaleString() || 'No bids yet'}
+                                Benchmark: ${bidModal.indent.benchmarkPrice.toLocaleString()} •
+                                Current L1: ${getCurrentL1(bidModal.indent).toLocaleString() || 'No bids yet'}
                             </p>
                         </div>
 
@@ -372,18 +372,18 @@ export const SpotMarket: React.FC<SpotMarketProps> = ({ supplier }) => {
                                                 {currentL1 > 0 ? 'Current L1 Price' : 'Benchmark Price'}
                                             </p>
                                             <p className="text-3xl font-black text-slate-900 tracking-tight">
-                                                ₹{(currentL1 > 0 ? currentL1 : indent.benchmarkPrice).toLocaleString()}
+                                                ${(currentL1 > 0 ? currentL1 : indent.benchmarkPrice).toLocaleString()}
                                             </p>
                                             {currentL1 > 0 && (
                                                 <p className="text-xs text-slate-500 mt-1">
-                                                    Target: ₹{indent.benchmarkPrice.toLocaleString()}
+                                                    Target: ${indent.benchmarkPrice.toLocaleString()}
                                                 </p>
                                             )}
                                         </div>
                                         {myRank && (
                                             <div className={`mt-3 px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${myRank === 'L1' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
                                                 {myRank === 'L1' ? <Geo3DTarget size={14} className="text-green-600" /> : <TrendingDown size={14} />}
-                                                You are {myRank} (₹{myBid?.toLocaleString()})
+                                                You are {myRank} (${myBid?.toLocaleString()})
                                             </div>
                                         )}
                                     </div>
@@ -420,7 +420,7 @@ export const SpotMarket: React.FC<SpotMarketProps> = ({ supplier }) => {
                                                         }}
                                                         className="w-full py-2.5 bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 rounded-lg text-sm font-bold transition-all"
                                                     >
-                                                        Match L1 (₹{currentL1.toLocaleString()})
+                                                        Match L1 (${currentL1.toLocaleString()})
                                                     </button>
                                                 )}
                                             </>

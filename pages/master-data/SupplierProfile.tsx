@@ -1,11 +1,10 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { IndianSupplier, IndianSupplierService, IndianDocument, IndianRateLine, SupplierNotification } from '../../services/supplierService';
-// REMOVED: import { MOCK_INVOICES_NEW } from '../../mock_invoices_clean';
+import React, { useState, useEffect } from 'react';
+import { GlobalSupplier, GlobalSupplierService, GlobalDocument, GlobalRateLine, SupplierNotification } from '../../services/supplierService';
+import { InvoicesAPI } from '../../services/apiClient';
 import {
     Building2, Phone, Mail, MapPin, Calendar, TrendingUp, TrendingDown,
     FileText, Download, ExternalLink, AlertCircle, CheckCircle, Clock,
-    Package, Truck, IndianRupee, Award, Shield, X, ChevronRight, Search,
+    Package, Truck, DollarSign, Award, Shield, X, ChevronRight, Search,
     Filter, Bell, MessageSquare, Paperclip, Eye, ChevronDown, ChevronUp, Receipt
 } from 'lucide-react';
 
@@ -17,34 +16,30 @@ interface SupplierProfileProps {
 export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, onClose }) => {
     const [activeTab, setActiveTab] = useState<'overview' | 'documents' | 'rates' | 'performance' | 'notifications' | 'invoices'>('overview');
     const [showNotificationModal, setShowNotificationModal] = useState(false);
-    const [selectedDocument, setSelectedDocument] = useState<IndianDocument | null>(null);
+    const [selectedDocument, setSelectedDocument] = useState<GlobalDocument | null>(null);
     const [supplierInvoices, setSupplierInvoices] = useState<any[]>([]);
 
-    const [supplier, setSupplier] = useState<IndianSupplier | null>(null);
+    const [supplier, setSupplier] = useState<GlobalSupplier | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchSupplierDetails = async () => {
             try {
-                // Try API first
-                // Note: The original code used a synchronous getSupplierById.
-                // We'll try to find an async equivalent or fall back.
-                // Since getSupplierById is synchronous in the service, we might need to add an async method
-                // or just simulate it for now if the backend endpoint exists.
-                // Assuming backend has /api/vendors/:id
-                const response = await fetch(`http://localhost:8000/api/vendors/${supplierId}`);
-                if (response.ok) {
-                    const data = await response.json();
-                    // Transform backend data to IndianSupplier interface if needed
-                    // For now, if API fails, we fall back to the static service
+                setLoading(true);
+                // Use the enhanced service method that handles API/fallback logic
+                const data = await GlobalSupplierService.fetchVendorByIdAsync(supplierId);
+
+                if (data) {
                     setSupplier(data);
                 } else {
-                    console.log('API not found, using static data');
-                    setSupplier(IndianSupplierService.getSupplierById(supplierId) || null);
+                    console.error('Supplier not found');
+                    // Fallback handled by service, but if still null, clear state
+                    setSupplier(null);
                 }
             } catch (err) {
                 console.error('Error fetching supplier:', err);
-                setSupplier(IndianSupplierService.getSupplierById(supplierId) || null);
+                // Try sync fallback as last resort
+                setSupplier(GlobalSupplierService.getSupplierById(supplierId) || null);
             } finally {
                 setLoading(false);
             }
@@ -54,20 +49,20 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
 
     // Fetch invoices from API for this supplier
     useEffect(() => {
-        if (supplier) {
-            fetch('http://localhost:8000/api/invoices')
-                .then(res => res.json())
-                .then(data => {
-                    const invoices = data.invoices || [];
-                    // Filter invoices for this supplier
-                    const filtered = invoices.filter((inv: any) =>
-                        (inv.carrier || inv.vendor || '').includes(supplier.name) ||
-                        (inv.carrier || inv.vendor || '').includes(supplier.fullName || '')
-                    );
-                    setSupplierInvoices(filtered);
-                })
-                .catch(err => console.error('Failed to fetch supplier invoices:', err));
-        }
+        const fetchInvoices = async () => {
+            if (supplier && supplier.id) {
+                try {
+                    const response = await InvoicesAPI.getAll({ vendor_id: supplier.id });
+                    if (response.data) {
+                        setSupplierInvoices(response.data);
+                    }
+                } catch (err) {
+                    console.error('Failed to fetch supplier invoices:', err);
+                    setSupplierInvoices([]);
+                }
+            }
+        };
+        fetchInvoices();
     }, [supplier]);
 
     if (!supplier) {
@@ -86,19 +81,21 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
 
     const unreadNotifications = supplier.notifications.filter(n => !n.read).length;
 
-    // Calculate freight with GST
-    const calculateSampleFreight = (rate: IndianRateLine) => {
+    // Calculate freight with VAT
+    const calculateSampleFreight = (rate: GlobalRateLine) => {
         const baseAmount = rate.baseRate * (rate.unit === 'kg' ? 100 : 1); // 100 kg sample
         const fuelAmount = (baseAmount * rate.fuelSurcharge) / 100;
         const subtotal = baseAmount + fuelAmount;
-        const gstAmount = (subtotal * rate.gst) / 100;
-        const total = subtotal + gstAmount;
+        const vatRate = 18; // Standard VAT rate
+        const vatAmount = (subtotal * vatRate) / 100;
+        const total = subtotal + vatAmount;
 
         return {
             base: baseAmount,
             fuel: fuelAmount,
             subtotal,
-            gst: gstAmount,
+            vat: vatAmount,
+            vatRate,
             total
         };
     };
@@ -122,7 +119,7 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                         <Calendar size={12} /> Est. {supplier.founded}
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        <Building2 size={12} /> {supplier.coverage.branches}+ Branches
+                                        <Building2 size={12} /> {supplier.coverage.facilities}+ Facilities
                                     </span>
                                     {supplier.stockListed && (
                                         <span className="bg-green-600 px-2 py-0.5 rounded text-white font-bold">
@@ -142,7 +139,7 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                         {[
                             { id: 'overview', label: 'Overview', icon: Building2 },
                             { id: 'documents', label: 'Documents', icon: FileText, badge: supplier.documents.length },
-                            { id: 'rates', label: 'Rate Card', icon: IndianRupee },
+                            { id: 'rates', label: 'Rate Card', icon: DollarSign },
                             { id: 'invoices', label: 'Invoices', icon: Receipt, badge: supplierInvoices.length },
                             { id: 'performance', label: 'Performance', icon: TrendingUp },
                             { id: 'notifications', label: 'Messages', icon: Bell, badge: unreadNotifications }
@@ -184,11 +181,11 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                 </div>
                                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                                     <div className="flex items-center justify-between mb-2">
-                                        <IndianRupee className="text-blue-600" size={20} />
+                                        <DollarSign className="text-blue-600" size={20} />
                                         <span className="text-xs text-blue-600 font-bold">CREDIT</span>
                                     </div>
                                     <div className="text-2xl font-bold text-blue-900">
-                                        ₹{(supplier.financial.creditLimit / 100000).toFixed(1)}L
+                                        ${(supplier.financial.creditLimit / 100000).toFixed(1)}L
                                     </div>
                                     <div className="text-xs text-blue-700">{supplier.financial.paymentTerms}</div>
                                 </div>
@@ -252,8 +249,8 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                     <div>
                                         <p className="text-sm font-bold text-slate-600 mb-2">Network Size</p>
                                         <div className="text-sm text-slate-700">
-                                            <div>📍 {supplier.coverage.pinCodes} PIN codes</div>
-                                            <div>🏢 {supplier.coverage.branches}+ branches</div>
+                                            <div>🌍 {supplier.coverage.countries} countries</div>
+                                            <div>🏢 {supplier.coverage.facilities}+ facilities</div>
                                         </div>
                                     </div>
                                 </div>
@@ -297,7 +294,7 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                             {/* Financial Details */}
                             <div className="bg-amber-50 border border-amber-200 rounded-lg p-6">
                                 <h3 className="text-lg font-bold text-amber-900 mb-4 flex items-center gap-2">
-                                    <IndianRupee size={20} />
+                                    <DollarSign size={20} />
                                     Financial & Compliance Details
                                 </h3>
                                 <div className="grid grid-cols-3 gap-6 text-sm">
@@ -308,7 +305,7 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                     <div>
                                         <p className="text-amber-700 font-bold mb-1">Credit Limit</p>
                                         <p className="text-amber-900 text-lg font-bold">
-                                            ₹{(supplier.financial.creditLimit / 100000).toFixed(2)} Lakhs
+                                            ${(supplier.financial.creditLimit / 100000).toFixed(2)} Lakhs
                                         </p>
                                     </div>
                                     <div>
@@ -317,16 +314,16 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                         <p className="text-xs text-amber-700">{supplier.financial.accountType}</p>
                                     </div>
                                     <div>
-                                        <p className="text-amber-700 font-bold mb-1">GST Number</p>
-                                        <p className="text-amber-900 font-mono text-xs">{supplier.financial.gstNumber}</p>
+                                        <p className="text-amber-700 font-bold mb-1">VAT Number</p>
+                                        <p className="text-amber-900 font-mono text-xs">{supplier.financial.vatNumber}</p>
                                     </div>
                                     <div>
-                                        <p className="text-amber-700 font-bold mb-1">PAN Number</p>
-                                        <p className="text-amber-900 font-mono text-xs">{supplier.financial.panNumber}</p>
+                                        <p className="text-amber-700 font-bold mb-1">Tax ID</p>
+                                        <p className="text-amber-900 font-mono text-xs">{supplier.financial.taxId}</p>
                                     </div>
                                     <div>
-                                        <p className="text-amber-700 font-bold mb-1">TDS Rate</p>
-                                        <p className="text-amber-900">{supplier.financial.tdsRate}% (Section 194C)</p>
+                                        <p className="text-amber-700 font-bold mb-1">Withholding Rate</p>
+                                        <p className="text-amber-900">{supplier.financial.withholdingRate}%</p>
                                     </div>
                                 </div>
                             </div>
@@ -399,7 +396,7 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                 <div className="text-right">
                                     <p className="text-xs text-slate-500 font-bold uppercase">Total Outstanding</p>
                                     <p className="text-xl font-bold text-slate-900">
-                                        ₹{supplierInvoices.reduce((sum, inv) => sum + inv.amount, 0).toLocaleString('en-IN')}
+                                        ${supplierInvoices.reduce((sum, inv) => sum + inv.amount, 0).toLocaleString('en-IN')}
                                     </p>
                                 </div>
                             </div>
@@ -441,7 +438,7 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
 
                                                 <div className="flex items-center gap-6">
                                                     <div className="text-right">
-                                                        <p className="font-bold text-slate-900">₹{inv.amount.toLocaleString('en-IN')}</p>
+                                                        <p className="font-bold text-slate-900">${inv.amount.toLocaleString('en-IN')}</p>
                                                         <p className="text-xs text-slate-500">Due: {inv.dueDate}</p>
                                                     </div>
                                                     <button className="text-slate-400 hover:text-blue-600 p-2 hover:bg-blue-50 rounded-full transition-colors">
@@ -477,8 +474,8 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                         <div className="space-y-4">
                             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
                                 <p className="text-sm text-blue-900">
-                                    <strong>Note:</strong> All rates are in INR and exclude GST. Fuel surcharge and GST will be added to base freight.
-                                    TDS @ 2% will be deducted as per Section 194C.
+                                    <strong>Note:</strong> All rates are in USD and exclude VAT. Fuel surcharge and applicable taxes will be added to base freight.
+                                    Withholding tax may apply per local regulations.
                                 </p>
                             </div>
 
@@ -504,7 +501,7 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-2xl font-bold text-slate-900">
-                                                    ₹{rate.baseRate}/{rate.unit}
+                                                    ${rate.baseRate}/{rate.unit}
                                                 </div>
                                                 <div className="text-xs text-slate-600">Base Rate</div>
                                             </div>
@@ -516,15 +513,15 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                                 <div className="space-y-1 text-sm">
                                                     <div className="flex justify-between">
                                                         <span className="text-slate-600">Base Freight:</span>
-                                                        <span className="font-bold">₹{rate.baseRate}/{rate.unit}</span>
+                                                        <span className="font-bold">${rate.baseRate}/{rate.unit}</span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-slate-600">Fuel Surcharge:</span>
                                                         <span className="font-bold">{rate.fuelSurcharge}%</span>
                                                     </div>
                                                     <div className="flex justify-between">
-                                                        <span className="text-slate-600">GST:</span>
-                                                        <span className="font-bold">{rate.gst}%</span>
+                                                        <span className="text-slate-600">VAT:</span>
+                                                        <span className="font-bold">{calculation.vatRate}%</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -536,23 +533,23 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                                 <div className="space-y-1 text-sm bg-slate-50 p-3 rounded">
                                                     <div className="flex justify-between">
                                                         <span className="text-slate-600">Base:</span>
-                                                        <span>₹{calculation.base.toLocaleString('en-IN')}</span>
+                                                        <span>${calculation.base.toLocaleString('en-IN')}</span>
                                                     </div>
                                                     <div className="flex justify-between">
                                                         <span className="text-slate-600">Fuel ({rate.fuelSurcharge}%):</span>
-                                                        <span>₹{calculation.fuel.toLocaleString('en-IN')}</span>
+                                                        <span>${calculation.fuel.toLocaleString('en-IN')}</span>
                                                     </div>
                                                     <div className="flex justify-between border-t pt-1">
                                                         <span className="text-slate-600">Subtotal:</span>
-                                                        <span className="font-bold">₹{calculation.subtotal.toLocaleString('en-IN')}</span>
+                                                        <span className="font-bold">${calculation.subtotal.toLocaleString('en-IN')}</span>
                                                     </div>
                                                     <div className="flex justify-between">
-                                                        <span className="text-slate-600">GST ({rate.gst}%):</span>
-                                                        <span>₹{calculation.gst.toLocaleString('en-IN')}</span>
+                                                        <span className="text-slate-600">VAT ({calculation.vatRate}%):</span>
+                                                        <span>${calculation.vat.toLocaleString('en-US')}</span>
                                                     </div>
                                                     <div className="flex justify-between border-t pt-1 text-base">
                                                         <span className="font-bold text-slate-900">Total:</span>
-                                                        <span className="font-bold text-green-600">₹{calculation.total.toLocaleString('en-IN')}</span>
+                                                        <span className="font-bold text-green-600">${calculation.total.toLocaleString('en-IN')}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -566,7 +563,7 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                                         <div key={cidx} className="flex justify-between text-sm bg-amber-50 px-3 py-2 rounded">
                                                             <span className="text-amber-900">{charge.name}:</span>
                                                             <span className="font-bold text-amber-900">
-                                                                ₹{charge.amount.toLocaleString('en-IN')}
+                                                                ${charge.amount.toLocaleString('en-IN')}
                                                                 {charge.unit && ` ${charge.unit}`}
                                                             </span>
                                                         </div>
@@ -740,7 +737,7 @@ export const SupplierProfile: React.FC<SupplierProfileProps> = ({ supplierId, on
                                             </div>
                                             {!notif.read && (
                                                 <button
-                                                    onClick={() => IndianSupplierService.markNotificationAsRead(supplierId, notif.id)}
+                                                    onClick={() => GlobalSupplierService.markNotificationAsRead(supplierId, notif.id)}
                                                     className="text-blue-600 hover:bg-blue-100 px-3 py-1 rounded text-xs font-bold"
                                                 >
                                                     Mark Read

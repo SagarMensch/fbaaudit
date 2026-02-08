@@ -8,7 +8,7 @@ const INITIAL_TICKETS: Dispute[] = [
         ticketId: 'TKT-9002',
         status: 'OPEN',
         priority: 'HIGH',
-        assignedTo: 'Zeya Kapoor',
+        assignedTo: 'William Chen',
         invoiceId: 'TCI/2024/002', // Helper link
         subject: 'Shortage Deduction - TCI/2024/002', // Subject line
         messages: [

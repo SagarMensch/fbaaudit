@@ -380,7 +380,7 @@ class SampleDataService {
                     id: 'TKT-9002',
                     status: 'OPEN',
                     messages: [
-                        { id: '1', sender: 'SYSTEM', text: 'Shortage deduction of ₹1,200 applied due to weight discrepancy.', timestamp: new Date(today.getTime() - 2 * 60 * 60 * 1000).toISOString() },
+                        { id: '1', sender: 'SYSTEM', text: 'Shortage deduction of $1,200 applied due to weight discrepancy.', timestamp: new Date(today.getTime() - 2 * 60 * 60 * 1000).toISOString() },
                         { id: '2', sender: 'VENDOR', text: 'We have dispatched the proof of delivery. Please verify.', timestamp: new Date(today.getTime() - 1 * 60 * 60 * 1000).toISOString() }
                     ]
                 }

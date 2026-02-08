@@ -259,9 +259,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, activePersona,
                     </div>
 
                     <div className="grid grid-cols-4 gap-6 mb-8">
-                        <KpiCard title="Cash Position" value="₹245.8M" subtext="Strong liquidity" trend={8.4} icon={GeoCoin} onClick={() => handleNav('settlement')} />
-                        <KpiCard title="Pending Invoices" value="42" subtext="₹12.4M value" trend={-5.2} icon={GeoPie} onClick={() => handleNav('workbench')} />
-                        <KpiCard title="Cost Savings" value="₹3.2M" subtext="YTD achieved" trend={15.4} icon={GeoBar} onClick={() => handleNav('network')} />
+                        <KpiCard title="Cash Position" value="$245.8M" subtext="Strong liquidity" trend={8.4} icon={GeoCoin} onClick={() => handleNav('settlement')} />
+                        <KpiCard title="Pending Invoices" value="42" subtext="$12.4M value" trend={-5.2} icon={GeoPie} onClick={() => handleNav('workbench')} />
+                        <KpiCard title="Cost Savings" value="$3.2M" subtext="YTD achieved" trend={15.4} icon={GeoBar} onClick={() => handleNav('network')} />
                         <KpiCard title="Audit Flags" value="5" subtext="High risk items" trend={-2} icon={GeoPyramid} accentColor="text-red-600" onClick={() => handleNav('aad')} />
                     </div>
 
@@ -332,7 +332,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, activePersona,
 
                     {/* Top Level Metrics - Solid Cards + 3D Icons */}
                     <div className="grid grid-cols-4 gap-6">
-                        <KpiCard title="Total Spend Projection" value="₹245.8M" subtext="Tracking 3% below budget" trend={-3.2} icon={GeoBar} />
+                        <KpiCard title="Total Spend Projection" value="$245.8M" subtext="Tracking 3% below budget" trend={-3.2} icon={GeoBar} />
                         <KpiCard title="AI Invoices Processed" value="1,847" subtext="99.9% accuracy rate" trend={12.5} icon={GeoSphere} />
                         <KpiCard title="Supply Chain Health" value="98.4%" subtext="Network optimized" trend={1.2} icon={GeoHexagon} />
                         <KpiCard title="Active Exceptions" value="23" subtext="14 requiring intervention" trend={-5} icon={GeoPyramid} accentColor="text-red-600" />

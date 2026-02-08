@@ -196,7 +196,7 @@ const TCI_EXPRESS_SUPPLIER_DOCS: SupplierDocument[] = [
             documentNumber: 'POL/2024/567890',
             issuingAuthority: 'ICICI Lombard General Insurance',
             policyType: 'Comprehensive Commercial Insurance',
-            coverageAmount: '₹50,00,000'
+            coverageAmount: '$50,00,000'
         }
     },
     {
@@ -214,7 +214,7 @@ const TCI_EXPRESS_SUPPLIER_DOCS: SupplierDocument[] = [
             documentNumber: 'CARGO/2024/789012',
             issuingAuthority: 'National Insurance Company',
             policyType: 'Marine Cargo Insurance',
-            coverageAmount: '₹2,00,00,000'
+            coverageAmount: '$2,00,00,000'
         }
     },
 
@@ -292,7 +292,7 @@ const TCI_EXPRESS_SUPPLIER_DOCS: SupplierDocument[] = [
             documentNumber: 'POL/VEH/2024/123456',
             issuingAuthority: 'National Insurance Company',
             policyType: 'Comprehensive',
-            coverageAmount: '₹15,00,000'
+            coverageAmount: '$15,00,000'
         }
     },
     {
@@ -388,7 +388,7 @@ const TCI_EXPRESS_SUPPLIER_DOCS: SupplierDocument[] = [
             documentNumber: 'POL/VEH/2024/234567',
             issuingAuthority: 'ICICI Lombard General Insurance',
             policyType: 'Comprehensive',
-            coverageAmount: '₹12,00,000'
+            coverageAmount: '$12,00,000'
         }
     },
 

@@ -63,7 +63,7 @@ const Geo3DCoinStack = ({ size = 48 }: { size?: number }) => (
         <path d="M10 20 L10 24 C10 26 16 28 24 28 C32 28 38 26 38 24 L38 20" fill="#00C805" stroke="#161616" strokeWidth="1" />
         <ellipse cx="24" cy="20" rx="14" ry="4" fill="#00C805" stroke="#161616" strokeWidth="1" />
         {/* Rupee symbol */}
-        <text x="24" y="24" fontSize="8" fill="#161616" fontWeight="bold" textAnchor="middle">₹</text>
+        <text x="24" y="24" fontSize="8" fill="#161616" fontWeight="bold" textAnchor="middle">$</text>
     </svg>
 );
 
@@ -151,7 +151,7 @@ export const EmissionsDashboard: React.FC = () => {
         { label: 'TOTAL EMISSIONS', val: '248.5 t', trend: '+12%', icon: <Geo3DCloud size={44} />, trendColor: '#161616' },
         { label: 'INTENSITY', val: '58.2 g/tkm', trend: '-8%', icon: <Geo3DGauge size={44} />, trendColor: '#0f62fe' },
         { label: 'GREEN SCORE', val: 'B+', trend: 'ABOVE AVG', icon: <Geo3DLeafPrism size={44} />, trendColor: '#00C805' },
-        { label: 'CARBON SAVINGS', val: '₹12.4L', trend: 'YTD', icon: <Geo3DCoinStack size={44} />, trendColor: '#00C805' }
+        { label: 'CARBON SAVINGS', val: '$12.4L', trend: 'YTD', icon: <Geo3DCoinStack size={44} />, trendColor: '#00C805' }
     ];
 
     return (
@@ -214,8 +214,8 @@ export const EmissionsDashboard: React.FC = () => {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-all border-r-2 border-[#161616] last:border-r-0 ${activeTab === tab.id
-                                ? 'bg-[#161616] text-white'
-                                : 'bg-white text-[#161616] hover:bg-[#f4f4f4]'
+                            ? 'bg-[#161616] text-white'
+                            : 'bg-white text-[#161616] hover:bg-[#f4f4f4]'
                             }`}
                     >
                         {tab.label}
@@ -322,8 +322,8 @@ export const EmissionsDashboard: React.FC = () => {
                                             key={mode}
                                             onClick={() => setSelectedMode(mode)}
                                             className={`py-3 text-xs font-bold border-2 transition-all ${selectedMode === mode
-                                                    ? 'bg-[#161616] text-white border-[#161616]'
-                                                    : 'bg-white text-[#161616] border-[#161616] hover:bg-[#f4f4f4]'
+                                                ? 'bg-[#161616] text-white border-[#161616]'
+                                                : 'bg-white text-[#161616] border-[#161616] hover:bg-[#f4f4f4]'
                                                 }`}
                                         >
                                             {mode}
@@ -409,8 +409,8 @@ export const EmissionsDashboard: React.FC = () => {
                                     </td>
                                     <td className="px-5 py-3 text-center border-r border-[#f4f4f4]">
                                         <span className={`px-2 py-1 text-[9px] font-bold uppercase ${c.grade === 'A+' || c.grade === 'A' ? 'bg-[#00C805] text-white' :
-                                                c.grade === 'B' ? 'bg-[#0f62fe] text-white' :
-                                                    'bg-[#161616] text-white'
+                                            c.grade === 'B' ? 'bg-[#0f62fe] text-white' :
+                                                'bg-[#161616] text-white'
                                             }`}>
                                             {c.grade}
                                         </span>
@@ -420,8 +420,8 @@ export const EmissionsDashboard: React.FC = () => {
                                     <td className="px-5 py-3 text-center text-[#525252] border-r border-[#f4f4f4]">{c.intensity} g/tkm</td>
                                     <td className="px-5 py-3 text-center">
                                         <span className={`px-2 py-1 text-[9px] font-bold uppercase ${c.score >= 80 ? 'bg-[#00C805] text-white' :
-                                                c.score >= 60 ? 'bg-[#0f62fe] text-white' :
-                                                    'bg-[#161616] text-white'
+                                            c.score >= 60 ? 'bg-[#0f62fe] text-white' :
+                                                'bg-[#161616] text-white'
                                             }`}>
                                             {c.score >= 80 ? 'EXCELLENT' : c.score >= 60 ? 'GOOD' : 'REVIEW'}
                                         </span>

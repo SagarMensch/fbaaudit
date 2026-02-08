@@ -173,9 +173,9 @@ export const SpotMarket: React.FC = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Price (₹)</label>
+                                            <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Price ($)</label>
                                             <div className="flex items-center bg-white border border-gray-300 px-2 h-10">
-                                                <span className="text-slate-900 mr-1 font-bold">₹</span>
+                                                <span className="text-slate-900 mr-1 font-bold">$</span>
                                                 <input
                                                     type="number"
                                                     className="w-full bg-transparent text-sm text-slate-900 outline-none font-bold"
@@ -367,7 +367,7 @@ export const SpotMarket: React.FC = () => {
                                         <span className="bg-slate-900 text-white px-1.5 py-0.5 text-[10px] font-bold font-mono">{selectedIndent.id}</span>
                                         <span className="flex items-center gap-1 text-xs font-bold text-slate-700"><Geo3DTruck size={14} color="black" /> {selectedIndent.vehicleType}</span>
                                         <span className="flex items-center gap-1 text-xs font-bold text-[#00C805] bg-[#00C805]/5 px-1.5 py-0.5 border border-[#00C805]">
-                                            BENCHMARK: ₹{selectedIndent.benchmarkPrice.toLocaleString()}
+                                            BENCHMARK: ${selectedIndent.benchmarkPrice.toLocaleString()}
                                         </span>
                                     </div>
                                 </div>
@@ -414,7 +414,7 @@ export const SpotMarket: React.FC = () => {
                                                 <div>
                                                     <div className="text-white/70 text-[10px] uppercase font-bold mb-1">Fair Market Rate</div>
                                                     <div className="text-white text-xl font-mono font-bold">
-                                                        ₹{Math.round(selectedIndent.benchmarkPrice * 0.88).toLocaleString()}
+                                                        ${Math.round(selectedIndent.benchmarkPrice * 0.88).toLocaleString()}
                                                     </div>
                                                 </div>
                                                 <div>
@@ -463,15 +463,15 @@ export const SpotMarket: React.FC = () => {
                                                             const l1 = Math.min(...bids.map(b => b.bid!.amount));
                                                             const fair = selectedIndent.benchmarkPrice * 0.88;
                                                             const diff = ((l1 - fair) / fair) * 100;
-                                                            if (diff > 10) return `NEGOTIATE: Counter at ₹${Math.round(fair * 1.05).toLocaleString()} (+5% of fair rate)`;
-                                                            if (diff > 3) return `NEGOTIATE: Target ₹${Math.round(fair * 1.02).toLocaleString()} for better deal`;
+                                                            if (diff > 10) return `NEGOTIATE: Counter at $${Math.round(fair * 1.05).toLocaleString()} (+5% of fair rate)`;
+                                                            if (diff > 3) return `NEGOTIATE: Target $${Math.round(fair * 1.02).toLocaleString()} for better deal`;
                                                             return 'APPROVE: Rate is at or below market average';
                                                         })()}
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="mt-3 pt-2 border-t border-white/20 text-white/80 text-[10px] italic">
-                                                💡 Negotiation Tip: "{selectedIndent.origin} → {selectedIndent.destination} averaged ₹{Math.round(selectedIndent.benchmarkPrice * 0.85).toLocaleString()} in past 30 days. Your competitor did this route for ₹{Math.round(selectedIndent.benchmarkPrice * 0.82).toLocaleString()} last week."
+                                                💡 Negotiation Tip: "{selectedIndent.origin} → {selectedIndent.destination} averaged ${Math.round(selectedIndent.benchmarkPrice * 0.85).toLocaleString()} in past 30 days. Your competitor did this route for ${Math.round(selectedIndent.benchmarkPrice * 0.82).toLocaleString()} last week."
                                             </div>
                                         </div>
                                     </div>
@@ -525,7 +525,7 @@ export const SpotMarket: React.FC = () => {
 
                                                 {/* Price */}
                                                 <div className="col-span-2 text-right">
-                                                    <div className="font-mono text-lg font-bold text-slate-900">₹{bid.amount.toLocaleString()}</div>
+                                                    <div className="font-mono text-lg font-bold text-slate-900">${bid.amount.toLocaleString()}</div>
                                                     <div className="text-[9px] text-gray-500 font-bold uppercase">{bid.remarks}</div>
                                                 </div>
 
@@ -580,7 +580,7 @@ export const SpotMarket: React.FC = () => {
                                     <div className="relative pl-4 border-l-4 border-[#00C805]">
                                         <div className="text-[10px] font-mono font-bold text-gray-400 mb-0.5">10:00 AM</div>
                                         <div className="text-sm text-slate-900 font-bold uppercase leading-none">Indent Created</div>
-                                        <div className="text-[10px] text-gray-500 font-bold mt-0.5">User: Kaai Bansal</div>
+                                        <div className="text-[10px] text-gray-500 font-bold mt-0.5">User: Lan Banh</div>
                                     </div>
                                     <div className="relative pl-4 border-l-4 border-blue-600">
                                         <div className="text-[10px] font-mono font-bold text-gray-400 mb-0.5">10:02 AM</div>

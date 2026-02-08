@@ -140,7 +140,7 @@ export const DocumentAnalysis: React.FC = () => {
                                         {doc.type === 'INVOICE' && (
                                             <div className="grid grid-cols-2 gap-4 text-sm">
                                                 <div><span className="text-gray-500">Number:</span> <b>{doc.docNumber}</b></div>
-                                                <div><span className="text-gray-500">Amount:</span> <b>₹{doc.docAmount?.toLocaleString()}</b></div>
+                                                <div><span className="text-gray-500">Amount:</span> <b>${doc.docAmount?.toLocaleString()}</b></div>
                                             </div>
                                         )}
 

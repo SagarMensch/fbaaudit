@@ -90,7 +90,7 @@ export const ComprehensiveReports: React.FC<{ onNavigate?: (page: string) => voi
         return days.map((day, idx) => ({
             day,
             count: Math.floor(Math.random() * 3) + 1, // 1-3 invoices per day
-            value: Math.floor(Math.random() * 50000) + 30000 // ₹30k-80k
+            value: Math.floor(Math.random() * 50000) + 30000 // $30k-80k
         }));
     }, []);
 
@@ -240,7 +240,7 @@ export const ComprehensiveReports: React.FC<{ onNavigate?: (page: string) => voi
                             </div>
                         </div>
                         <div className="relative z-10 flex items-center justify-between mt-auto">
-                            <span className="text-[10px] font-mono text-gray-500">Vol: ₹{(metrics.totalValue / 1000).toFixed(0)}k</span>
+                            <span className="text-[10px] font-mono text-gray-500">Vol: ${(metrics.totalValue / 1000).toFixed(0)}k</span>
                             <span className="text-[9px] font-mono text-emerald-500 font-bold">▲ UP</span>
                         </div>
                     </div>
@@ -251,7 +251,7 @@ export const ComprehensiveReports: React.FC<{ onNavigate?: (page: string) => voi
                         <div className="relative z-10 flex justify-between items-start">
                             <div>
                                 <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-1">AUDIT_SAVINGS</span>
-                                <div className="text-2xl font-mono font-bold text-white tracking-tighter">₹{(metrics.auditSavings / 1000).toFixed(1)}k</div>
+                                <div className="text-2xl font-mono font-bold text-white tracking-tighter">${(metrics.auditSavings / 1000).toFixed(1)}k</div>
                             </div>
                             <div className="bg-white/5 p-2 rounded-lg border border-white/5 group-hover:bg-emerald-500/10 transition-colors">
                                 <Geo3DPyramid size={32} color="#10B981" className="drop-shadow-[0_4px_6px_rgba(16,185,129,0.3)]" />
@@ -353,11 +353,11 @@ export const ComprehensiveReports: React.FC<{ onNavigate?: (page: string) => voi
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                     <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
                                     <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} tickFormatter={(val) => `₹${val / 1000}k`} />
-                                    <Tooltip formatter={(value: any, name: string) => [name === 'count' ? value : `₹${value.toLocaleString()}`, name === 'count' ? 'Invoices' : 'Value']} />
+                                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} tickFormatter={(val) => `$${val / 1000}k`} />
+                                    <Tooltip formatter={(value: any, name: string) => [name === 'count' ? value : `$${value.toLocaleString()}`, name === 'count' ? 'Invoices' : 'Value']} />
                                     <Legend />
                                     <Bar yAxisId="left" dataKey="count" fill="#004D40" radius={[4, 4, 0, 0]} name="Invoice Count" />
-                                    <Line yAxisId="right" type="monotone" dataKey="value" stroke="#0F62FE" strokeWidth={2} dot={{ r: 4 }} name="Total Value (₹)" />
+                                    <Line yAxisId="right" type="monotone" dataKey="value" stroke="#0F62FE" strokeWidth={2} dot={{ r: 4 }} name="Total Value ($)" />
                                 </ComposedChart>
                             </ResponsiveContainer>
                         </div>
@@ -433,7 +433,7 @@ export const ComprehensiveReports: React.FC<{ onNavigate?: (page: string) => voi
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right font-mono font-bold text-gray-900">
-                                            ₹{invoice.amount.toLocaleString()}
+                                            ${invoice.amount.toLocaleString()}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`text-[10px] font-bold px-2 py-1 rounded border uppercase ${invoice.status === 'PAID' ? 'bg-green-100 text-green-700 border-green-200' :

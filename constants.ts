@@ -35,13 +35,13 @@ export const INITIAL_ROLES: RoleDefinition[] = [
 export const INITIAL_WORKFLOW: WorkflowStepConfig[] = [
   {
     id: 'step-1',
-    stepName: 'SCM Operations', // Explicit request: SCM Operations (Kaai Bansal)
+    stepName: 'SCM Operations', // Explicit request: SCM Operations (Lan Banh)
     roleId: 'OPS_MANAGER',
     conditionType: 'ALWAYS'
   },
   {
     id: 'step-2',
-    stepName: 'Finance Review', // Explicit request: Finance Review (Zeya Kapoor)
+    stepName: 'Finance Review', // Explicit request: Finance Review (William Chen)
     roleId: 'FINANCE_MANAGER',
     conditionType: 'ALWAYS' // User implied linear flow: "then i will go to wiliiam he will seee everthing"
   },
@@ -57,14 +57,14 @@ export const INITIAL_WORKFLOW: WorkflowStepConfig[] = [
 export const KPIS: KPI[] = [
   {
     label: 'TOTAL SPEND (YTD)',
-    value: '₹12,910,540',
+    value: '$12,910,540',
     subtext: 'vs Budget: -2.1%',
     trend: 'down',
     color: 'blue'
   },
   {
     label: 'AUDIT SAVINGS',
-    value: '₹90,025',
+    value: '$90,025',
     subtext: 'From 15 Auto-Rejections',
     trend: 'up',
     color: 'teal'

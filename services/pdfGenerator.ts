@@ -299,10 +299,10 @@ export class PDFGeneratorService {
 
         // KPI Grid (2x2)
         const kpis = [
-            { label: 'TOTAL FREIGHT SPEND', value: '₹164.8M', change: '+12.4%', positive: false },
-            { label: 'COST SAVINGS', value: '₹8.2M', change: '+₹1.8M vs Target', positive: true },
+            { label: 'TOTAL FREIGHT SPEND', value: '$164.8M', change: '+12.4%', positive: false },
+            { label: 'COST SAVINGS', value: '$8.2M', change: '+$1.8M vs Target', positive: true },
             { label: 'INVOICES PROCESSED', value: '4,695', change: '68% Automated', positive: true },
-            { label: 'ANOMALIES DETECTED', value: '108', change: '₹2.4M Prevented', positive: true },
+            { label: 'ANOMALIES DETECTED', value: '108', change: '$2.4M Prevented', positive: true },
         ];
 
         let kpiX = 25;
@@ -374,15 +374,15 @@ export class PDFGeneratorService {
         y += 8;
 
         const monthlyData = [
-            { month: 'January', actual: '₹18.5M', budget: '₹19.0M', variance: '-2.6%', positive: true },
-            { month: 'February', actual: '₹19.2M', budget: '₹19.5M', variance: '-1.5%', positive: true },
-            { month: 'March', actual: '₹20.1M', budget: '₹20.0M', variance: '+0.5%', positive: false },
-            { month: 'April', actual: '₹19.8M', budget: '₹20.5M', variance: '-3.4%', positive: true },
-            { month: 'May', actual: '₹21.3M', budget: '₹21.0M', variance: '+1.4%', positive: false },
-            { month: 'June', actual: '₹20.5M', budget: '₹21.5M', variance: '-4.7%', positive: true },
-            { month: 'July', actual: '₹22.1M', budget: '₹22.0M', variance: '+0.5%', positive: false },
-            { month: 'August', actual: '₹21.8M', budget: '₹22.5M', variance: '-3.1%', positive: true },
-            { month: 'September', actual: '₹23.2M', budget: '₹23.0M', variance: '+0.9%', positive: false },
+            { month: 'January', actual: '$18.5M', budget: '$19.0M', variance: '-2.6%', positive: true },
+            { month: 'February', actual: '$19.2M', budget: '$19.5M', variance: '-1.5%', positive: true },
+            { month: 'March', actual: '$20.1M', budget: '$20.0M', variance: '+0.5%', positive: false },
+            { month: 'April', actual: '$19.8M', budget: '$20.5M', variance: '-3.4%', positive: true },
+            { month: 'May', actual: '$21.3M', budget: '$21.0M', variance: '+1.4%', positive: false },
+            { month: 'June', actual: '$20.5M', budget: '$21.5M', variance: '-4.7%', positive: true },
+            { month: 'July', actual: '$22.1M', budget: '$22.0M', variance: '+0.5%', positive: false },
+            { month: 'August', actual: '$21.8M', budget: '$22.5M', variance: '-3.1%', positive: true },
+            { month: 'September', actual: '$23.2M', budget: '$23.0M', variance: '+0.9%', positive: false },
         ];
 
         monthlyData.forEach((row, index) => {
@@ -416,7 +416,7 @@ export class PDFGeneratorService {
         doc.text("SUMMARY", 20, y + 8);
         doc.setFontSize(9);
         doc.setFont("helvetica", "normal");
-        doc.text("Total YTD Spend: ₹164.8M | Budget: ₹169.0M | Variance: -₹4.2M (Under Budget)", 20, y + 18);
+        doc.text("Total YTD Spend: $164.8M | Budget: $169.0M | Variance: -$4.2M (Under Budget)", 20, y + 18);
 
         // ==================== PAGE 3: CARRIER PERFORMANCE ====================
         doc.addPage();
@@ -541,7 +541,7 @@ export class PDFGeneratorService {
         doc.text('SAVINGS', 145 + statBoxWidth / 2, y + 8, { align: 'center' });
         doc.setFontSize(18);
         doc.setFont("helvetica", "bold");
-        doc.text('₹2.4M', 145 + statBoxWidth / 2, y + 22, { align: 'center' });
+        doc.text('$2.4M', 145 + statBoxWidth / 2, y + 22, { align: 'center' });
 
         y += 50;
 

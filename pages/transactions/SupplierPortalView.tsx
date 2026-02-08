@@ -1,8 +1,6 @@
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-import { IndianLogisticsPartner, IndianLogisticsService } from '../../services/indianLogisticsService';
+import React, { useState, useEffect } from 'react';
 import { LogOut, Bell, Table } from 'lucide-react';
-import { IndianSupplierService, SupplierNotification } from '../../services/supplierService';
+import { GlobalSupplierService, SupplierNotification } from '../../services/supplierService';
 import {
     Geo3DChart, Geo3DTruck, Geo3DGavel, Geo3DDocument,
     Geo3DWallet, Geo3DMessageSquare, Geo3DBadge, Geo3DStack
@@ -29,12 +27,12 @@ export const SupplierPortalView: React.FC<SupplierPortalViewProps> = ({ supplier
     const [activeTab, setActiveTab] = useState<TabId>('dashboard');
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState<SupplierNotification[]>([]);
-    const supplier = IndianSupplierService.getSupplierById(supplierId);
+    const supplier = GlobalSupplierService.getSupplierById(supplierId);
 
     // Load notifications
     useEffect(() => {
         if (supplier) {
-            const notifs = IndianSupplierService.getSupplierNotifications(supplierId, false);
+            const notifs = GlobalSupplierService.getSupplierNotifications(supplierId, false);
             setNotifications(notifs);
         }
     }, [supplierId, supplier]);
@@ -42,9 +40,9 @@ export const SupplierPortalView: React.FC<SupplierPortalViewProps> = ({ supplier
     const unreadCount = notifications.filter(n => !n.read).length;
 
     const handleNotificationClick = (notif: SupplierNotification) => {
-        IndianSupplierService.markNotificationAsRead(supplierId, notif.id);
+        GlobalSupplierService.markNotificationAsRead(supplierId, notif.id);
         setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
-        if (notif.type === 'invoice' || notif.type === 'pod_pending' || notif.type === 'lr_tracking') {
+        if (notif.type === 'invoice' || notif.type === 'pod_pending' || notif.type === 'tracking') {
             setActiveTab('invoices');
         } else if (notif.type === 'rate_negotiation' || notif.type === 'rate_revision') {
             setActiveTab('payments');

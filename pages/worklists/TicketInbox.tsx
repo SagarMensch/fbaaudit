@@ -25,7 +25,7 @@ interface Ticket {
 }
 
 interface TicketInboxProps {
-    currentUser: string; // e.g., "Zeya Kapoor", "Kaai Bansal", "Atlas"
+    currentUser: string; // e.g., "William Chen", "Lan Banh", "Atlas"
 }
 
 const API_BASE = 'http://localhost:5000';

@@ -3,13 +3,12 @@
 import React, { useState } from 'react';
 import { ShieldCheck, Lock, ArrowRight, Mail, HelpCircle, Building, Globe, Loader, CheckCircle, ArrowLeft, FileCheck } from 'lucide-react';
 
-// Indian Supplier Credentials for detection
-const INDIAN_SUPPLIER_CREDENTIALS = [
-   { email: 'rajesh.sharma@tciexpress.in', password: '12345678', supplierId: 'tci-express' },
-   { email: 'operations@supplier1.com', password: 'Supplier1@2024', supplierId: 'tci-express' },
-   { email: 'operations@supplier2.com', password: 'Supplier2@2024', supplierId: 'bluedart-express' },
-   { email: 'operations@supplier3.com', password: 'Supplier3@2024', supplierId: 'delhivery' },
-   { email: 'operations@supplier4.com', password: 'Supplier4@2024', supplierId: 'gati-limited' }
+// Global Supplier Credentials for detection (Mapped to GlobalSupplierService)
+const GLOBAL_SUPPLIER_CREDENTIALS = [
+   { email: 'michael.thompson@dhl.com', password: '12345678', supplierId: 'dhl-express' },
+   { email: 'jennifer.martinez@fedex.com', password: '12345678', supplierId: 'fedex-logistics' },
+   { email: 'henrik.andersen@maersk.com', password: '12345678', supplierId: 'maersk-logistics' },
+   { email: 'stefan.mueller@kuehne-nagel.com', password: '12345678', supplierId: 'kuehne-nagel' }
 ];
 
 interface VendorLoginProps {
@@ -22,7 +21,7 @@ export const VendorLogin: React.FC<VendorLoginProps> = ({ onLoginSuccess, onBack
    const [view, setView] = useState<'login' | 'register'>('login');
 
    // Login State
-   const [email, setEmail] = useState('rajesh.sharma@tciexpress.in');
+   const [email, setEmail] = useState('michael.thompson@dhl.com');
    const [password, setPassword] = useState('12345678');
    const [agreed, setAgreed] = useState(false);
    const [isLoggingIn, setIsLoggingIn] = useState(false);
@@ -47,16 +46,16 @@ export const VendorLogin: React.FC<VendorLoginProps> = ({ onLoginSuccess, onBack
 
       setIsLoggingIn(true);
 
-      // Check if this is an Indian supplier login
-      const indianSupplier = INDIAN_SUPPLIER_CREDENTIALS.find(
+      // Check if this is a Global supplier login
+      const globalSupplier = GLOBAL_SUPPLIER_CREDENTIALS.find(
          cred => cred.email === email && cred.password === password
       );
 
       // Simulate API Auth
       setTimeout(() => {
-         if (indianSupplier) {
-            // Indian supplier login - pass supplier ID
-            onLoginSuccess(indianSupplier.supplierId);
+         if (globalSupplier) {
+            // Global supplier login - pass supplier ID
+            onLoginSuccess(globalSupplier.supplierId);
          } else {
             // Regular vendor login
             onLoginSuccess();

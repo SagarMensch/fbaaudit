@@ -71,7 +71,7 @@ interface EnhancedInvoiceReviewProps {
 
 export const EnhancedInvoiceReview: React.FC<EnhancedInvoiceReviewProps> = ({ currentUser: currentUserProp, invoices }) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const currentUser = currentUserProp?.name || 'Zeya Kapoor';
+    const currentUser = currentUserProp?.name || 'William Chen';
 
     // ROLE-BASED FILTERING - Each person sees different invoices
     // FIXED: Now matches Freight Audit logic exactly
@@ -80,14 +80,14 @@ export const EnhancedInvoiceReview: React.FC<EnhancedInvoiceReviewProps> = ({ cu
             // Find the CURRENT pending workflow stage (not historical)
             const currentStage = inv.workflowHistory?.find(w => w.status === 'PENDING' || w.status === 'ACTIVE');
 
-            if (currentUser === 'Kaai Bansal') {
-                // Kaai sees: Invoices CURRENTLY pending at Step-1
-                const isAssignedToMe = inv.assignedTo === 'Kaai Bansal';
+            if (currentUser === 'Lan Banh') {
+                // Lan Banh sees: Invoices CURRENTLY pending at Step-1
+                const isAssignedToMe = inv.assignedTo === 'Lan Banh';
                 const isPendingMyApproval = currentStage && currentStage.stepId === 'step-1';
                 return isAssignedToMe || isPendingMyApproval;
-            } else if (currentUser === 'Zeya Kapoor') {
-                // Zeya sees: Invoices CURRENTLY pending at Step-2
-                const isAssignedToMe = inv.assignedTo === 'Zeya Kapoor';
+            } else if (currentUser === 'William Chen') {
+                // William Chen sees: Invoices CURRENTLY pending at Step-2
+                const isAssignedToMe = inv.assignedTo === 'William Chen';
                 const isPendingMyApproval = currentStage && currentStage.stepId === 'step-2';
                 return isAssignedToMe || isPendingMyApproval;
             }
@@ -243,8 +243,8 @@ export const EnhancedInvoiceReview: React.FC<EnhancedInvoiceReviewProps> = ({ cu
                         <div className="relative z-10 flex justify-between items-start">
                             <div>
                                 <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-1">TOTAL VALUE</span>
-                                <div className="text-xl font-mono font-bold text-white tracking-tighter truncate" title={`₹${analytics.totalValue.toLocaleString()}`}>
-                                    ₹{(analytics.totalValue / 1000).toFixed(1)}k
+                                <div className="text-xl font-mono font-bold text-white tracking-tighter truncate" title={`$${analytics.totalValue.toLocaleString()}`}>
+                                    ${(analytics.totalValue / 1000).toFixed(1)}k
                                 </div>
                             </div>
                             <div className="bg-white/5 p-2 rounded-lg border border-white/5 group-hover:bg-blue-400/10 transition-colors">
@@ -263,7 +263,7 @@ export const EnhancedInvoiceReview: React.FC<EnhancedInvoiceReviewProps> = ({ cu
                         <div className="relative z-10 flex justify-between items-start">
                             <div>
                                 <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-1">AVG VALUE</span>
-                                <div className="text-xl font-mono font-bold text-white tracking-tighter">₹{analytics.avgValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+                                <div className="text-xl font-mono font-bold text-white tracking-tighter">${analytics.avgValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
                             </div>
                             <div className="bg-white/5 p-2 rounded-lg border border-white/5 group-hover:bg-slate-400/10 transition-colors">
                                 <Geo3DCylinder size={32} color="#94A3B8" className="drop-shadow-[0_4px_6px_rgba(148,163,184,0.3)]" />
@@ -294,7 +294,7 @@ export const EnhancedInvoiceReview: React.FC<EnhancedInvoiceReviewProps> = ({ cu
                             <h2 className="text-sm font-bold text-white uppercase tracking-wider">Invoice Data Table</h2>
                             <div className="text-xs text-slate-300 font-medium">
                                 Count: <span className="text-white font-bold">{filteredInvoices.length}</span> |
-                                Total: <span className="text-white font-bold">₹{filteredInvoices.reduce((sum, inv) => sum + inv.amount, 0).toLocaleString()}</span>
+                                Total: <span className="text-white font-bold">${filteredInvoices.reduce((sum, inv) => sum + inv.amount, 0).toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
@@ -316,7 +316,7 @@ export const EnhancedInvoiceReview: React.FC<EnhancedInvoiceReviewProps> = ({ cu
                                         <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">Route</div>
                                     </th>
                                     <th className="px-4 py-3 text-right">
-                                        <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">Amount (₹)</div>
+                                        <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">Amount ($)</div>
                                     </th>
                                     <th className="px-4 py-3 text-right">
                                         <div className="text-xs font-bold text-slate-700 uppercase tracking-wider">Variance</div>
@@ -354,13 +354,13 @@ export const EnhancedInvoiceReview: React.FC<EnhancedInvoiceReviewProps> = ({ cu
                                             <div className="text-sm text-slate-700">{invoice.origin} → {invoice.destination}</div>
                                         </td>
                                         <td className="px-4 py-4 text-right">
-                                            <div className="font-mono text-sm font-bold text-slate-900">₹{invoice.amount.toLocaleString()}</div>
+                                            <div className="font-mono text-sm font-bold text-slate-900">${invoice.amount.toLocaleString()}</div>
                                         </td>
                                         <td className="px-4 py-4 text-right">
                                             {invoice.variance > 0 ? (
-                                                <div className="font-mono text-sm font-bold text-red-700">+₹{invoice.variance.toLocaleString()}</div>
+                                                <div className="font-mono text-sm font-bold text-red-700">+${invoice.variance.toLocaleString()}</div>
                                             ) : (
-                                                <div className="font-mono text-sm text-emerald-700">₹0.00</div>
+                                                <div className="font-mono text-sm text-emerald-700">$0.00</div>
                                             )}
                                         </td>
                                         <td className="px-4 py-4">
@@ -427,7 +427,7 @@ export const EnhancedInvoiceReview: React.FC<EnhancedInvoiceReviewProps> = ({ cu
                         <div className="p-6 space-y-4">
                             <div className="border-b-2 border-slate-200 pb-4">
                                 <div className="text-xs text-slate-600 uppercase tracking-wider mb-1">Total Variance</div>
-                                <div className="text-3xl font-bold text-red-700">₹{analytics.totalVariance.toLocaleString()}</div>
+                                <div className="text-3xl font-bold text-red-700">${analytics.totalVariance.toLocaleString()}</div>
                             </div>
                             <div className="border-b-2 border-slate-200 pb-4">
                                 <div className="text-xs text-slate-600 uppercase tracking-wider mb-1">Variance Rate</div>

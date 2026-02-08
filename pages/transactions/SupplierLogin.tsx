@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Truck, Lock, Mail, LogIn, Building2, MapPin, IndianRupee } from 'lucide-react';
+import { Truck, Lock, Mail, LogIn, Building2, MapPin, DollarSign, Globe } from 'lucide-react';
+import { GLOBAL_SUPPLIERS } from '../../services/supplierService';
 
 interface SupplierLoginProps {
     onLoginSuccess: (supplierId: string) => void;
@@ -7,48 +7,12 @@ interface SupplierLoginProps {
 }
 
 // Indian Supplier Credentials
-const INDIAN_SUPPLIERS = [
-    {
-        id: 'tci-express',
-        name: 'TCI Express',
-        logo: '',
-        email: 'rajesh.sharma@tciexpress.in',
-        password: '12345678',
-        location: 'Gurugram, Haryana',
-        type: 'Surface Transport'
-    },
-    {
-        id: 'bluedart-express',
-        name: 'Blue Dart',
-        logo: '',
-        email: 'priya.desai@bluedart.com',
-        password: '12345678',
-        location: 'Mumbai, Maharashtra',
-        type: 'Express Air & Courier'
-    },
-    {
-        id: 'delhivery',
-        name: 'Delhivery',
-        logo: '',
-        email: 'amit.verma@delhivery.com',
-        password: '12345678',
-        location: 'Gurugram, Haryana',
-        type: 'E-commerce Logistics'
-    },
-    {
-        id: 'vrl-logistics',
-        name: 'VRL Logistics',
-        logo: '',
-        email: 'suresh.reddy@vrllogistics.com',
-        password: '12345678',
-        location: 'Hubballi, Karnataka',
-        type: 'Surface Transport'
-    }
-];
+// Indian Supplier Credentials - REMOVED
+// Using GLOBAL_SUPPLIERS from service
 
 export const SupplierLogin: React.FC<SupplierLoginProps> = ({ onLoginSuccess, onBack }) => {
-    // Pre-filled credentials for TCI Express (Demo Mode)
-    const [email, setEmail] = useState('rajesh.sharma@tciexpress.in');
+    // Pre-filled credentials for DHL Express (Demo Mode)
+    const [email, setEmail] = useState('michael.thompson@dhl.com');
     const [password, setPassword] = useState('12345678');
     const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [error, setError] = useState('');
@@ -60,8 +24,9 @@ export const SupplierLogin: React.FC<SupplierLoginProps> = ({ onLoginSuccess, on
         setIsLoggingIn(true);
 
         // Validate credentials
-        const supplier = INDIAN_SUPPLIERS.find(
-            s => s.email === email && s.password === password
+        // For demo, we just check email match against global suppliers and any password
+        const supplier = GLOBAL_SUPPLIERS.find(
+            s => s.contacts[0].email === email
         );
 
         setTimeout(() => {
@@ -74,9 +39,9 @@ export const SupplierLogin: React.FC<SupplierLoginProps> = ({ onLoginSuccess, on
         }, 1000);
     };
 
-    const handleQuickLogin = (supplier: typeof INDIAN_SUPPLIERS[0]) => {
-        setEmail(supplier.email);
-        setPassword(supplier.password);
+    const handleQuickLogin = (supplier: typeof GLOBAL_SUPPLIERS[0]) => {
+        setEmail(supplier.contacts[0].email);
+        setPassword('12345678');
         setError('');
         setIsLoggingIn(true);
 
@@ -94,8 +59,8 @@ export const SupplierLogin: React.FC<SupplierLoginProps> = ({ onLoginSuccess, on
                         <div className="flex items-center gap-2">
                             <Truck className="text-blue-600" size={28} />
                             <div>
-                                <h1 className="text-xl font-bold text-slate-900">Indian Supplier Portal</h1>
-                                <p className="text-xs text-slate-600">Freight Logistics Network</p>
+                                <h1 className="text-xl font-bold text-slate-900">Global Supplier Portal</h1>
+                                <p className="text-xs text-slate-600">International Logistics Network</p>
                             </div>
                         </div>
                     </div>
@@ -216,7 +181,7 @@ export const SupplierLogin: React.FC<SupplierLoginProps> = ({ onLoginSuccess, on
                             </p>
                         </div>
 
-                        {INDIAN_SUPPLIERS.map((supplier) => (
+                        {GLOBAL_SUPPLIERS.map((supplier) => (
                             <button
                                 key={supplier.id}
                                 onClick={() => handleQuickLogin(supplier)}
@@ -236,12 +201,12 @@ export const SupplierLogin: React.FC<SupplierLoginProps> = ({ onLoginSuccess, on
                                             <div className="flex items-center gap-4 text-xs text-slate-500">
                                                 <span className="flex items-center gap-1">
                                                     <MapPin size={12} />
-                                                    {supplier.location}
+                                                    {supplier.headquarters}
                                                 </span>
                                             </div>
                                             <div className="mt-2 text-xs text-slate-600">
                                                 <div className="font-mono bg-slate-50 px-2 py-1 rounded inline-block">
-                                                    {supplier.email}
+                                                    {supplier.contacts[0].email}
                                                 </div>
                                             </div>
                                         </div>
@@ -267,7 +232,7 @@ export const SupplierLogin: React.FC<SupplierLoginProps> = ({ onLoginSuccess, on
             {/* Footer */}
             <div className="bg-white border-t border-slate-200 py-4">
                 <div className="max-w-7xl mx-auto px-8 flex justify-between items-center text-xs text-slate-600">
-                    <p>© 2024 Indian Logistics Network. All rights reserved.</p>
+                    <p>© 2026 Atlas Global Logistics. All rights reserved.</p>
                     <div className="flex gap-4">
                         <button className="hover:text-slate-900">Privacy Policy</button>
                         <button className="hover:text-slate-900">Terms of Service</button>

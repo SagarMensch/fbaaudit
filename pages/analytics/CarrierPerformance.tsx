@@ -382,7 +382,7 @@ export const CarrierPerformance: React.FC = () => {
                                             }`}
                                         title={c.benford === 'PASS'
                                             ? 'Invoice amounts follow natural patterns - no fraud indicators'
-                                            : 'ALERT: 73% invoices cluster near ₹50K approval limit. Click Anomaly Detection for details.'}
+                                            : 'ALERT: 73% invoices cluster near $50K approval limit. Click Anomaly Detection for details.'}
                                     >
                                         {c.benford === 'PASS' ? '✓ PASS' : '⚠ HIGH RISK'}
                                     </span>

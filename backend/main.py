@@ -5,20 +5,20 @@ from contextlib import asynccontextmanager
 import requests
 import logging
 
-from rag_engine import RAGController
+from .rag_engine import RAGController
 # REMOVED: from mock_data import MOCK_INVOICES, MOCK_RATES - All data from PostgreSQL
-from workflows.invoice_processor import InvoiceProcessor
-from schemas.invoice import InvoiceSchema, CreateInvoiceRequest, InvoiceResponse
-from schemas.workflow import WorkflowExecutionRequest, WorkflowExecutionResponse
-from ticket_routes import router as ticket_router
-from forecast_routes import router as forecast_router
-from shock_routes import router as shock_router
+from .workflows.invoice_processor import InvoiceProcessor
+from .schemas.invoice import InvoiceSchema, CreateInvoiceRequest, InvoiceResponse
+from .schemas.workflow import WorkflowExecutionRequest, WorkflowExecutionResponse
+from .ticket_routes import router as ticket_router
+from .forecast_routes import router as forecast_router
+from .shock_routes import router as shock_router
 
 # New consolidated routers
-from routers.ocr_router import router as ocr_router
-from routers.ocr_router import documents_router
-from routers.atlas_router import router as atlas_router
-from routers.invoices_router import router as invoices_router
+from .routers.ocr_router import router as ocr_router
+from .routers.ocr_router import documents_router, checklist_router
+from .routers.atlas_router import router as atlas_router
+from .routers.invoices_router import router as invoices_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -82,6 +82,9 @@ app.include_router(atlas_router)
 # Include Documents router (OCR uploads)
 app.include_router(documents_router)
 
+# Include Checklist router (MagicSplitter - Migrated from Flask)
+app.include_router(checklist_router)
+
 # Include Invoices router (Bulk Upload)
 app.include_router(invoices_router)
 
@@ -108,6 +111,14 @@ app.include_router(ingestion_router)
 # Include Auth Router (New Secure Auth)
 from routers.auth_router import router as auth_router
 app.include_router(auth_router)
+
+# Include Vendors Router (SAP-style: DB = Source of Truth)
+from routers.vendors_router import router as vendors_router
+app.include_router(vendors_router)
+
+# Include Config Router (Config over Code)
+from routers.config_router import router as config_router
+app.include_router(config_router)
 
 
 class ChatRequest(BaseModel):

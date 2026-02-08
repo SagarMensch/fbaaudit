@@ -66,7 +66,7 @@ TERMS AND CONDITIONS:
    - On-Time Delivery: Minimum 95% OTD required
    - POD Return: Within 7 working days
    - Damage Rate: Not to exceed 0.5%
-   - Detention Charges: ₹500/hour after 2 hours free time
+   - Detention Charges: $500/hour after 2 hours free time
 
 3. PRICING AND PAYMENT TERMS
    - Rates as per attached Rate Card (Annexure A)
@@ -75,7 +75,7 @@ TERMS AND CONDITIONS:
    - GST: 18% on freight charges, 12% on loading/unloading
 
 4. INSURANCE AND LIABILITY
-   - Carrier to maintain cargo insurance of minimum ₹20 Crore
+   - Carrier to maintain cargo insurance of minimum $20 Crore
    - Liability limited to declared value of goods
    - Force majeure clause applicable
 
@@ -121,23 +121,23 @@ Valid Until: 2025-03-31
 
 SURFACE TRANSPORT RATES (Per KG)
 
-Route                          Weight Slab      Rate (₹/kg)    Transit Days
+Route                          Weight Slab      Rate ($/kg)    Transit Days
 ────────────────────────────────────────────────────────────────────────────
-Delhi - Mumbai                 0-100 kg         ₹8.50          3-4 days
-                               100-500 kg       ₹7.50          3-4 days
-                               500+ kg          ₹6.50          3-4 days
+Delhi - Mumbai                 0-100 kg         $8.50          3-4 days
+                               100-500 kg       $7.50          3-4 days
+                               500+ kg          $6.50          3-4 days
 
-Mumbai - Bangalore             0-100 kg         ₹9.00          4-5 days
-                               100-500 kg       ₹8.00          4-5 days
-                               500+ kg          ₹7.00          4-5 days
+Mumbai - Bangalore             0-100 kg         $9.00          4-5 days
+                               100-500 kg       $8.00          4-5 days
+                               500+ kg          $7.00          4-5 days
 
-Bangalore - Chennai            0-100 kg         ₹6.50          2-3 days
-                               100-500 kg       ₹5.50          2-3 days
-                               500+ kg          ₹4.50          2-3 days
+Bangalore - Chennai            0-100 kg         $6.50          2-3 days
+                               100-500 kg       $5.50          2-3 days
+                               500+ kg          $4.50          2-3 days
 
-Delhi - Kolkata                0-100 kg         ₹10.00         4-5 days
-                               100-500 kg       ₹9.00          4-5 days
-                               500+ kg          ₹8.00          4-5 days
+Delhi - Kolkata                0-100 kg         $10.00         4-5 days
+                               100-500 kg       $9.00          4-5 days
+                               500+ kg          $8.00          4-5 days
 
 ═══════════════════════════════════════════════════════════════════════════
 
@@ -145,9 +145,9 @@ FULL TRUCK LOAD (FTL) RATES
 
 Vehicle Type          Capacity        Delhi-Mumbai    Mumbai-Bangalore
 ────────────────────────────────────────────────────────────────────────────
-32 Ft MXL            15 Tons         ₹45,000         ₹52,000
-20 Ft Container      10 Tons         ₹32,000         ₹38,000
-14 Ft Truck          5 Tons          ₹22,000         ₹25,000
+32 Ft MXL            15 Tons         $45,000         $52,000
+20 Ft Container      10 Tons         $32,000         $38,000
+14 Ft Truck          5 Tons          $22,000         $25,000
 
 ═══════════════════════════════════════════════════════════════════════════
 
@@ -155,9 +155,9 @@ ADDITIONAL CHARGES
 
 Service                                              Charge
 ────────────────────────────────────────────────────────────────────────────
-Loading/Unloading                                    ₹2/kg (Min ₹500)
-Detention Charges (after 2 hrs free time)            ₹500/hour
-POD Charges                                          ₹50 per shipment
+Loading/Unloading                                    $2/kg (Min $500)
+Detention Charges (after 2 hrs free time)            $500/hour
+POD Charges                                          $50 per shipment
 Insurance (Optional)                                 0.5% of declared value
 Fuel Surcharge                                       As per monthly index
 
@@ -300,10 +300,10 @@ CARGO DETAILS:
 Description of Goods:        Electronic Components
 Number of Packages:          25 Boxes
 Weight:                      ${doc.metadata?.weight || '500 kg'}
-Declared Value:              ₹5,00,000
-Freight Charges:             ₹4,250
-GST @ 18%:                   ₹765
-Total Amount:                ₹5,015
+Declared Value:              $5,00,000
+Freight Charges:             $4,250
+GST @ 18%:                   $765
+Total Amount:                $5,015
 
 ═══════════════════════════════════════════════════════════════════════════
 
@@ -318,7 +318,7 @@ TERMS & CONDITIONS:
 
 1. Goods are transported at owner's risk
 2. Claims must be filed within 7 days of delivery
-3. Detention charges: ₹500/hour after 2 hours free time
+3. Detention charges: $500/hour after 2 hours free time
 4. Subject to ${doc.metadata?.route?.split('→')[0]?.trim() || 'Delhi'} jurisdiction
 
 Consignor Signature              Carrier Signature              Driver Signature
@@ -454,10 +454,10 @@ HSN Code:                    8471
 Description:                 Electronic Components
 Quantity:                    25 Boxes
 Unit:                        BOX
-Taxable Value:               ₹5,00,000
-CGST @ 9%:                   ₹45,000
-SGST @ 9%:                   ₹45,000
-Total Invoice Value:         ₹5,90,000
+Taxable Value:               $5,00,000
+CGST @ 9%:                   $45,000
+SGST @ 9%:                   $45,000
+Total Invoice Value:         $5,90,000
 
 ═══════════════════════════════════════════════════════════════════════════
 
@@ -514,7 +514,7 @@ Type of Business:            Freight Transportation Services
 
 COVERAGE DETAILS:
 
-Sum Insured:                 ${doc.metadata?.coverageAmount || '₹20 Crore'}
+Sum Insured:                 ${doc.metadata?.coverageAmount || '$20 Crore'}
 Type of Coverage:            Comprehensive Cargo Insurance
 Geographic Scope:            All India
 
@@ -537,9 +537,9 @@ Exclusions:
 
 PREMIUM DETAILS:
 
-Annual Premium:              ₹2,50,000
-GST @ 18%:                   ₹45,000
-Total Premium:               ₹2,95,000
+Annual Premium:              $2,50,000
+GST @ 18%:                   $45,000
+Total Premium:               $2,95,000
 
 Payment Status:              PAID
 Payment Date:                ${doc.uploadedDate}

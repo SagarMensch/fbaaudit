@@ -176,7 +176,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ onNavigate }
                     {[...tickers, ...tickers, ...tickers].map((ticker, idx) => (
                         <div key={idx} className="inline-flex items-center px-4 border-r border-gray-800">
                             <span className="font-bold text-orange-400 text-xs mr-2">{ticker.symbol}</span>
-                            <span className="text-white text-xs mr-2">₹{ticker.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            <span className="text-white text-xs mr-2">${ticker.value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             <span className={`flex items-center text-[10px] ${ticker.trend === 'up' ? 'text-green-400' : 'text-red-400'}`}>
                                 {ticker.trend === 'up' ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                                 <span className="ml-0.5">{ticker.changePercent > 0 ? '+' : ''}{ticker.changePercent.toFixed(2)}%</span>
@@ -223,7 +223,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ onNavigate }
 
                     {/* DIESEL PRICES */}
                     <div className="border-b border-gray-800 p-3">
-                        <div className="text-[10px] text-orange-400 font-bold tracking-wider mb-2">DIESEL PRICES (₹/L)</div>
+                        <div className="text-[10px] text-orange-400 font-bold tracking-wider mb-2">DIESEL PRICES ($/L)</div>
                         <div className="space-y-2">
                             {[
                                 { city: 'Mumbai', price: 94.50, change: -0.75 },
@@ -234,7 +234,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ onNavigate }
                                 <div key={item.city} className="flex items-center justify-between text-xs">
                                     <span className="text-gray-400">{item.city}</span>
                                     <div className="flex items-center space-x-2">
-                                        <span className="font-bold">₹{item.price.toFixed(2)}</span>
+                                        <span className="font-bold">${item.price.toFixed(2)}</span>
                                         <span className={`text-[10px] ${item.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                             {item.change >= 0 ? '+' : ''}{item.change.toFixed(2)}
                                         </span>
@@ -249,10 +249,10 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ onNavigate }
                         <div className="text-[10px] text-orange-400 font-bold tracking-wider mb-2">MARKET METRICS</div>
                         <div className="grid grid-cols-2 gap-2">
                             {[
-                                { label: 'PAYABLES', value: '₹24.5M', change: '+2.3%', trend: 'up' },
+                                { label: 'PAYABLES', value: '$24.5M', change: '+2.3%', trend: 'up' },
                                 {
                                     label: 'PENDING',
-                                    value: pendingAmount ? `₹${(pendingAmount / 1000).toFixed(1)}k` : '₹0',
+                                    value: pendingAmount ? `$${(pendingAmount / 1000).toFixed(1)}k` : '$0',
                                     change: pendingCount > 0 ? `+${pendingCount} Inv` : '0',
                                     trend: pendingCount > 0 ? 'up' : 'down',
                                     action: () => onNavigate && onNavigate('approver_queue')
@@ -287,7 +287,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ onNavigate }
                                 <div key={item.type} className="flex items-center justify-between text-xs bg-gray-900 border border-gray-800 p-2">
                                     <span className="text-gray-400 font-mono">{item.type}</span>
                                     <div className="flex items-center space-x-2">
-                                        <span className="font-bold">₹{item.rate.toLocaleString()}</span>
+                                        <span className="font-bold">${item.rate.toLocaleString()}</span>
                                         <span className={`text-[10px] ${item.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                             {item.change >= 0 ? '+' : ''}{item.change.toFixed(1)}%
                                         </span>
@@ -308,7 +308,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ onNavigate }
                             <tr>
                                 <th className="px-3 py-2 text-left text-[10px] font-bold text-gray-500 tracking-wider">LANE</th>
                                 <th className="px-3 py-2 text-left text-[10px] font-bold text-gray-500 tracking-wider">MODE</th>
-                                <th className="px-3 py-2 text-right text-[10px] font-bold text-gray-500 tracking-wider">RATE (₹)</th>
+                                <th className="px-3 py-2 text-right text-[10px] font-bold text-gray-500 tracking-wider">RATE ($)</th>
                                 <th className="px-3 py-2 text-right text-[10px] font-bold text-gray-500 tracking-wider">VOL</th>
                                 <th className="px-3 py-2 text-right text-[10px] font-bold text-gray-500 tracking-wider">CHG %</th>
                             </tr>
@@ -331,7 +331,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ onNavigate }
                                             {row.mode}
                                         </span>
                                     </td>
-                                    <td className="px-3 py-2 text-right font-bold font-mono">₹{row.rate.toLocaleString()}</td>
+                                    <td className="px-3 py-2 text-right font-bold font-mono">${row.rate.toLocaleString()}</td>
                                     <td className="px-3 py-2 text-right text-gray-500">{row.vol}</td>
                                     <td className={`px-3 py-2 text-right flex items-center justify-end ${row.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                                         {row.change >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
@@ -370,7 +370,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ onNavigate }
                         </div>
                         <div className="space-y-2">
                             {[
-                                { time: '14:23', text: 'Diesel prices drop 0.75₹ in Mumbai', type: 'positive' },
+                                { time: '14:23', text: 'Diesel prices drop 0.75$ in Mumbai', type: 'positive' },
                                 { time: '13:45', text: 'FTL rates surge 2.5% on Delhi-Kolkata lane', type: 'alert' },
                                 { time: '12:10', text: 'Container shortage at JNPT port', type: 'warning' },
                                 { time: '11:30', text: 'New GST compliance rules effective', type: 'info' },
@@ -399,7 +399,7 @@ export const FinanceDashboard: React.FC<FinanceDashboardProps> = ({ onNavigate }
                                 <div key={item.name} className="flex items-center justify-between text-xs bg-gray-900 border border-gray-800 p-2">
                                     <span className="text-gray-400 text-[10px]">{item.name}</span>
                                     <div className="text-right">
-                                        <div className="font-bold text-[10px]">₹{item.value.toLocaleString()}</div>
+                                        <div className="font-bold text-[10px]">${item.value.toLocaleString()}</div>
                                         <div className="text-green-400 text-[9px]">+{item.change}%</div>
                                     </div>
                                 </div>

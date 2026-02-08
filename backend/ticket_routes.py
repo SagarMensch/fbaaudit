@@ -63,8 +63,8 @@ class Ticket(BaseModel):
 
 # AI Classification using Ollama
 PERSONA_MAPPING = {
-    "finance": {"name": "Zeya Kapoor", "role": "Finance Manager"},
-    "logistics": {"name": "Kaai Bansal", "role": "Logistics Ops"},
+    "finance": {"name": "William Chen", "role": "Finance Manager"},
+    "logistics": {"name": "Lan Banh", "role": "Logistics Ops"},
     "contracts": {"name": "Atlas", "role": "Enterprise Director"},
     "technical": {"name": "System Admin", "role": "Super User"}
 }

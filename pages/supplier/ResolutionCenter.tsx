@@ -130,8 +130,8 @@ export const ResolutionCenter: React.FC<ResolutionCenterProps> = ({ supplier }) 
                                     <strong>AI Routing:</strong> Your ticket will be analyzed and sent to:
                                 </p>
                                 <ul className="text-xs text-white mt-1 list-disc list-inside">
-                                    <li>Payment issues → Finance Team (Zeya Kapoor)</li>
-                                    <li>Delivery issues → Logistics Ops (Kaai Bansal)</li>
+                                    <li>Payment issues → Finance Team (William Chen)</li>
+                                    <li>Delivery issues → Logistics Ops (Lan Banh)</li>
                                     <li>Contract issues → Enterprise Director (Atlas)</li>
                                 </ul>
                             </div>

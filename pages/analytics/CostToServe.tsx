@@ -253,7 +253,7 @@ export const CostToServe: React.FC<CostToServeProps> = ({ onNavigate }) => {
 
                         <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#00C805] mb-1 relative z-10">Net Variance</h3>
                         <div className="text-3xl font-mono font-bold mb-4 relative z-10 tracking-tighter">
-                            ₹{(ctsData.reduce((acc, r) => acc + r.totalCost, 0) - simulatedData.reduce((acc, r) => acc + r.totalCost, 0)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                            ${(ctsData.reduce((acc, r) => acc + r.totalCost, 0) - simulatedData.reduce((acc, r) => acc + r.totalCost, 0)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                         </div>
                     </div>
                 </div>
@@ -281,7 +281,7 @@ export const CostToServe: React.FC<CostToServeProps> = ({ onNavigate }) => {
                                 <BarChart data={waterfallData} barSize={50}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
                                     <XAxis dataKey="name" tick={{ fontSize: 11, fontWeight: 'bold', fill: '#161616' }} axisLine={false} tickLine={false} dy={10} />
-                                    <YAxis tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fill: '#888', fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+                                    <YAxis tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fill: '#888', fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
                                     <Tooltip
                                         cursor={{ fill: 'transparent' }}
                                         contentStyle={{ backgroundColor: '#161616', border: 'none', color: '#fff', fontSize: '12px', fontFamily: 'monospace', padding: '8px' }}
@@ -334,9 +334,9 @@ export const CostToServe: React.FC<CostToServeProps> = ({ onNavigate }) => {
                                             <td className="px-5 py-2.5 border-r border-[#f4f4f4] font-bold font-sans group-hover:text-[#0f62fe]">{r.customer}</td>
                                             <td className="px-5 py-2.5 border-r border-[#f4f4f4] text-[#525252]">{r.sku}</td>
                                             <td className="px-5 py-2.5 border-r border-[#f4f4f4]">{r.lane}</td>
-                                            <td className="px-5 py-2.5 text-right border-r border-[#f4f4f4]">₹{r.breakdown.transport.toFixed(0)}</td>
-                                            <td className="px-5 py-2.5 text-right border-r border-[#f4f4f4]">₹{r.breakdown.handling.toFixed(0)}</td>
-                                            <td className="px-5 py-2.5 text-right font-bold border-r border-[#f4f4f4] bg-[#fafafa]">₹{r.totalCost.toFixed(0)}</td>
+                                            <td className="px-5 py-2.5 text-right border-r border-[#f4f4f4]">${r.breakdown.transport.toFixed(0)}</td>
+                                            <td className="px-5 py-2.5 text-right border-r border-[#f4f4f4]">${r.breakdown.handling.toFixed(0)}</td>
+                                            <td className="px-5 py-2.5 text-right font-bold border-r border-[#f4f4f4] bg-[#fafafa]">${r.totalCost.toFixed(0)}</td>
                                             <td className="px-5 py-2.5 text-right">
                                                 <span className={`font-bold px-1.5 py-0.5 border ${r.margin > 15 ? 'text-[#00C805] border-[#00C805] bg-[#e6ffed]' : 'text-[#fa4d56] border-[#fa4d56] bg-[#fff0f1]'}`}>
                                                     {r.margin.toFixed(1)}%

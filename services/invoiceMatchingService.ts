@@ -85,7 +85,7 @@ export class InvoiceMatchingService {
                     severity: 'high',
                     description: `No contract rate found for ${item.origin} → ${item.destination}`,
                     expected: 'Contract rate',
-                    actual: `₹${item.rate}/kg`,
+                    actual: `$${item.rate}/kg`,
                     impact: item.amount
                 });
             } else {
@@ -96,8 +96,8 @@ export class InvoiceMatchingService {
                         type: 'rate_mismatch',
                         severity: 'high',
                         description: `Rate mismatch for ${item.origin} → ${item.destination}`,
-                        expected: `₹${contractRate.baseRate}/kg`,
-                        actual: `₹${item.rate}/kg`,
+                        expected: `$${contractRate.baseRate}/kg`,
+                        actual: `$${item.rate}/kg`,
                         impact: item.amount - expectedAmount
                     });
                 }
@@ -112,8 +112,8 @@ export class InvoiceMatchingService {
                 type: 'fuel_surcharge',
                 severity: 'medium',
                 description: 'Fuel surcharge variance detected',
-                expected: `₹${expectedFuelSurcharge.toFixed(2)} (15%)`,
-                actual: `₹${invoice.fuelSurcharge} (${invoice.fuelSurchargePercent}%)`,
+                expected: `$${expectedFuelSurcharge.toFixed(2)} (15%)`,
+                actual: `$${invoice.fuelSurcharge} (${invoice.fuelSurchargePercent}%)`,
                 impact: invoice.fuelSurcharge - expectedFuelSurcharge
             });
         }
@@ -126,8 +126,8 @@ export class InvoiceMatchingService {
                 type: 'gst_calculation',
                 severity: 'medium',
                 description: 'GST calculation variance',
-                expected: `₹${expectedGST.toFixed(2)} (18%)`,
-                actual: `₹${invoice.gst} (${invoice.gstPercent}%)`,
+                expected: `$${expectedGST.toFixed(2)} (18%)`,
+                actual: `$${invoice.gst} (${invoice.gstPercent}%)`,
                 impact: invoice.gst - expectedGST
             });
         }
@@ -237,9 +237,9 @@ export class InvoiceMatchingService {
         let report = `Invoice Matching Report\n`;
         report += `========================\n\n`;
         report += `Status: ${result.matched ? '✅ MATCHED' : '⚠️ DISCREPANCIES FOUND'}\n`;
-        report += `Expected Amount: ₹${result.expectedAmount.toLocaleString()}\n`;
-        report += `Actual Amount: ₹${result.actualAmount.toLocaleString()}\n`;
-        report += `Variance: ₹${result.variance.toLocaleString()} (${result.variancePercent.toFixed(2)}%)\n`;
+        report += `Expected Amount: $${result.expectedAmount.toLocaleString()}\n`;
+        report += `Actual Amount: $${result.actualAmount.toLocaleString()}\n`;
+        report += `Variance: $${result.variance.toLocaleString()} (${result.variancePercent.toFixed(2)}%)\n`;
         report += `Recommendation: ${result.recommendation.toUpperCase()}\n\n`;
 
         if (result.discrepancies.length > 0) {
@@ -249,7 +249,7 @@ export class InvoiceMatchingService {
                 report += `   Severity: ${d.severity.toUpperCase()}\n`;
                 report += `   Expected: ${d.expected}\n`;
                 report += `   Actual: ${d.actual}\n`;
-                report += `   Impact: ₹${d.impact.toLocaleString()}\n`;
+                report += `   Impact: $${d.impact.toLocaleString()}\n`;
             });
         }
 

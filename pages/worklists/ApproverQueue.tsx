@@ -187,7 +187,7 @@ export const ApproverQueue: React.FC<ApproverQueueProps> = ({ currentUser, onVie
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="font-bold text-gray-900">₹{invoice.amount?.toLocaleString()}</span>
+                                        <span className="font-bold text-gray-900">${invoice.amount?.toLocaleString()}</span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <span className="text-gray-600 text-sm">{invoice.invoice_date}</span>

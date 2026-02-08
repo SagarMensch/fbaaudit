@@ -543,3 +543,137 @@ async def upload_document(file: UploadFile = File(...)):
         f.write(await file.read())
     
     return {"success": True, "filename": filename}
+
+
+# =============================================================================
+# MAGIC SPLITTER ENDPOINTS (Migrated from Flask)
+# =============================================================================
+
+checklist_router = APIRouter(prefix="/api/checklist", tags=["Checklist"])
+
+# Directory setup
+UPLOAD_BUNDLE_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads", "bundles")
+UPLOAD_SPLIT_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads", "split")
+os.makedirs(UPLOAD_BUNDLE_DIR, exist_ok=True)
+os.makedirs(UPLOAD_SPLIT_DIR, exist_ok=True)
+
+
+@checklist_router.get("/requirements/{shipment_id}")
+async def get_checklist_requirements(shipment_id: str):
+    """Get mandatory document list for a shipment."""
+    try:
+        from services.document_checklist import get_document_requirements, get_demo_shipment_config
+        
+        config = get_demo_shipment_config()
+        config['id'] = shipment_id
+        requirements = get_document_requirements(config)
+        return requirements
+    except Exception as e:
+        logger.error(f"Checklist Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@checklist_router.post("/upload-bundle")
+async def upload_pdf_bundle(file: UploadFile = File(...)):
+    """Upload the 'Big Bundle' PDF for MagicSplitter."""
+    import time
+    
+    try:
+        if not file or not file.filename:
+            raise HTTPException(status_code=400, detail="No file provided")
+        
+        filename = f"bundle_{int(time.time())}.pdf"
+        path = os.path.join(UPLOAD_BUNDLE_DIR, filename)
+        
+        content = await file.read()
+        with open(path, "wb") as f:
+            f.write(content)
+        
+        # Generate thumbnails from the PDF
+        thumbnails = await generate_pdf_thumbnails(path)
+        
+        return {
+            "success": True,
+            "bundle_id": filename,
+            "path": path,
+            "thumbnails": thumbnails,
+            "message": "Bundle uploaded successfully"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Upload Bundle Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+async def generate_pdf_thumbnails(pdf_path: str) -> list:
+    """Generate thumbnail previews for each page in the PDF."""
+    try:
+        import fitz  # PyMuPDF
+        import base64
+        
+        thumbnails = []
+        with fitz.open(pdf_path) as doc:
+            for page_num in range(len(doc)):
+                page = doc.load_page(page_num)
+                # Create a pixmap (image) of the page
+                pix = page.get_pixmap(matrix=fitz.Matrix(0.3, 0.3))  # Scale down
+                img_bytes = pix.tobytes("png")
+                
+                # Convert to base64 data URL
+                b64_img = base64.b64encode(img_bytes).decode('utf-8')
+                thumbnails.append({
+                    "page_number": page_num + 1,
+                    "image_url": f"data:image/png;base64,{b64_img}"
+                })
+        
+        return thumbnails
+    except Exception as e:
+        logger.warning(f"Thumbnail generation failed: {e}")
+        # Return mock thumbnails as fallback
+        return [
+            {"page_number": i, "image_url": f"https://via.placeholder.com/150x200?text=Page+{i}"} 
+            for i in range(1, 5)
+        ]
+
+
+@checklist_router.post("/split")
+async def split_bundle(payload: dict):
+    """
+    Perform the physical split of the PDF using pypdf.
+    Body: { "bundle_id": "filename.pdf", "split_map": { "INVOICE": [1], ... } }
+    """
+    try:
+        bundle_id = payload.get('bundle_id')
+        split_map = payload.get('split_map')
+        
+        if not bundle_id or not split_map:
+            raise HTTPException(status_code=400, detail="Missing bundle_id or split_map")
+        
+        source_path = os.path.join(UPLOAD_BUNDLE_DIR, bundle_id)
+        
+        from services.document_checklist import split_pdf_bundle
+        result = split_pdf_bundle(source_path, split_map, UPLOAD_SPLIT_DIR)
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Split API Error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@checklist_router.get("/view/{filename}")
+async def view_split_document(filename: str):
+    """Serve the split files."""
+    from fastapi.responses import FileResponse
+    
+    file_path = os.path.join(UPLOAD_SPLIT_DIR, filename)
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    return FileResponse(path=file_path, media_type="application/pdf")
+

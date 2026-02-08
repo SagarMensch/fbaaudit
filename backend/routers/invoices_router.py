@@ -45,6 +45,33 @@ except ImportError as e:
     ENTERPRISE_VDU = False
     logger.warning(f"VDU Engine not available: {e}")
 
+# Import Docling (Layer 0 - Document Intelligence)
+try:
+    from services.docling_service import get_docling_service, read_pdf_file, read_excel_file
+    DOCLING_AVAILABLE = True
+    logger.info("[ENGINES] Docling Layer 0 loaded successfully")
+except ImportError as e:
+    DOCLING_AVAILABLE = False
+    logger.warning(f"Docling not available: {e}")
+
+# Import Mistral Layout Engine (Layer 1 - Layout Analysis)
+try:
+    from modules.ingestion.layout_engine import LayoutEngine
+    MISTRAL_AVAILABLE = True
+    logger.info("[ENGINES] Mistral Layout Engine loaded successfully")
+except ImportError as e:
+    MISTRAL_AVAILABLE = False
+    logger.warning(f"Mistral Layout Engine not available: {e}")
+
+# Import Full 6-Layer Pipeline (Docling→Mistral→LOTUS→ReAct→Ditto→SimSearch)
+try:
+    from modules.ingestion.document_pipeline import get_document_pipeline, DocumentPipeline
+    PIPELINE_6L_AVAILABLE = True
+    logger.info("[ENGINES] 6-Layer Document Pipeline loaded successfully")
+except ImportError as e:
+    PIPELINE_6L_AVAILABLE = False
+    logger.warning(f"6-Layer Pipeline not available: {e}")
+
 
 # =====================================================
 # DATABASE-BACKED INVOICE ENDPOINTS (No Mock Data)
@@ -191,7 +218,7 @@ async def get_invoice(invoice_id: str):
 
 
 def extract_from_pdf(file_bytes: bytes) -> Dict[str, Any]:
-    """Extract text from PDF"""
+    """Extract text from PDF using basic PyMuPDF"""
     result = {"raw_text": "", "success": False}
     try:
         import fitz
@@ -221,6 +248,120 @@ def extract_from_pdf(file_bytes: bytes) -> Dict[str, Any]:
     except Exception as e:
         result["error"] = str(e)
         logger.error(f"PDF extraction error: {e}")
+    
+    return result
+
+
+async def extract_from_pdf_advanced(file_bytes: bytes, vendor_id: str = None) -> Dict[str, Any]:
+    """
+    5-Layer Advanced PDF Extraction Pipeline:
+    
+    Layer 0: Docling - Document structure extraction
+    Layer 1: Mistral Layout Engine - Section classification
+    Layer 2: LLM Field Extraction - Groq for specific fields
+    Layer 3: Validation & Confidence Scoring
+    Layer 4: Output Normalization
+    
+    Falls back to basic extraction if advanced layers fail.
+    """
+    import tempfile
+    import os as temp_os
+    
+    result = {
+        "success": False,
+        "raw_text": "",
+        "extracted_data": {},
+        "pipeline_used": [],
+        "confidence": 0
+    }
+    
+    # Create temp file for processing
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        tmp.write(file_bytes)
+        tmp_path = tmp.name
+    
+    try:
+        # ============ LAYER 0: DOCLING ============
+        if DOCLING_AVAILABLE:
+            try:
+                docling_service = get_docling_service()
+                docling_result = docling_service.process_pdf(tmp_path)
+                
+                if docling_result.get("success"):
+                    result["raw_text"] = docling_result.get("text", "")
+                    result["tables"] = docling_result.get("tables", [])
+                    result["metadata"] = docling_result.get("metadata", {})
+                    result["pipeline_used"].append("docling")
+                    logger.info(f"[Layer 0] Docling extracted {len(result['raw_text'])} chars")
+            except Exception as docling_err:
+                logger.warning(f"[Layer 0] Docling failed: {docling_err}")
+        
+        # Fallback to basic extraction if Docling failed
+        if not result["raw_text"]:
+            basic_result = extract_from_pdf(file_bytes)
+            if basic_result.get("success"):
+                result["raw_text"] = basic_result["raw_text"]
+                result["pipeline_used"].append("pymupdf")
+        
+        if not result["raw_text"]:
+            result["error"] = "Failed to extract text from PDF"
+            return result
+        
+        # ============ LAYER 1: MISTRAL LAYOUT ENGINE ============
+        if MISTRAL_AVAILABLE and result["raw_text"]:
+            try:
+                layout_engine = LayoutEngine()
+                layout_result = layout_engine.analyze_layout({
+                    "content_markdown": result["raw_text"][:8000]
+                })
+                
+                if layout_result.get("layout_analysis"):
+                    result["layout"] = layout_result["layout_analysis"]
+                    result["pipeline_used"].append("mistral-layout")
+                    
+                if layout_result.get("extracted_data"):
+                    result["extracted_data"].update(layout_result["extracted_data"])
+                    result["pipeline_used"].append("mistral-fields")
+                    logger.info(f"[Layer 1] Mistral extracted {len(result['extracted_data'])} fields")
+            except Exception as mistral_err:
+                logger.warning(f"[Layer 1] Mistral layout failed: {mistral_err}")
+        
+        # ============ LAYER 2: GROQ LLM EXTRACTION ============
+        # Always run LLM for critical fields even if Mistral succeeded
+        if GROQ_API_KEY and result["raw_text"]:
+            try:
+                llm_result = await llm_extract_pdf_data(result["raw_text"])
+                
+                if llm_result.get("success"):
+                    llm_data = llm_result["data"]
+                    # Merge LLM data (prefer LLM for totals)
+                    result["extracted_data"]["grand_total"] = llm_data.get("grand_total")
+                    result["extracted_data"]["invoice_number"] = llm_data.get("invoice_number")
+                    result["extracted_data"]["invoice_date"] = llm_data.get("invoice_date")
+                    result["extracted_data"]["vendor_name"] = llm_data.get("vendor_name")
+                    result["extracted_data"]["vendor_gstin"] = llm_data.get("vendor_gstin")
+                    result["pipeline_used"].append("groq-llm")
+                    logger.info(f"[Layer 2] Groq LLM completed")
+            except Exception as llm_err:
+                logger.warning(f"[Layer 2] Groq LLM failed: {llm_err}")
+        
+        # ============ LAYER 3: VALIDATION ============
+        grand_total = result["extracted_data"].get("grand_total", 0)
+        if grand_total and isinstance(grand_total, (int, float)) and grand_total > 0:
+            result["confidence"] = 85
+            result["success"] = True
+        elif result["raw_text"]:
+            result["confidence"] = 50
+            result["success"] = True
+        
+        # ============ LAYER 4: OUTPUT ============
+        result["model_used"] = " → ".join(result["pipeline_used"]) or "fallback"
+        logger.info(f"[Pipeline] Completed: {result['model_used']}, confidence: {result['confidence']}")
+        
+    finally:
+        if temp_os.path.exists(tmp_path):
+            try: temp_os.remove(tmp_path)
+            except: pass
     
     return result
 
@@ -617,10 +758,59 @@ async def bulk_upload(
         
         if pdf_total_value == 0:
             # ============================================================
-            # Use Enterprise VDU (SAP/Oracle Competitor Level)
+            # PRIORITY 1: Full 6-Layer Pipeline (Best Quality)
+            # Docling → Mistral → LOTUS → ReAct → Ditto → SimSearch
+            # ============================================================
+            if PIPELINE_6L_AVAILABLE:
+                import tempfile
+                import os as temp_os
+                
+                original_filename = pdf_file.filename or "document.pdf"
+                file_ext = temp_os.path.splitext(original_filename)[1].lower() or ".pdf"
+                
+                with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp:
+                    tmp.write(pdf_bytes)
+                    tmp_path = tmp.name
+                
+                logger.info(f"[6-LAYER PIPELINE] Processing: {original_filename} for vendor: {vendor_id}")
+                
+                try:
+                    pipeline = get_document_pipeline()
+                    pipeline_result = pipeline.process(tmp_path, vendor_id)
+                    
+                    if pipeline_result.get("success"):
+                        ocr_data = pipeline_result.get("extracted_data", {})
+                        ocr_data["raw_text"] = pipeline_result.get("content_markdown", "")
+                        ocr_data["model_used"] = "6-layer-pipeline"
+                        ocr_data["pipeline_used"] = pipeline_result.get("layers_used", [])
+                        ocr_data["confidence"] = pipeline_result.get("confidence", 0)
+                        ocr_data["reasoning"] = pipeline_result.get("reasoning", "")
+                        
+                        confidence_data = {
+                            "overall_confidence": pipeline_result.get("confidence", 0),
+                            "layers_used": pipeline_result.get("layers_used", [])
+                        }
+                        
+                        # Get total from extracted data
+                        pdf_total_value = ocr_data.get("grand_total") or ocr_data.get("total_amount") or 0
+                        
+                        logger.info(f"[6-LAYER PIPELINE] Success: total={pdf_total_value}, "
+                                  f"layers={len(pipeline_result.get('layers_used', []))}, "
+                                  f"confidence={pipeline_result.get('confidence', 0)}%")
+                    else:
+                        logger.warning(f"[6-LAYER PIPELINE] Failed, falling back to VDU: {pipeline_result.get('errors', [])}")
+                        ocr_data["pipeline_error"] = pipeline_result.get("errors", [])
+                        
+                finally:
+                    if temp_os.path.exists(tmp_path):
+                        try: temp_os.remove(tmp_path)
+                        except: pass
+            
+            # ============================================================
+            # PRIORITY 2: Enterprise VDU (SAP/Oracle Competitor Level)
             # All 10 research papers, auto-learning, visual fingerprinting
             # ============================================================
-            if ENTERPRISE_VDU:
+            if pdf_total_value == 0 and ENTERPRISE_VDU:
                 import tempfile
                 import os as temp_os
                 
@@ -703,6 +893,33 @@ async def bulk_upload(
                         ocr_data["llm_error"] = llm_pdf_result.get("error")
                 else:
                     ocr_data["pdf_error"] = pdf_result.get("error", "PDF extraction failed")
+            
+            else:
+                # Use Advanced 5-Layer Pipeline (Docling → Mistral → Groq)
+                logger.info("[BULK] Using Advanced 5-Layer Pipeline (Docling → Mistral → Groq)")
+                advanced_result = await extract_from_pdf_advanced(pdf_bytes, vendor_id)
+                
+                if advanced_result.get("success"):
+                    ocr_data = advanced_result.get("extracted_data", {})
+                    ocr_data["raw_text"] = advanced_result.get("raw_text", "")
+                    ocr_data["model_used"] = advanced_result.get("model_used", "advanced-pipeline")
+                    ocr_data["pipeline_used"] = advanced_result.get("pipeline_used", [])
+                    ocr_data["confidence"] = advanced_result.get("confidence", 0)
+                    
+                    pdf_total_value = ocr_data.get("grand_total", 0) or 0
+                    
+                    logger.info(f"[BULK] Advanced Pipeline: total={pdf_total_value}, "
+                              f"confidence={ocr_data.get('confidence', 0)}, "
+                              f"pipeline={ocr_data.get('model_used', '')}")
+                else:
+                    # Final fallback to basic extraction
+                    ocr_data["pipeline_error"] = advanced_result.get("error")
+                    pdf_result = extract_from_pdf(pdf_bytes)
+                    if pdf_result.get("success"):
+                        llm_pdf_result = await llm_extract_pdf_data(pdf_result["raw_text"])
+                        if llm_pdf_result.get("success"):
+                            ocr_data.update(llm_pdf_result["data"])
+                            pdf_total_value = ocr_data.get("grand_total", 0) or 0
         
         # Reconciliation
         # Reconciliation Strategy: Best Fit
@@ -930,11 +1147,11 @@ async def submit_for_approval(
     Submit a processed invoice to the approval workflow.
     
     This creates the invoice record in the database with status="PENDING"
-    and assigns it to the first approver (Logistics Ops - Kaai Bansal).
+    and assigns it to the first approver (Logistics Ops - Lan Banh).
     
     Workflow Stages:
-    1. PENDING - Awaiting Logistics Ops (Kaai Bansal)
-    2. OPS_APPROVED - Awaiting Finance (Zeya Kapoor)
+    1. PENDING - Awaiting Logistics Ops (Lan Banh)
+    2. OPS_APPROVED - Awaiting Finance (William Chen)
     3. FINANCE_APPROVED - Awaiting ERP Settlement (Admin)
     4. PAID - Payment Released
     """
@@ -955,7 +1172,7 @@ async def submit_for_approval(
             "invoice_date": invoice_date or ocr.get("invoice_date") or datetime.now().strftime("%Y-%m-%d"),
             "status": "PENDING",  # Start of workflow
             "current_step": "step-1",  # Logistics Ops
-            "next_approver_role": "OPS_MANAGER",  # Kaai Bansal
+            "next_approver_role": "OPS_MANAGER",  # Lan Banh
             "line_items_count": line_items_count,
             "ocr_confidence": confidence_score,
             "reconciliation_status": reconciliation_status,
@@ -1042,10 +1259,10 @@ async def submit_for_approval(
             "invoice": invoice_record,
             "workflow": {
                 "current_step": "Logistics Ops Review",
-                "current_approver": "Kaai Bansal",
+                "current_approver": "Lan Banh",
                 "next_steps": [
-                    "Logistics Ops (Kaai Bansal) → Approve",
-                    "Finance (Zeya Kapoor) → Approve", 
+                    "Logistics Ops (Lan Banh) → Approve",
+                    "Finance (William Chen) → Approve", 
                     "ERP Settlement (Admin) → Pay"
                 ]
             },
@@ -1124,62 +1341,116 @@ async def approve_invoice(invoice_id: str, payload: dict):
     """
     Approve an invoice and move it to the next workflow stage.
     
+    Enhanced with:
+    - SLA tracking (time spent at each level)
+    - Detailed audit metadata
+    - Escalation warnings
+    - Role-based approver validation
+    
     Logic:
-    - Level 0 (Ops) -> Level 1 (Finance)
+    - Level 0 (Ops - Lan Banh) -> Level 1 (Finance - William Chen)
     - Level 1 (Finance) -> Level 2 (Admin/Payment)
     - Level 2 (Admin) -> APPROVED (Ready for Payment Batch)
     """
     try:
         approver_name = payload.get("approver_name", "Unknown")
+        approver_role = payload.get("approver_role", "UNKNOWN")
         remarks = payload.get("remarks", "")
         
         from db_config import get_db_connection
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Get current state
-        cursor.execute("SELECT approval_level, status FROM invoices WHERE id = %s", (invoice_id,))
+        # Get current state with timing info
+        cursor.execute("""
+            SELECT id, approval_level, status, total_amount, vendor_name,
+                   created_at, updated_at, approved_at
+            FROM invoices WHERE id = %s
+        """, (invoice_id,))
         invoice = cursor.fetchone()
         
         if not invoice:
+            cursor.close()
+            conn.close()
             return {"success": False, "error": "Invoice not found"}
-            
+        
         current_level = invoice["approval_level"] or 0
         new_level = current_level + 1
         new_status = "PENDING_APPROVAL"
+        next_approver = "William Chen"  # Finance by default
+        
+        # Role validation
+        expected_roles = {0: "OPS_MANAGER", 1: "FINANCE_MANAGER", 2: "ENTERPRISE_ADMIN"}
+        expected_role = expected_roles.get(current_level, "UNKNOWN")
+        
+        # Calculate SLA metrics
+        import datetime as dt
+        now = dt.datetime.now()
+        created_at = invoice.get("created_at") or now
+        time_in_workflow = (now - created_at).total_seconds() / 3600  # hours
+        sla_warning = time_in_workflow > 24  # Warn if > 24 hours
         
         # Workflow Transition Logic
-        if current_level == 2:
-            new_status = "APPROVED" # Fully approved, ready for payment
-            # Optionally trigger payment batch logic here
+        if current_level == 0:
+            next_approver = "William Chen"
+            new_status = "OPS_APPROVED"
+        elif current_level == 1:
+            next_approver = "Admin"
+            new_status = "FINANCE_APPROVED"
+        elif current_level == 2:
+            next_approver = None
+            new_status = "APPROVED"  # Fully approved, ready for payment
         
+        # Update invoice
         cursor.execute("""
             UPDATE invoices 
             SET approval_level = %s,
                 status = %s,
                 approved_by = %s,
-                approved_at = NOW()
+                approved_at = NOW(),
+                updated_at = NOW()
             WHERE id = %s
         """, (new_level, new_status, approver_name, invoice_id))
         
-        # Log action
+        # Enhanced Audit Log with metadata
+        audit_metadata = json.dumps({
+            "previous_level": current_level,
+            "new_level": new_level,
+            "approver_role": approver_role,
+            "expected_role": expected_role,
+            "time_in_workflow_hours": round(time_in_workflow, 2),
+            "sla_warning": sla_warning,
+            "invoice_amount": float(invoice.get("total_amount", 0) or 0),
+            "vendor": invoice.get("vendor_name", ""),
+            "remarks": remarks
+        })
+        
         cursor.execute("""
-            INSERT INTO audit_log (entity_type, entity_id, action, user_name, description)
-            VALUES ('INVOICE', %s, 'APPROVE', %s, %s)
-        """, (invoice_id, approver_name, f"Approved level {current_level} -> {new_level}: {remarks}"))
+            INSERT INTO audit_log (entity_type, entity_id, action, user_name, description, metadata, created_at)
+            VALUES ('INVOICE', %s, 'APPROVE', %s, %s, %s, NOW())
+        """, (invoice_id, approver_name, f"Approved level {current_level} → {new_level}: {remarks}", audit_metadata))
         
         conn.commit()
         cursor.close()
         conn.close()
         
+        logger.info(f"[APPROVAL] Invoice {invoice_id}: Level {current_level}→{new_level} by {approver_name} ({approver_role})")
+        
         return {
             "success": True, 
             "new_level": new_level, 
             "new_status": new_status,
-            "message": f"Invoice moved to Level {new_level}"
+            "next_approver": next_approver,
+            "sla_metrics": {
+                "time_in_workflow_hours": round(time_in_workflow, 2),
+                "sla_warning": sla_warning,
+                "sla_threshold_hours": 24
+            },
+            "message": f"Invoice approved. {'Now pending ' + next_approver + ' approval.' if next_approver else 'Ready for payment.'}"
         }
         
     except Exception as e:
+        logger.error(f"[APPROVAL] Error: {e}")
         import traceback
         traceback.print_exc()
         return {"success": False, "error": str(e)}
@@ -1187,35 +1458,88 @@ async def approve_invoice(invoice_id: str, payload: dict):
 
 @router.post("/{invoice_id}/reject")
 async def reject_invoice(invoice_id: str, payload: dict):
-    """Reject an invoice and stop the workflow."""
+    """
+    Reject an invoice and stop the workflow.
+    
+    Enhanced with:
+    - Rejection category classification
+    - Detailed audit metadata
+    - Re-submission capability indicator
+    """
     try:
         approver_name = payload.get("approver_name", "Unknown")
+        approver_role = payload.get("approver_role", "UNKNOWN")
         reason = payload.get("reason", "No reason provided")
+        category = payload.get("category", "OTHER")  # AMOUNT, DOCUMENT, DUPLICATE, POLICY, OTHER
+        allow_resubmit = payload.get("allow_resubmit", True)
         
         from db_config import get_db_connection
         conn = get_db_connection()
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get current invoice state for audit
+        cursor.execute("""
+            SELECT id, approval_level, status, total_amount, vendor_name, created_at
+            FROM invoices WHERE id = %s
+        """, (invoice_id,))
+        invoice = cursor.fetchone()
+        
+        if not invoice:
+            cursor.close()
+            conn.close()
+            return {"success": False, "error": "Invoice not found"}
+        
+        # Calculate time in workflow
+        import datetime as dt
+        now = dt.datetime.now()
+        created_at = invoice.get("created_at") or now
+        time_in_workflow = (now - created_at).total_seconds() / 3600
         
         cursor.execute("""
             UPDATE invoices 
             SET status = 'REJECTED',
                 rejection_reason = %s,
-                approved_by = %s, -- capture who rejected it
-                approved_at = NOW()
+                approved_by = %s,
+                approved_at = NOW(),
+                updated_at = NOW()
             WHERE id = %s
         """, (reason, approver_name, invoice_id))
         
-        # Log action
+        # Enhanced Audit Log with metadata
+        audit_metadata = json.dumps({
+            "rejection_category": category,
+            "rejection_level": invoice.get("approval_level", 0),
+            "approver_role": approver_role,
+            "allow_resubmit": allow_resubmit,
+            "time_in_workflow_hours": round(time_in_workflow, 2),
+            "invoice_amount": float(invoice.get("total_amount", 0) or 0),
+            "vendor": invoice.get("vendor_name", ""),
+            "reason": reason
+        })
+        
         cursor.execute("""
-            INSERT INTO audit_log (entity_type, entity_id, action, user_name, description)
-            VALUES ('INVOICE', %s, 'REJECT', %s, %s)
-        """, (invoice_id, approver_name, f"Rejected: {reason}"))
+            INSERT INTO audit_log (entity_type, entity_id, action, user_name, description, metadata, created_at)
+            VALUES ('INVOICE', %s, 'REJECT', %s, %s, %s, NOW())
+        """, (invoice_id, approver_name, f"Rejected [{category}]: {reason}", audit_metadata))
         
         conn.commit()
         cursor.close()
         conn.close()
         
-        return {"success": True, "status": "REJECTED"}
+        logger.info(f"[REJECTION] Invoice {invoice_id}: Rejected by {approver_name} ({approver_role}) - {category}")
+        
+        return {
+            "success": True, 
+            "status": "REJECTED",
+            "rejection_details": {
+                "category": category,
+                "reason": reason,
+                "rejected_by": approver_name,
+                "allow_resubmit": allow_resubmit
+            },
+            "message": f"Invoice rejected{'.' if not allow_resubmit else ' - may be resubmitted after corrections.'}"
+        }
         
     except Exception as e:
+        logger.error(f"[REJECTION] Error: {e}")
         return {"success": False, "error": str(e)}

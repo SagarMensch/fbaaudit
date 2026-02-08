@@ -9,8 +9,18 @@ Production-grade RAG chatbot using:
 Groq is the FASTEST LLM provider - responses in milliseconds!
 """
 
-from groq import Groq
-from sentence_transformers import SentenceTransformer
+try:
+    from groq import Groq
+except ImportError:
+    Groq = None
+    print("⚠️ Groq library not installed. RAG will be disabled.")
+
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError:
+    SentenceTransformer = None
+    print("⚠️ sentence_transformers not installed.")
+
 import json
 import os
 import hashlib
@@ -18,8 +28,9 @@ from functools import lru_cache
 from dotenv import load_dotenv
 
 # Database imports
-from services.db_service import get_db_connection
-from services.vector_store import search_similar, get_embedding_stats
+# Database imports
+from backend.services.db_service import get_db_connection
+from backend.services.vector_store import search_similar, get_embedding_stats
 
 load_dotenv()
 
@@ -30,9 +41,12 @@ GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
 # Initialize Groq client
 groq_client = None
-if GROQ_API_KEY:
-    groq_client = Groq(api_key=GROQ_API_KEY)
-    print("✅ Groq (Llama 3.3 70B) connected!")
+if GROQ_API_KEY and Groq:
+    try:
+        groq_client = Groq(api_key=GROQ_API_KEY)
+        print("✅ Groq (Llama 3.3 70B) connected!")
+    except Exception as e:
+        print(f"❌ Failed to connect to Groq: {e}")
 else:
     print("⚠️ GROQ_API_KEY not set. Get free key from https://console.groq.com")
 
@@ -48,7 +62,11 @@ class RAGController:
         
         try:
             # Initialize embedding model for queries
-            self.embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+            if SentenceTransformer:
+                self.embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+            else:
+                self.embedding_model = None
+                print("⚠️ Embedding model not initialized (missing sentence_transformers)")
             
             if groq_client:
                 print("✅ RAG Engine Online (Groq Llama 3.3 70B + Supabase pgvector)")

@@ -35,7 +35,7 @@ export const generateOllamaResponse = async (
 AVAILABLE DATA:
 - Suppliers/Carriers: ${suppliers}
 - Pending Invoices: ${pendingCount}
-- Total Spend: ₹${totalValue}
+- Total Spend: $${totalValue}
 - Active Contracts: ${MOCK_RATES.length}
 - KPIs: ${kpiSummary}
 

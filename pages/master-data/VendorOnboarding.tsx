@@ -208,7 +208,7 @@ export const VendorOnboarding: React.FC = () => {
                 <h2 className="text-xl font-bold">Bank Validaton</h2>
             </div>
 
-            <p className="text-sm text-gray-600">We will deposit ₹1 to verify your identity.</p>
+            <p className="text-sm text-gray-600">We will deposit $1 to verify your identity.</p>
 
             <div className="space-y-4">
                 <div>

@@ -320,13 +320,13 @@ class FuelMasterService {
                 if (params.distanceKm) {
                     surchargeAmount = (priceDiff / rule.mileageBenchmark) * params.distanceKm;
                     breakdown.push(`Formula: PVC (Price Variance Charge)`);
-                    breakdown.push(`Current Price: ₹${currentPrice}/L`);
-                    breakdown.push(`Base Price: ₹${rule.baseDieselPrice}/L`);
-                    breakdown.push(`Price Difference: ₹${priceDiff.toFixed(2)}/L`);
+                    breakdown.push(`Current Price: $${currentPrice}/L`);
+                    breakdown.push(`Base Price: $${rule.baseDieselPrice}/L`);
+                    breakdown.push(`Price Difference: $${priceDiff.toFixed(2)}/L`);
                     breakdown.push(`Mileage Benchmark: ${rule.mileageBenchmark} KMPL`);
                     breakdown.push(`Distance: ${params.distanceKm} km`);
                     breakdown.push(`Calculation: (${priceDiff.toFixed(2)} / ${rule.mileageBenchmark}) × ${params.distanceKm}`);
-                    breakdown.push(`Surcharge: ₹${surchargeAmount.toFixed(2)}`);
+                    breakdown.push(`Surcharge: $${surchargeAmount.toFixed(2)}`);
                 } else {
                     breakdown.push(`Error: Distance required for PVC calculation`);
                 }
@@ -340,11 +340,11 @@ class FuelMasterService {
                     if (applicableSlab) {
                         surchargeAmount = applicableSlab.surcharge;
                         breakdown.push(`Formula: Slab-based Surcharge`);
-                        breakdown.push(`Current Price: ₹${currentPrice}/L`);
-                        breakdown.push(`Applicable Slab: ₹${applicableSlab.min} - ₹${applicableSlab.max}`);
-                        breakdown.push(`Surcharge: ₹${surchargeAmount}`);
+                        breakdown.push(`Current Price: $${currentPrice}/L`);
+                        breakdown.push(`Applicable Slab: $${applicableSlab.min} - $${applicableSlab.max}`);
+                        breakdown.push(`Surcharge: $${surchargeAmount}`);
                     } else {
-                        breakdown.push(`No applicable slab found for price ₹${currentPrice}`);
+                        breakdown.push(`No applicable slab found for price $${currentPrice}`);
                     }
                 }
                 break;
@@ -355,10 +355,10 @@ class FuelMasterService {
                 if (params.baseFreight && rule.percentageRate) {
                     surchargeAmount = (params.baseFreight * rule.percentageRate) / 100;
                     breakdown.push(`Formula: Percentage-based Surcharge`);
-                    breakdown.push(`Base Freight: ₹${params.baseFreight.toLocaleString()}`);
+                    breakdown.push(`Base Freight: $${params.baseFreight.toLocaleString()}`);
                     breakdown.push(`Surcharge Rate: ${rule.percentageRate}%`);
                     breakdown.push(`Calculation: ${params.baseFreight} × ${rule.percentageRate}%`);
-                    breakdown.push(`Surcharge: ₹${surchargeAmount.toFixed(2)}`);
+                    breakdown.push(`Surcharge: $${surchargeAmount.toFixed(2)}`);
                 } else {
                     breakdown.push(`Error: Base freight required for percentage calculation`);
                 }

@@ -316,7 +316,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
               </div>
               <div className="p-4 bg-gray-50 rounded-sm border border-gray-100">
                 <p className="text-xs text-gray-400 uppercase font-bold">Total Amount</p>
-                <p className="text-sm font-bold text-gray-900 mt-1">₹{invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
+                <p className="text-sm font-bold text-gray-900 mt-1">${invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
               </div>
               <div className="p-4 bg-gray-50 rounded-sm border border-gray-100">
                 <p className="text-xs text-gray-400 uppercase font-bold">Invoice Date</p>
@@ -338,26 +338,26 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                 {/* 1. Base */}
                 <div className="flex justify-between items-center text-gray-600">
                   <span>Base Freight</span>
-                  <span className="font-mono">₹{taxBreakdown.taxableAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                  <span className="font-mono">${taxBreakdown.taxableAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                 </div>
 
                 {/* 2. GST */}
                 {taxBreakdown.isRcm ? (
                   <div className="flex justify-between items-center text-orange-600 bg-orange-50 p-2 rounded">
                     <span className="flex items-center text-xs font-bold"><AlertTriangle size={12} className="mr-1" /> (+) GST (RCM {taxBreakdown.gstRate}%)</span>
-                    <span className="font-mono font-bold">₹{taxBreakdown.gstPayableToGovt.toLocaleString()} [Pay to Govt]</span>
+                    <span className="font-mono font-bold">${taxBreakdown.gstPayableToGovt.toLocaleString()} [Pay to Govt]</span>
                   </div>
                 ) : (
                   <div className="flex justify-between items-center text-gray-500">
                     <span className="text-xs">(+) GST (FCM {taxBreakdown.gstRate}%)</span>
-                    <span className="font-mono">₹{taxBreakdown.gstPayableToVendor.toLocaleString()}</span>
+                    <span className="font-mono">${taxBreakdown.gstPayableToVendor.toLocaleString()}</span>
                   </div>
                 )}
 
                 {/* 3. TDS */}
                 <div className="flex justify-between items-center text-red-600">
                   <span className="flex items-center text-xs"><TrendingDown size={12} className="mr-1" /> (-) TDS ({taxBreakdown.tdsRate}%)</span>
-                  <span className="font-mono font-bold">₹{taxBreakdown.tdsAmount.toLocaleString()}</span>
+                  <span className="font-mono font-bold">${taxBreakdown.tdsAmount.toLocaleString()}</span>
                 </div>
 
                 {/* Divider */}
@@ -366,7 +366,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                 {/* 4. NET PAYABLE */}
                 <div className="flex justify-between items-center text-teal-900">
                   <span className="font-bold">Net Transfer to Vendor</span>
-                  <span className="font-mono text-xl font-bold">₹{taxBreakdown.netPayableToVendor.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                  <span className="font-mono text-xl font-bold">${taxBreakdown.netPayableToVendor.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
 
@@ -396,7 +396,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                   <div className="flex justify-between items-end mb-4 border-b border-orange-100 pb-4">
                     <div>
                       <p className="text-xs text-gray-500 uppercase font-bold mb-1">Potential Savings</p>
-                      <p className="text-3xl font-bold text-gray-900">₹{parcelAudit.potentialRefund.toFixed(2)}</p>
+                      <p className="text-3xl font-bold text-gray-900">${parcelAudit.potentialRefund.toFixed(2)}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-500 mb-1">Carrier Service</p>
@@ -410,7 +410,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                     <div className={`p-3 rounded border ${!parcelAudit.checks.gsr.valid ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-xs font-bold uppercase text-gray-600">Late Delivery (GSR)</span>
-                        {!parcelAudit.checks.gsr.valid && <span className="text-xs font-bold text-red-600">+₹{parcelAudit.checks.gsr.savings}</span>}
+                        {!parcelAudit.checks.gsr.valid && <span className="text-xs font-bold text-red-600">+${parcelAudit.checks.gsr.savings}</span>}
                       </div>
                       <p className="text-xs text-gray-700 leading-snug">{parcelAudit.checks.gsr.details}</p>
                     </div>
@@ -419,7 +419,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                     <div className={`p-3 rounded border ${!parcelAudit.checks.dimWeight.valid ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-xs font-bold uppercase text-gray-600">Dim Weight Audit</span>
-                        {!parcelAudit.checks.dimWeight.valid && <span className="text-xs font-bold text-red-600">+₹{parcelAudit.checks.dimWeight.savings}</span>}
+                        {!parcelAudit.checks.dimWeight.valid && <span className="text-xs font-bold text-red-600">+${parcelAudit.checks.dimWeight.savings}</span>}
                       </div>
                       <p className="text-xs text-gray-700 leading-snug">{parcelAudit.checks.dimWeight.details}</p>
                       <div className="mt-2 text-[10px] text-gray-400 flex space-x-2">
@@ -432,7 +432,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                     <div className={`p-3 rounded border ${!parcelAudit.checks.residential.valid ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
                       <div className="flex justify-between items-start mb-2">
                         <span className="text-xs font-bold uppercase text-gray-600">Resi Surcharge</span>
-                        {!parcelAudit.checks.residential.valid && <span className="text-xs font-bold text-red-600">+₹{parcelAudit.checks.residential.savings}</span>}
+                        {!parcelAudit.checks.residential.valid && <span className="text-xs font-bold text-red-600">+${parcelAudit.checks.residential.savings}</span>}
                       </div>
                       <p className="text-xs text-gray-700 leading-snug">{parcelAudit.checks.residential.details}</p>
                     </div>
@@ -516,10 +516,10 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                         {item.description}
                       </div>
                       <div className={`col-span-1 p-3 border-b border-gray-50 text-right font-mono ${hasVariance ? 'bg-red-50 text-red-700 font-bold' : 'text-gray-600'}`}>
-                        ₹{item.amount.toFixed(2)}
+                        ${item.amount.toFixed(2)}
                       </div>
                       <div className="col-span-1 p-3 border-b border-gray-50 text-right font-mono text-teal-700 font-bold bg-teal-50/10">
-                        ₹{item.expectedAmount.toFixed(2)}
+                        ${item.expectedAmount.toFixed(2)}
                       </div>
                     </React.Fragment>
                   );
@@ -528,10 +528,10 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                 {/* Total Row */}
                 <div className="col-span-1 p-3 bg-gray-50 font-bold text-gray-800 text-xs uppercase">Total</div>
                 <div className={`col-span-1 p-3 bg-gray-50 text-right font-mono font-bold ${invoice.variance > 0 ? 'text-red-600' : 'text-gray-800'}`}>
-                  ₹{invoice.amount.toFixed(2)}
+                  ${invoice.amount.toFixed(2)}
                 </div>
                 <div className="col-span-1 p-3 bg-gray-50 text-right font-mono font-bold text-teal-700">
-                  ₹{(invoice.auditAmount || invoice.amount).toFixed(2)}
+                  ${(invoice.auditAmount || invoice.amount).toFixed(2)}
                 </div>
               </div>
             </div>
@@ -587,7 +587,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                         <span className="text-gray-500 ml-2 font-mono">{seg.code}</span>
                       </div>
                       <div className="font-mono text-gray-900 font-bold">
-                        ₹{seg.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        ${seg.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                         <span className="text-gray-400 font-sans font-normal ml-1">({seg.percentage}%)</span>
                       </div>
                     </li>
@@ -669,7 +669,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
                 if (!stepConfig || (historyStep.status !== 'ACTIVE' && historyStep.status !== 'PENDING')) return null;
 
                 // Only allow the exact role assigned to this step to approve
-                // Enterprise Director should NOT be able to approve steps assigned to Kaai or Zeya
+                // Enterprise Director should NOT be able to approve steps assigned to Lan or William
                 const userCanAct = activePersona.roleId === stepConfig.roleId;
 
                 if (!userCanAct) return (
@@ -782,7 +782,7 @@ export const InvoiceDetail: React.FC<InvoiceDetailProps> = ({ invoice, onBack, o
               {invoice.currency !== 'USD' && invoice.baseAmount && (
                 <p className="text-xs text-teal-400 font-mono mt-0.5 flex justify-end items-center">
                   <span className="opacity-70 mr-1">USD Eqv:</span>
-                  ₹{invoice.baseAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  ${invoice.baseAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   <span className="text-[9px] text-slate-500 ml-1 border border-slate-700 px-1 rounded bg-slate-800">
                     @ {invoice.exchangeRate}
                   </span>

@@ -49,7 +49,7 @@ export const MagicSplitter: React.FC<{ shipmentId?: string }> = ({ shipmentId = 
 
     const fetchRequirements = async () => {
         try {
-            const res = await fetch(`http://localhost:5000/api/checklist/requirements/${shipmentId}`);
+            const res = await fetch(`http://localhost:8000/api/checklist/requirements/${shipmentId}`);
             const data = await res.json();
             if (data.requirements) {
                 setRequirements(data.requirements);
@@ -68,7 +68,7 @@ export const MagicSplitter: React.FC<{ shipmentId?: string }> = ({ shipmentId = 
 
         try {
             setStage('processing'); // processing upload
-            const res = await fetch('http://localhost:5000/api/checklist/upload-bundle', {
+            const res = await fetch('http://localhost:8000/api/checklist/upload-bundle', {
                 method: 'POST',
                 body: formData
             });
@@ -131,7 +131,7 @@ export const MagicSplitter: React.FC<{ shipmentId?: string }> = ({ shipmentId = 
 
         try {
             setStage('processing');
-            const res = await fetch('http://localhost:5000/api/checklist/split', {
+            const res = await fetch('http://localhost:8000/api/checklist/split', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
