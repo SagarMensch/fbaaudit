@@ -339,15 +339,18 @@ export const SettlementFinance: React.FC<SettlementFinanceProps> = ({ userRole =
          if (response.batches && response.batches.length > 0) {
             // Map backend data to frontend format
             const mappedBatches = response.batches.map((b: any) => ({
-               id: b.batch_number || b.id,
+               batchNumber: b.batch_number || b.id,
                runDate: b.scheduled_date || b.created_at?.split('T')[0],
                entity: 'Hitachi Energy',
                bankAccount: b.bank_account || 'HDFC-001',
-               amount: b.total_amount,
+               totalAmount: b.total_amount,
                currency: b.currency || 'INR',
                invoiceCount: b.invoice_count,
-               status: b.status === 'PAID' ? 'SENT_TO_BANK' : b.status === 'PENDING_APPROVAL' ? 'AWAITING_APPROVAL' : 'DRAFT'
-            })) as any;
+               paymentMethod: b.payment_method || 'ACH',
+               createdBy: 'System',
+               createdAt: b.created_at || new Date().toISOString(),
+               status: b.status === 'PAID' ? 'PROCESSING' : b.status === 'PENDING_APPROVAL' ? 'PENDING_APPROVAL' : 'DRAFT'
+            }));
             setBatches(mappedBatches);
          }
       } catch (error) {

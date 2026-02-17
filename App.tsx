@@ -197,8 +197,16 @@ const App: React.FC = () => {
     } else {
       setUserRole(role);
       setIsLoggedIn(true);
-      if (role === 'HITACHI') setActiveTab('intelligence');
-      else setActiveTab('cockpit');
+
+      if (role === 'HITACHI') {
+        const financePersona = DEMO_PERSONAS.find(p => p.id === 'william');
+        if (financePersona) setActivePersona(financePersona);
+        setActiveTab('settlement');
+      } else {
+        const opsPersona = DEMO_PERSONAS.find(p => p.id === 'lan') || DEMO_PERSONAS[0];
+        setActivePersona(opsPersona);
+        setActiveTab('cockpit');
+      }
     }
   };
 
@@ -667,7 +675,7 @@ const App: React.FC = () => {
           <header className="h-14 bg-white border-b border-slate-300 flex items-center justify-between px-6 shadow-sm z-50 flex-shrink-0 relative">
             <div className="flex items-center">
               <h1 className="text-sm font-bold text-slate-700 tracking-tight flex items-center mr-6 uppercase">
-                {userRole === 'HITACHI' ? <span className="font-cursive text-3xl text-black lowercase first-letter:text-[#E60012] first-letter:uppercase mr-3" style={{ transform: 'translateY(4px)' }}>Confidential</span> : userRole === 'VENDOR' ? 'MAERSK LINE' : 'SEQUELSTRING AI CONTROL TOWER'}
+                {userRole === 'HITACHI' ? <span className="font-cursive text-3xl text-black lowercase first-letter:text-[#E60012] first-letter:uppercase mr-3" style={{ transform: 'translateY(4px)' }}>Confidential</span> : userRole === 'VENDOR' ? 'MAERSK LINE' : 'AGENTRA AI CONTROL TOWER'}
                 <span className="text-slate-300 mx-2">|</span>
                 <span className="text-slate-500 font-normal">
                   {userRole === 'HITACHI' ? 'Finance Cockpit' : userRole === 'VENDOR' ? 'Supplier Portal' : 'Admin Console'}
